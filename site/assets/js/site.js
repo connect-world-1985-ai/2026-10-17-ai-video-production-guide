@@ -49,10 +49,31 @@
     if (html != null) e.innerHTML = html;
     return e;
   }
+  /* htmlpreview.github.io renders this site before GitHub Pages is switched on.
+     Its sidebar and pager are built after that host rewrites links, so those
+     hrefs have to point back at the preview or they open raw source. */
+  function previewQuery() {
+    if (location.hostname !== "htmlpreview.github.io") return "";
+    var q = location.search.length > 1 ? location.search.slice(1) : "";
+    try { q = decodeURIComponent(q); } catch (e) { /* keep the raw query */ }
+    var hash = q.indexOf("#");
+    if (hash >= 0) q = q.slice(0, hash);
+    return q;
+  }
   function currentFile() {
+    var q = previewQuery();
+    if (q) {
+      var name = q.slice(q.lastIndexOf("/") + 1);
+      return name || "index.html";
+    }
     var p = decodeURIComponent(location.pathname).replace(/\\/g, "/");
     var f = p.substring(p.lastIndexOf("/") + 1);
     return f || "index.html";
+  }
+  function pageHref(file) {
+    var q = previewQuery();
+    if (!q) return file;
+    return "https://htmlpreview.github.io/?" + q.slice(0, q.lastIndexOf("/") + 1) + file;
   }
   function slug(s) {
     return s.toLowerCase().replace(/<[^>]+>/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
@@ -78,7 +99,7 @@
     var top = el("header", { "class": "topbar" });
     top.innerHTML =
       '<button class="icon-btn" id="menu-btn" aria-label="Open navigation">☰</button>' +
-      '<a class="brand" href="index.html">AI Video Production <small>a field guide for engineers · Oct 2026</small></a>' +
+      '<a class="brand" href="' + pageHref("index.html") + '">AI Video Production <small>a field guide for engineers · Oct 2026</small></a>' +
       '<span class="spacer"></span>' +
       '<button class="icon-btn" id="ev-btn" title="Evidence label legend">Labels</button>' +
       '<button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode"></button>';
@@ -90,7 +111,7 @@
     var html = "";
     PAGES.forEach(function (p) {
       if (p.group) { html += '<div class="group">' + p.group + "</div>"; return; }
-      html += '<a href="' + p.file + '"' + (p.file === cur ? ' class="active" aria-current="page"' : "") +
+      html += '<a href="' + pageHref(p.file) + '"' + (p.file === cur ? ' class="active" aria-current="page"' : "") +
         '><span class="num">' + p.num + "</span><span>" + p.title + "</span></a>";
     });
     side.innerHTML = html;
@@ -108,9 +129,9 @@
     if (idx >= 0) {
       var pager = el("nav", { "class": "pager", "aria-label": "Previous and next page" });
       var ph = "";
-      if (idx > 0) ph += '<a class="prev" href="' + list[idx - 1].file + '"><small>← Previous</small>' + list[idx - 1].title + "</a>";
+      if (idx > 0) ph += '<a class="prev" href="' + pageHref(list[idx - 1].file) + '"><small>← Previous</small>' + list[idx - 1].title + "</a>";
       else ph += "<span></span>";
-      if (idx < list.length - 1) ph += '<a class="next" href="' + list[idx + 1].file + '"><small>Next →</small>' + list[idx + 1].title + "</a>";
+      if (idx < list.length - 1) ph += '<a class="next" href="' + pageHref(list[idx + 1].file) + '"><small>Next →</small>' + list[idx + 1].title + "</a>";
       pager.innerHTML = ph;
       content.appendChild(pager);
     }
