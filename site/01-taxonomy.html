@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taxonomy of Video Generation</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 1 · Deliverable B — Technology taxonomy</div>
+<h1>Taxonomy: the different ways a video gets made</h1>
+<p class="lead">"AI-generated video" names at least a dozen different mechanisms. This page classifies them by <b>where the pixels come from</b> and <b>where the motion comes from</b>, which are the two questions that predict cost, control and failure.</p>
+
+<h2>The two questions that classify any shot</h2>
+<div class="cards">
+<div class="card"><h4>Where do the pixels come from?</h4>
+<p><b>Synthesised</b> by a neural network · <b>Rendered</b> from a scene description · <b>Captured</b> by a camera or screen · <b>Composited</b> from other media.</p></div>
+<div class="card"><h4>Where does the motion come from?</h4>
+<p><b>Learned</b> (the model predicts plausible motion) · <b>Authored</b> (keyframes, code, curves) · <b>Simulated</b> (physics, particles) · <b>Captured</b> (camera, mocap) · <b>Edit-time</b> (cuts, pans, zooms over stills).</p></div>
+</div>
+<p>Most of the confusion in this field disappears once you ask both questions of every shot. A "3D-looking" product spin can be learned motion over synthesised pixels (a video model) or authored motion over rendered pixels (Blender) — they look similar in a thumbnail and behave completely differently when you need to change the logo colour. <span class="ev i">Inference</span></p>
+
+<h2>Taxonomy diagram</h2>
+<figure class="diagram">
+<svg viewBox="0 0 860 520" role="img" aria-label="Taxonomy tree of video production approaches">
+  <defs><marker id="t1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+  <rect x="330" y="10" width="200" height="40" rx="8" class="box-accent"/><text x="352" y="35" class="t-title">Video production methods</text>
+  <!-- four families -->
+  <rect x="10" y="90" width="195" height="44" rx="8" class="box-a"/><text x="20" y="110" class="t-a">A · Neural synthesis</text><text x="20" y="126" class="t-muted">model imagines pixels</text>
+  <rect x="222" y="90" width="195" height="44" rx="8" class="box-b"/><text x="232" y="110" class="t-b">B · Rendered scene</text><text x="232" y="126" class="t-muted">code/scene → renderer</text>
+  <rect x="434" y="90" width="195" height="44" rx="8" class="box-c"/><text x="444" y="110" class="t-c">C · Assembly &amp; editing</text><text x="444" y="126" class="t-muted">timeline of existing media</text>
+  <rect x="646" y="90" width="205" height="44" rx="8" class="box-d"/><text x="656" y="110" class="t-d">D · Hybrid pipelines</text><text x="656" y="126" class="t-muted">mix A+B+C per shot/layer</text>
+  <path d="M430,50 L108,88" class="line" marker-end="url(#t1)"/><path d="M430,50 L320,88" class="line" marker-end="url(#t1)"/>
+  <path d="M430,50 L532,88" class="line" marker-end="url(#t1)"/><path d="M430,50 L748,88" class="line" marker-end="url(#t1)"/>
+  <!-- A children -->
+  <g>
+  <rect x="10" y="160" width="195" height="30" rx="5" class="box"/><text x="20" y="180">A1 Text → video</text>
+  <rect x="10" y="196" width="195" height="30" rx="5" class="box"/><text x="20" y="216">A2 Image → video</text>
+  <rect x="10" y="232" width="195" height="30" rx="5" class="box"/><text x="20" y="252">A3 Video → video / gen. editing</text>
+  <rect x="10" y="268" width="195" height="30" rx="5" class="box"/><text x="20" y="288">A4 Avatars &amp; lip-sync</text>
+  <rect x="10" y="304" width="195" height="30" rx="5" class="box"/><text x="20" y="324">A5 Joint audio+video</text>
+  <rect x="10" y="340" width="195" height="30" rx="5" class="box"/><text x="20" y="360">A6 World models (interactive)</text>
+  </g>
+  <!-- B children -->
+  <rect x="222" y="160" width="195" height="30" rx="5" class="box"/><text x="232" y="180">B1 2D motion graphics in code</text>
+  <rect x="222" y="196" width="195" height="30" rx="5" class="box"/><text x="232" y="216">B2 3D scene, offline render</text>
+  <rect x="222" y="232" width="195" height="30" rx="5" class="box"/><text x="232" y="252">B3 Real-time engine render</text>
+  <rect x="222" y="268" width="195" height="30" rx="5" class="box"/><text x="232" y="288">B4 Procedural / simulation</text>
+  <rect x="222" y="304" width="195" height="30" rx="5" class="box"/><text x="232" y="324">B5 Data / scientific viz</text>
+  <rect x="222" y="340" width="195" height="30" rx="5" class="box"/><text x="232" y="360">B6 Captured 3D (splats, NeRF)</text>
+  <!-- C children -->
+  <rect x="434" y="160" width="195" height="30" rx="5" class="box"/><text x="444" y="180">C1 Stills animated (pan/zoom/2.5D)</text>
+  <rect x="434" y="196" width="195" height="30" rx="5" class="box"/><text x="444" y="216">C2 Programmatic timeline assembly</text>
+  <rect x="434" y="232" width="195" height="30" rx="5" class="box"/><text x="444" y="252">C3 Template-based video APIs</text>
+  <rect x="434" y="268" width="195" height="30" rx="5" class="box"/><text x="444" y="288">C4 Auto-editing recorded footage</text>
+  <rect x="434" y="304" width="195" height="30" rx="5" class="box"/><text x="444" y="324">C5 Screen / UI capture</text>
+  <rect x="434" y="340" width="195" height="30" rx="5" class="box"/><text x="444" y="360">C6 Professional NLE + scripting</text>
+  <!-- D children -->
+  <rect x="646" y="160" width="205" height="30" rx="5" class="box"/><text x="656" y="180">D1 Per-shot mix on one timeline</text>
+  <rect x="646" y="196" width="205" height="30" rx="5" class="box"/><text x="656" y="216">D2 CG layout → AI restyle (V2V)</text>
+  <rect x="646" y="232" width="205" height="30" rx="5" class="box"/><text x="656" y="252">D3 AI assets → 3D/2D scene</text>
+  <rect x="646" y="268" width="205" height="30" rx="5" class="box"/><text x="656" y="288">D4 Generated plate + CG overlay</text>
+  <rect x="646" y="304" width="205" height="30" rx="5" class="box"/><text x="656" y="324">D5 Real footage + AI VFX</text>
+  <rect x="646" y="340" width="205" height="30" rx="5" class="box"/><text x="656" y="360">D6 Keyframe images → I2V chain</text>
+  <!-- audio band -->
+  <rect x="10" y="400" width="841" height="50" rx="8" class="box-accent"/>
+  <text x="22" y="422" class="t-title">Audio runs in parallel</text>
+  <text x="22" y="440" class="t-muted">TTS / voice clone · music generation or library · SFX generation or library · ASR for captions · mixing &amp; loudness — joined to picture on the timeline (or generated jointly in A5)</text>
+  <!-- control gradient -->
+  <defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="var(--c-a)"/><stop offset="1" stop-color="var(--c-b)"/></linearGradient></defs>
+  <rect x="10" y="474" width="841" height="10" rx="5" fill="url(#g1)" opacity=".7"/>
+  <text x="10" y="506" class="t-muted">← more "imagined": faster to great-looking, less exact control, probabilistic</text>
+  <text x="560" y="506" class="t-muted">more "authored": exact, repeatable, more build effort →</text>
+</svg>
+<figcaption>The four families and their main sub-types. A real video usually uses several of them; the timeline (C2) is where they meet.</figcaption>
+</figure>
+
+<h2>A, B, C, D compared at a glance</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Dimension</th><th><span class="ap a">A</span> Neural pixels</th><th><span class="ap b">B</span> Rendered scene</th><th><span class="ap c">C</span> Assembly</th><th><span class="ap d">D</span> Hybrid</th></tr></thead>
+<tbody>
+<tr><td><b>What you give it</b></td><td>Prompt, reference images, start/end frames, a source video</td><td>A scene description in code (objects, keyframes, camera, materials)</td><td>A timeline/EDL: which asset, when, where, with which transition</td><td>A per-shot plan that routes each shot to A, B or C</td></tr>
+<tr><td><b>Source of pixels</b></td><td>Learned distribution of images/video</td><td>Geometry + light computed by a renderer</td><td>Pre-existing media</td><td>All of them</td></tr>
+<tr><td><b>Motion</b></td><td>Predicted jointly with appearance; plausible, not specified</td><td>Authored (keyframes/code) or simulated</td><td>Cuts, transitions, pans/zooms over media</td><td>Mixed</td></tr>
+<tr><td><b>Precision of control</b></td><td>Low–medium (better with references, start/end frames, camera presets)</td><td>Total (pixel-exact, frame-exact)</td><td>Frame-exact for timing; content as good as inputs</td><td>Precise where B/C, loose where A</td></tr>
+<tr><td><b>Consistency</b></td><td>Hard across shots (identity drift, style drift); improved by reference images</td><td>Automatic: same asset = same look</td><td>Automatic for reused assets</td><td>Must be designed (shared palette, references, look-dev)</td></tr>
+<tr><td><b>Text, numbers, diagrams</b></td><td>Weak (garbled text improving, still unreliable for exact data)</td><td>Excellent</td><td>Excellent (overlays)</td><td>Use B for these</td></tr>
+<tr><td><b>Photorealism, organic scenes</b></td><td>Excellent (its main strength)</td><td>Possible but expensive (assets, lighting, render time)</td><td>Only if you have footage</td><td>Use A or footage</td></tr>
+<tr><td><b>Determinism</b></td><td>Low (seed helps on some models; providers change models)</td><td>High (same code + same version → same frames)</td><td>High</td><td>Medium; isolate the random parts</td></tr>
+<tr><td><b>Unit cost</b></td><td>Per generated second (API) or GPU minutes</td><td>CPU/GPU render time; your/agent's build time</td><td>Encode time (cheap)</td><td>Sum, plus orchestration</td></tr>
+<tr><td><b>Agent control</b></td><td>Async HTTP APIs, SDKs, MCP servers, ComfyUI graphs</td><td>Write code, run headless CLI (excellent fit for coding agents)</td><td>FFmpeg, Python/JS libraries, JSON templates, NLE scripting</td><td>Orchestrator code + all of the left</td></tr>
+</tbody></table></div>
+<p class="small muted">Labels: the comparisons above are <span class="ev p">Practice</span> (broadly documented behaviour). Specific model capabilities with dates are on <a href="02-neural-video.html">page 2</a> and <a href="06-ecosystem.html">page 6</a>.</p>
+
+<div class="callout analogy"><span class="title">Engineer's analogy</span>
+<p><span class="ap a">A</span> is like asking an LLM for code: fast, often impressive, sometimes subtly wrong, and you validate it. <span class="ap b">B</span> is like writing the code yourself: slower to start, exact, reviewable, reproducible. <span class="ap c">C</span> is the build system and linker. <span class="ap d">D</span> is a system where you keep the parts that must be correct (labels, numbers, logos, timing) in authored code and let generative models fill in the parts that only need to be plausible and beautiful.</p></div>
+
+<h2>Every category in detail</h2>
+<p>Each block answers the same eight questions from the brief: mechanism, source of pixels, motion, control, consistency, audio, strengths/limits, agent integration. <button class="chip" data-toggle-all="cats">Expand all</button></p>
+
+<div id="cats">
+
+<h3>A — Neural synthesis</h3>
+
+<details><summary><span class="ap a">A1</span> Text-to-video (T2V)</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>A video diffusion (or flow-matching) transformer starts from noise in a compressed "latent" video space and iteratively denoises it, guided by an embedding of your prompt. A decoder turns the latent back into frames. (Details: <a href="02-neural-video.html">page 2</a>.)</dd>
+<dt>Pixels</dt><dd>Synthesised.</dd>
+<dt>Motion</dt><dd>Learned. The model generates all frames of the clip together (not one after another, in most current designs), so motion is whatever the training data makes plausible.</dd>
+<dt>Control</dt><dd>Prompt wording, negative prompts on some models, camera-movement vocabulary ("slow dolly in", "aerial tracking shot"), aspect ratio, duration, seed. Low precision: you describe, you don't specify.</dd>
+<dt>Consistency</dt><dd>Within a clip: good for a few seconds, degrades with length. Across clips: poor without references — the same "red rocket" prompt gives different rockets.</dd>
+<dt>Audio</dt><dd>Several 2025-26 models generate synchronised audio natively (dialogue, ambience, effects). Others are silent and audio is added later.</dd>
+<dt>Strong at</dt><dd>Atmosphere, nature, crowds, cinematic b-roll, stylised scenes, "impossible camera" shots.</dd>
+<dt>Weak at</dt><dd>Exact text and numbers, technical correctness (a landing burn that obeys physics), precise choreography, long continuous takes, brand-exact objects.</dd>
+<dt>Agent fit</dt><dd>Good: asynchronous REST APIs (submit → poll/webhook → download). Cost and randomness must be budgeted.</dd>
+</dl></div></details>
+
+<details><summary><span class="ap a">A2</span> Image-to-video (I2V), first/last frame, reference-to-video</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>Same model family as T2V, but additionally conditioned on one or more images: a start frame (the clip begins exactly there), optional end frame (the model interpolates a plausible path between), or "reference" images of a character/product that should appear.</dd>
+<dt>Pixels</dt><dd>Synthesised, anchored to your image(s).</dd>
+<dt>Motion</dt><dd>Learned, constrained by start/end states and the prompt.</dd>
+<dt>Control</dt><dd>Much better than T2V: composition, colours, character design and layout are fixed by the image you supply (which you can generate, render, photograph or design precisely).</dd>
+<dt>Consistency</dt><dd>The main industry technique for cross-shot consistency: design keyframes first (consistent), then animate each. <span class="ev p">Practice</span></dd>
+<dt>Audio</dt><dd>As T2V.</dd>
+<dt>Strong at</dt><dd>Storyboard-driven productions, product shots from a real photo, animating illustrations, chaining shots (last frame of shot N → first frame of N+1).</dd>
+<dt>Weak at</dt><dd>Large viewpoint changes (model must invent unseen sides), fine text in the image may warp as it moves.</dd>
+<dt>Agent fit</dt><dd>Excellent: the agent can generate or render the keyframe deterministically, check it as a still (cheap to inspect), then spend money on animation.</dd>
+</dl></div></details>
+
+<details><summary><span class="ap a">A3</span> Video-to-video and generative editing</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>The model is conditioned on an input video (or signals extracted from it: depth, edges, pose, optical flow, segmentation masks) and asked to re-generate it with changes: new style, new lighting, replaced object, extended duration, removed element, changed camera angle.</dd>
+<dt>Pixels</dt><dd>Synthesised, structurally guided by the source.</dd>
+<dt>Motion</dt><dd>Mostly inherited from the source video. This is the key benefit: you author or capture motion, the model supplies appearance.</dd>
+<dt>Control</dt><dd>Medium–high: structure from the source, look from prompt/reference.</dd>
+<dt>Consistency</dt><dd>Good within the clip; style can still drift between separately processed clips.</dd>
+<dt>Audio</dt><dd>Usually kept from the source or added later.</dd>
+<dt>Strong at</dt><dd>Turning a rough 3D blockout into a cinematic shot (see D2), relighting, restyling, object removal, inpainting, outpainting to a new aspect ratio.</dd>
+<dt>Weak at</dt><dd>Preserving tiny details exactly (text, UI), long clips (processing windows), avoiding "shimmer".</dd>
+<dt>Agent fit</dt><dd>Good via APIs or ComfyUI workflows; needs masks/control signals that an agent can produce with code (segmentation, depth estimation).</dd>
+</dl></div></details>
+
+<details><summary><span class="ap a">A4</span> Digital humans, talking heads, lip-sync</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>Three variants: (1) <b>avatar platforms</b> that turn a script into a presenter video from a trained avatar; (2) <b>audio-driven portrait animation</b>: an image + a speech track → a talking video; (3) <b>lip-sync / re-dubbing</b>: modify only the mouth region of existing footage to match new audio.</dd>
+<dt>Pixels</dt><dd>Synthesised (fully or in the face region).</dd>
+<dt>Motion</dt><dd>Driven by the audio (phonemes → mouth shapes, prosody → head motion) plus learned idle motion.</dd>
+<dt>Control</dt><dd>Script, voice, avatar choice, sometimes gestures/emotion tags. Camera mostly fixed.</dd>
+<dt>Consistency</dt><dd>Excellent for the same avatar (it is literally the same identity model).</dd>
+<dt>Audio</dt><dd>Speech is the input (TTS or recorded); avatar platforms bundle TTS.</dd>
+<dt>Strong at</dt><dd>Training, corporate comms, localisation into many languages, explainers with a human face.</dd>
+<dt>Weak at</dt><dd>Full-body action, emotional nuance over long takes, uncanny-valley risk; strict consent requirements for real people's likeness and voice.</dd>
+<dt>Agent fit</dt><dd>Good: commercial avatar platforms expose REST APIs; open-source lip-sync models run locally on a GPU.</dd>
+</dl></div></details>
+
+<details><summary><span class="ap a">A5</span> Joint audio-video generation</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>One model generates the video and the soundtrack together (or two coupled branches attend to each other), so footsteps land on impacts and lips move with generated dialogue.</dd>
+<dt>Pixels / audio</dt><dd>Both synthesised.</dd>
+<dt>Control</dt><dd>Dialogue in the prompt (often in quotes), sound descriptions. You cannot easily swap the voice or remix stems afterwards unless the provider gives separate tracks.</dd>
+<dt>Strong at</dt><dd>Short cinematic moments with diegetic sound, quick social clips, dialogue scenes.</dd>
+<dt>Weak at</dt><dd>Professional mixing (no stems), consistent narrator voice across a long video, music continuity across cuts.</dd>
+<dt>Agent fit</dt><dd>Same API pattern as A1; the agent must decide whether to keep or strip the native audio. In a narrated documentary, native audio is usually reduced to an ambience bed or discarded. <span class="ev i">Inference</span></dd>
+</dl></div></details>
+
+<details><summary><span class="ap a">A6</span> World models and interactive generation</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>Autoregressive models that generate frames step-by-step in response to actions (move left, turn camera), producing navigable, persistent-ish environments in real time.</dd>
+<dt>Status</dt><dd><span class="ev x">Experimental</span> for production use as of Oct 2026: impressive research previews, limited access, short memory horizons. Relevant because they hint at "virtual sets" a camera could be driven through.</dd>
+<dt>Agent fit</dt><dd>Mostly not yet available as general production APIs.</dd>
+</dl></div></details>
+
+<h3>B — Rendered scenes (code-driven graphics)</h3>
+
+<details><summary><span class="ap b">B1</span> 2D motion graphics and explainer animation in code</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>A program describes, for every frame number <code>t</code>, what to draw: shapes, text, SVG, charts, images, equations. A renderer draws each frame (often a headless browser for web-based frameworks, or Cairo/OpenGL for Python ones) and an encoder writes the frames into a video file.</dd>
+<dt>Pixels</dt><dd>Rendered (vector → raster).</dd>
+<dt>Motion</dt><dd>Authored: interpolation between keyframes with easing curves, springs, or arbitrary functions of time.</dd>
+<dt>Control</dt><dd>Total and frame-exact. Typography, data, brand colours are exact.</dd>
+<dt>Consistency</dt><dd>Automatic — components and themes are reused.</dd>
+<dt>Audio</dt><dd>Added as tracks inside the composition (narration file + timestamps drive the animation) or in post.</dd>
+<dt>Strong at</dt><dd>Educational/math explainers, data stories, UI/product walkthrough graphics, titles, kinetic typography, social clips with captions.</dd>
+<dt>Weak at</dt><dd>Photorealism, organic motion, characters (possible but laborious).</dd>
+<dt>Agent fit</dt><dd><b>The best fit of any category.</b> It is just code: agents write it, run it headlessly, inspect stills at chosen frame numbers, and fix with diffs. <span class="ev p">Practice</span></dd>
+</dl></div></details>
+
+<details><summary><span class="ap b">B2</span> 3D modelling, animation and offline rendering</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>A scene graph of meshes, materials, lights and cameras; animation as keyframed properties (F-curves), rigs/skeletons, constraints, or simulation. A renderer (path tracer for realism, rasteriser for speed) computes each frame; frames are encoded to video.</dd>
+<dt>Pixels</dt><dd>Rendered.</dd>
+<dt>Motion</dt><dd>Authored or simulated. Camera moves are exact (paths, focal length, depth of field).</dd>
+<dt>Control</dt><dd>Total, but you must supply assets (models, textures). Generated 3D assets (text/image-to-3D) are now an option.</dd>
+<dt>Consistency</dt><dd>Automatic: the same rocket model is the same rocket in every shot.</dd>
+<dt>Audio</dt><dd>None natively; added in post.</dd>
+<dt>Strong at</dt><dd>Engineering/scientific visualisation, product renders, cutaways, exploded views, accurate trajectories.</dd>
+<dt>Weak at</dt><dd>Cost of photorealism (asset quality, lighting skill, render time), human characters.</dd>
+<dt>Agent fit</dt><dd>Very good when the engine is scriptable and headless (e.g. Python inside a 3D suite, a CLI render). Asset creation and aesthetic lighting remain the hard parts for agents. <span class="ev i">Inference</span></dd>
+</dl></div></details>
+
+<details><summary><span class="ap b">B3</span> Real-time engines (game-engine rendering)</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>Same scene concepts as B2, rendered with GPU rasterisation (+ some ray tracing) fast enough for interactive frame rates; "movie render" modes write high-quality frames offline.</dd>
+<dt>Trade-off</dt><dd>Real-time = seconds per shot, rich asset marketplaces, virtual production; offline path tracing = higher physical accuracy, minutes per frame.</dd>
+<dt>Agent fit</dt><dd>Medium: engines are large, GUI-centric applications. Python/remote-control APIs exist, but projects, assets and builds are heavy for an agent to manage. <span class="ev i">Inference</span></dd>
+</dl></div></details>
+
+<details><summary><span class="ap b">B4</span> Procedural graphics, particles and physics simulation</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>Rules and equations generate geometry and motion: particle emitters (exhaust plumes, sparks), rigid-body and fluid solvers, noise fields, L-systems, node-based procedural modelling.</dd>
+<dt>Motion</dt><dd>Simulated — physically plausible by construction, and "correct" if the physics parameters are.</dd>
+<dt>Strong at</dt><dd>Smoke, fire, debris, crowds, scientifically meaningful motion.</dd>
+<dt>Weak at</dt><dd>Art direction (simulations are hard to steer to a look), compute cost of high-resolution fluids.</dd>
+<dt>Agent fit</dt><dd>Good for parameterised setups via scripting; tuning to look good needs visual feedback cycles.</dd>
+</dl></div></details>
+
+<details><summary><span class="ap b">B5</span> Data and scientific visualisation</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>Plotting/visualisation libraries render data-driven frames (charts, fields, meshes, trajectories) and export animation.</dd>
+<dt>Strong at</dt><dd>Truthfulness: the picture is a function of the data.</dd>
+<dt>Agent fit</dt><dd>Excellent (ordinary Python/JS code). Styling to broadcast quality is the usual gap.</dd>
+</dl></div></details>
+
+<details><summary><span class="ap b">B6</span> Captured 3D: Gaussian splats, NeRFs, photogrammetry</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>Reconstruct a real place or object from many photos/video into a 3D representation, then render new camera paths through it.</dd>
+<dt>Strong at</dt><dd>Photoreal fly-throughs of real places/objects with authored camera moves.</dd>
+<dt>Weak at</dt><dd>Moving subjects, editing the scene content, artefacts at unseen angles. <span class="ev x">Emerging</span> in production pipelines.</dd>
+</dl></div></details>
+
+<h3>C — Assembly and editing</h3>
+
+<details><summary><span class="ap c">C1</span> Stills animated over time (pan/zoom, parallax, 2.5D)</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>Generate or source still images, then create motion at edit time: slow zoom/pan ("Ken Burns"), parallax by splitting foreground/background layers (depth estimation), or animating via I2V (A2).</dd>
+<dt>Strong at</dt><dd>Cheap, fully controllable, consistent; standard for documentary archive stills and many faceless social channels.</dd>
+<dt>Weak at</dt><dd>Feels static if overused.</dd>
+<dt>Agent fit</dt><dd>Excellent (image API + FFmpeg or a code framework).</dd>
+</dl></div></details>
+
+<details><summary><span class="ap c">C2</span> Programmatic timeline assembly</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>A timeline is data: tracks of clips with in/out points, positions, transitions, effects, captions, and audio levels. A tool composites the tracks frame by frame and encodes. The timeline can be an FFmpeg filter graph, a Python/JS composition, a JSON template sent to a rendering API, or an interchange file (EDL/XML/OTIO) opened by an editor.</dd>
+<dt>Control</dt><dd>Frame-exact timing; deterministic.</dd>
+<dt>Agent fit</dt><dd>Excellent. This is where the agent's plan becomes a video.</dd>
+</dl></div></details>
+
+<details><summary><span class="ap c">C3</span> Template-based video APIs and "AI video maker" apps</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>Cloud services fill designed templates with your text, images and voice (JSON → MP4), or consumer apps turn a script into a stock-footage video with voiceover.</dd>
+<dt>Agent fit</dt><dd>APIs: good. Consumer apps without APIs: poor (UI automation only).</dd>
+</dl></div></details>
+
+<details><summary><span class="ap c">C4</span> Automated editing of recorded footage</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>Analyse existing recordings with speech recognition, silence detection, scene detection, face tracking and LLM summarisation, then cut, reframe (16:9 → 9:16), caption and highlight automatically. Text-based editing (edit the transcript, the video follows) is the dominant UX.</dd>
+<dt>Strong at</dt><dd>Podcasts, talks, interviews, tutorials, clipping long videos into shorts.</dd>
+<dt>Agent fit</dt><dd>Excellent with open tools (ASR + FFmpeg); mixed for commercial apps (some have APIs).</dd>
+</dl></div></details>
+
+<details><summary><span class="ap c">C5</span> Screen and UI capture (product demos)</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>Record a real application session — increasingly scripted with browser automation so it is repeatable — then add zooms, cursor highlights, captions, and narration.</dd>
+<dt>Agent fit</dt><dd>Excellent for web apps: the agent writes the automation script, records it headlessly, and re-records when the UI changes. <span class="ev i">Inference</span></dd>
+</dl></div></details>
+
+<details><summary><span class="ap c">C6</span> Professional non-linear editors (NLEs) with scripting</summary><div class="body">
+<dl class="kv">
+<dt>Mechanism</dt><dd>GUI editors used by professionals for editing, colour grading, audio mixing and finishing. Several have scripting APIs or accept timeline interchange files.</dd>
+<dt>Agent fit</dt><dd>Medium: useful as a "finishing station" a human opens, or controlled via scripting/interchange files. The agent rarely needs the GUI if a programmatic path exists. <span class="ev i">Inference</span></dd>
+</dl></div></details>
+
+<h3>D — Hybrid pipelines</h3>
+
+<details><summary><span class="ap d">D1–D6</span> The common hybrid patterns</summary><div class="body">
+<ul>
+<li><b>D1 Per-shot mixing</b>: the timeline alternates rendered diagrams, generated b-roll, stock footage and avatars. The most common professional pattern. <span class="ev p">Practice</span></li>
+<li><b>D2 CG layout → AI restyle</b>: block out geometry and camera in 3D (exact motion and composition), render a plain pass plus depth/edges, then use video-to-video generation to make it photoreal or stylised. Gets B's control with A's look. <span class="ev p">Practice</span> in VFX/previs; quality varies.</li>
+<li><b>D3 AI assets inside authored scenes</b>: generated textures, backgrounds, 3D models, or characters imported into a code-driven scene.</li>
+<li><b>D4 Generated plate + CG overlay</b>: a generated cinematic background with exact labels, arrows, HUD graphics composited on top (the overlay must track the camera if it moves).</li>
+<li><b>D5 Real footage + AI VFX</b>: object removal, sky replacement, relighting, de-aging, dubbing of filmed material.</li>
+<li><b>D6 Keyframe-first chains</b>: consistent still keyframes (image model with references) → I2V per shot → edited together. The dominant method for AI "short films" in 2025-26. <span class="ev p">Practice</span></li>
+</ul>
+</div></details>
+
+</div>
+
+<h2>Real-time vs offline: a cross-cutting dimension</h2>
+<div class="table-wrap"><table>
+<thead><tr><th></th><th>Real-time</th><th>Offline</th></tr></thead>
+<tbody>
+<tr><td>Rendering</td><td>Game engines, browser canvas/WebGL; frames in milliseconds</td><td>Path tracers; seconds–minutes per frame</td></tr>
+<tr><td>Neural generation</td><td>Emerging: streaming/real-time video models and world models <span class="ev x">Experimental</span></td><td>Standard: a 5–10 s clip takes on the order of a minute to several minutes to generate on hosted services <span class="ev p">Practice</span></td></tr>
+<tr><td>For an agent</td><td>Faster feedback loop</td><td>Batch jobs; must be queued, cached and resumed</td></tr>
+</tbody></table></div>
+
+<h2>How to recognise the method behind a video you saw</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Tell-tale sign</th><th>Likely method</th></tr></thead>
+<tbody>
+<tr><td>Perfectly crisp text, equations and charts that animate smoothly</td><td><span class="ap b">B1</span> code-driven 2D</td></tr>
+<tr><td>Photoreal, lush, but shots are short (≈ 4–10 s), hands/text slightly off, objects subtly change between shots</td><td><span class="ap a">A1/A2</span> generated clips cut together (D6)</td></tr>
+<tr><td>Same character looks identical everywhere, plastic or "CG" feel, perfectly smooth camera</td><td><span class="ap b">B2/B3</span> 3D render</td></tr>
+<tr><td>A presenter facing the camera, little body movement, exact lip-sync in many languages</td><td><span class="ap a">A4</span> avatar</td></tr>
+<tr><td>Stock clips + still images with slow zooms + synthetic narrator + big captions</td><td><span class="ap c">C1/C3</span> template or script-to-video assembly</td></tr>
+<tr><td>Rendered-looking geometry but photoreal texture with slight shimmer</td><td><span class="ap d">D2</span> CG → video-to-video</td></tr>
+</tbody></table></div>
+<p class="small muted"><span class="ev i">Inference</span> — heuristics, not proof. Content provenance metadata (C2PA) is the only reliable signal when present; see <a href="12-engineering-legal.html">page 12</a>.</p>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

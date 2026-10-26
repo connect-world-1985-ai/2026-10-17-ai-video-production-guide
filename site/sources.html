@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sources and Method</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Reference · §14 — Research methodology and evidence standards</div>
+<h1>Sources and method</h1>
+<p class="lead">How this guide was researched, how claims are labelled, and where to find every source.</p>
+
+<h2>Method</h2>
+<ol>
+<li><b>Independent discovery</b> (2026-10-17): six parallel research passes covered neural video; image, avatar and enhancement; programmatic graphics and editing; audio; agent workflows and video QA; legal and provenance. Each produced a sourced fact sheet with access dates and an explicit "disagreements/uncertainties" section.</li>
+<li><b>Primary sources first</b>: official docs, pricing pages, repositories (stars and licences read from the GitHub API on 2026-10-17), papers, licence files. Secondary sources (news, law-firm notes, aggregators) were used where no primary page was reachable and are labelled as such.</li>
+<li><b>Main-author verification</b> of the most consequential claims, directly from primary sources: Gemini API video pricing; the Artificial Analysis text-to-video leaderboard; the Wan 2.1 architecture numbers; the Sora shutdown; DaVinci Resolve 21.1 scripting change; the HunyuanVideo territory clause; GitHub statistics of the agent tools; the video-use skill file.</li>
+<li><b>No invented numbers</b>: every price, star count and benchmark carries a source; where sources conflicted, the conflict is stated.</li>
+</ol>
+
+<h2>Evidence labels</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Label</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><span class="ev v">Verified</span></td><td>Checked against a primary source (docs, repo, paper, licence, official announcement), or confirmed by several independent reputable outlets.</td></tr>
+<tr><td><span class="ev p">Practice</span></td><td>Evidence-supported industry practice or widely documented behaviour.</td></tr>
+<tr><td><span class="ev i">Inference</span></td><td>The author's technical analysis or synthesis — reasoned, not sourced as fact.</td></tr>
+<tr><td><span class="ev u">Unverified</span></td><td>Reported or marketed but not independently confirmed; conflicting sources.</td></tr>
+<tr><td><span class="ev x">Experimental</span></td><td>Emerging capability: research or demo grade.</td></tr>
+</tbody></table></div>
+
+<h2>Known limitations of this research</h2>
+<ul>
+<li>Leaderboards have no snapshot dates and change weekly; rankings were read on 2026-10-17.</li>
+<li>Several prices come from aggregators or resellers (marked); vendor pages sometimes failed to render.</li>
+<li>GitHub stars measure interest, not production use; mirror repositories (Blender, FFmpeg) understate popularity.</li>
+<li>German personality-rights law was not researched with primary sources.</li>
+<li>Commercial "agent modes" inside video products were assessed only from secondary material.</li>
+<li>No hands-on benchmarks were run; all quality claims come from published evaluations or documentation.</li>
+</ul>
+
+<h2>Full research notes</h2>
+<p>The complete fact sheets (with every URL and access date) are kept next to the project memory. Open them in any text/Markdown viewer:</p>
+<ul>
+<li><a href="../docs/memory/memory-20261017-ai-video-production-research/research-notes/r1-neural-video.md">R1 — Neural video models and services</a></li>
+<li><a href="../docs/memory/memory-20261017-ai-video-production-research/research-notes/r2-image-avatar-enhance.md">R2 — Image models, avatars and lip-sync, enhancement and segmentation</a></li>
+<li><a href="../docs/memory/memory-20261017-ai-video-production-research/research-notes/r3-programmatic-editing.md">R3 — Programmatic graphics, 3D, editing and encoding</a></li>
+<li><a href="../docs/memory/memory-20261017-ai-video-production-research/research-notes/r4-audio.md">R4 — Audio: TTS, music, SFX, ASR, mixing</a></li>
+<li><a href="../docs/memory/memory-20261017-ai-video-production-research/research-notes/r5-agent-workflows.md">R5 — Agent workflows, MCP, research systems, video QA</a></li>
+<li><a href="../docs/memory/memory-20261017-ai-video-production-research/research-notes/r6-legal-provenance.md">R6 — Copyright, licensing, consent, provenance</a></li>
+</ul>
+
+<h2>Key primary sources</h2>
+<details open><summary>Neural video &amp; images</summary><div class="body"><ul>
+<li><a href="https://artificialanalysis.ai/video/leaderboard/text-to-video">Artificial Analysis — text-to-video leaderboard</a> · <a href="https://llm-stats.com/leaderboards/best-ai-for-video-creation">LLM-Stats video arena</a></li>
+<li><a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini API pricing</a> · <a href="https://ai.google.dev/gemini-api/docs/veo">Veo docs</a> · <a href="https://ai.google.dev/gemini-api/docs/video-understanding">Gemini video understanding</a></li>
+<li><a href="https://docs.dev.runwayml.com/guides/pricing/">Runway API pricing (incl. resold models)</a></li>
+<li><a href="https://huggingface.co/MiniMaxAI/MiniMax-H3">MiniMax H3 model card</a> · <a href="https://huggingface.co/Lightricks/LTX-2.5-Diffusers">LTX-2.5 model card</a> · <a href="https://github.com/Wan-Video/Wan2.2">Wan 2.2</a> · <a href="https://github.com/Tencent-Hunyuan/HunyuanVideo">HunyuanVideo</a></li>
+<li><a href="https://engadget.com/ai/openai-is-shutting-down-its-sora-video-generation-app-211023358.html">Engadget — Sora shutdown</a> · <a href="https://the-decoder.com/openai-sets-two-stage-sora-shutdown-with-app-closing-april-2026-and-api-following-in-september/">The Decoder — Sora timeline</a></li>
+<li>Papers: <a href="https://arxiv.org/abs/2006.11239">DDPM</a>, <a href="https://arxiv.org/abs/2112.10752">Latent Diffusion</a>, <a href="https://arxiv.org/abs/2212.09748">DiT</a>, <a href="https://arxiv.org/abs/2210.02747">Flow Matching</a>, <a href="https://arxiv.org/abs/2503.20314">Wan</a>, <a href="https://arxiv.org/abs/2412.03603">HunyuanVideo</a>, <a href="https://arxiv.org/abs/2410.13720">Movie Gen</a>, <a href="https://arxiv.org/abs/2506.08009">Self Forcing</a>, <a href="https://arxiv.org/abs/2505.13211">MAGI-1</a></li>
+</ul></div></details>
+<details><summary>Programmatic graphics, editing, delivery</summary><div class="body"><ul>
+<li><a href="https://www.remotion.dev/docs/license">Remotion licence</a> · <a href="https://www.remotion.dev/docs/ai/skills">Remotion Agent Skills</a> · <a href="https://github.com/heygen-com/hyperframes">HyperFrames</a> · <a href="https://github.com/ManimCommunity/manim">Manim Community</a></li>
+<li><a href="https://www.blender.org/download/">Blender</a> · <a href="https://ffmpeg.org/download.html">FFmpeg</a> · <a href="https://github.com/AcademySoftwareFoundation/OpenTimelineIO">OpenTimelineIO</a></li>
+<li><a href="https://www.pugetsystems.com/blog/2026/09/10/how-davinci-resolve-free-v21-1-scripting-changes-affect-puget-bench/">Puget Systems — Resolve 21.1 scripting moves to Studio</a></li>
+<li><a href="https://support.google.com/youtube/answer/1722171">YouTube recommended upload encoding settings</a></li>
+</ul></div></details>
+<details><summary>Audio</summary><div class="body"><ul>
+<li><a href="https://elevenlabs.io/pricing/api">ElevenLabs API pricing</a> · <a href="https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps">ElevenLabs timestamps endpoint</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-services/speech-service/how-to-speech-synthesis-viseme">Azure viseme docs</a> · <a href="https://aws.amazon.com/polly/pricing/">Amazon Polly pricing</a></li>
+<li><a href="https://suno.com/release-notes">Suno release notes</a> · <a href="https://www.the-decoder.com/stability-ai-launches-stable-audio-3-0-with-up-to-six-minute-tracks-and-open-weights/">Stable Audio 3.0</a></li>
+<li><a href="https://github.com/m-bain/whisperX">WhisperX</a> · <a href="https://github.com/SYSTRAN/faster-whisper">faster-whisper</a> · <a href="https://tech.ebu.ch/publications/r128">EBU R128</a></li>
+<li>Papers: <a href="https://arxiv.org/abs/2107.03312">SoundStream</a>, <a href="https://arxiv.org/abs/2210.13438">EnCodec</a>, <a href="https://arxiv.org/abs/2301.02111">VALL-E</a>, <a href="https://arxiv.org/abs/2410.06885">F5-TTS</a>, <a href="https://arxiv.org/abs/2306.05284">MusicGen</a>, <a href="https://arxiv.org/abs/2402.04825">Stable Audio</a></li>
+</ul></div></details>
+<details><summary>Agent workflows &amp; QA</summary><div class="body"><ul>
+<li><a href="https://github.com/browser-use/video-use">video-use</a> · <a href="https://github.com/EveryInc/product-launch-video">product-launch-video</a> · <a href="https://github.com/digitalsamba/claude-code-video-toolkit">claude-code-video-toolkit</a> · <a href="https://github.com/HKUDS/ViMax">ViMax</a> · <a href="https://github.com/ahujasid/blender-mcp">Blender MCP</a> · <a href="https://github.com/samuelgursky/davinci-resolve-mcp">Resolve MCP</a></li>
+<li><a href="https://arxiv.org/abs/2510.01174">Code2Video</a> · <a href="https://arxiv.org/abs/2502.19400">TheoremExplainAgent</a> · <a href="https://arxiv.org/abs/2501.12909">FilmAgent</a> · <a href="https://arxiv.org/abs/2503.07314">MovieAgent</a></li>
+<li><a href="https://arxiv.org/abs/2410.23266">TOMATO</a> · <a href="https://arxiv.org/abs/2410.02763">Vinoground</a> · <a href="https://arxiv.org/abs/2406.15252">VideoScore</a> · <a href="https://arxiv.org/abs/2311.17982">VBench</a> · <a href="https://arxiv.org/abs/2602.10840">SimuScene</a></li>
+<li><a href="https://arxiv.org/abs/2512.08296">Kim et al. — scaling agent systems</a> · <a href="https://arxiv.org/abs/2503.13657">Cemri et al. — why multi-agent systems fail</a></li>
+<li><a href="https://platform.claude.com/docs/en/build-with-claude/vision">Claude vision docs</a></li>
+</ul></div></details>
+<details><summary>Legal &amp; provenance</summary><div class="body"><ul>
+<li><a href="https://digital-strategy.ec.europa.eu/en/policies/code-practice-ai-generated-content">EU Code of Practice on AI-generated content</a></li>
+<li><a href="https://copyright.gov/ai/">US Copyright Office — AI reports</a></li>
+<li><a href="https://spec.c2pa.org/">C2PA specifications</a> · <a href="https://blog.google/technology/ai/google-synthid-ai-content-detector/">SynthID Detector</a></li>
+<li><a href="https://www.nasa.gov/multimedia/guidelines/index.html">NASA media usage guidelines</a> · <a href="https://www.esa.int/ESA_Multimedia/Terms_and_Conditions">ESA terms</a></li>
+<li><a href="https://stability.ai/community-license-agreement">Stability Community Licence</a></li>
+</ul></div></details>
+
+<p class="page-meta">Research date: 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

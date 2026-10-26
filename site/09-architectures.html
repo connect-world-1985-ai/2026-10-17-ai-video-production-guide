@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Local, Cloud and Hybrid Architectures</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 9 · §9 — Production architectures</div>
+<h1>Local, cloud and hybrid production</h1>
+<p class="lead">Where should each step run? There is no single answer: deterministic work is cheap and private locally, while state-of-the-art generative models are mostly only reachable as cloud APIs. Most practical setups end up hybrid.</p>
+
+<figure class="diagram">
+<svg viewBox="0 0 900 300" role="img" aria-label="Three production architectures compared">
+  <rect x="10" y="10" width="280" height="270" rx="12" class="box-b"/>
+  <text x="26" y="36" class="t-b">A · Local</text>
+  <rect x="26" y="50" width="248" height="34" rx="6" class="box"/><text x="36" y="72">Agent + orchestrator</text>
+  <rect x="26" y="92" width="248" height="34" rx="6" class="box"/><text x="36" y="114">Open video/image models (GPU)</text>
+  <rect x="26" y="134" width="248" height="34" rx="6" class="box"/><text x="36" y="156">Local TTS · ASR · music</text>
+  <rect x="26" y="176" width="248" height="34" rx="6" class="box"/><text x="36" y="198">Blender · code renderers · FFmpeg</text>
+  <text x="26" y="236" class="t-muted">+ private, no per-use cost, reproducible</text>
+  <text x="26" y="254" class="t-muted">− big GPU, maintenance, behind SOTA</text>
+  <rect x="310" y="10" width="280" height="270" rx="12" class="box-a"/>
+  <text x="326" y="36" class="t-a">B · Cloud</text>
+  <rect x="326" y="50" width="248" height="34" rx="6" class="box"/><text x="336" y="72">Agent (laptop or cloud sandbox)</text>
+  <rect x="326" y="92" width="248" height="34" rx="6" class="box"/><text x="336" y="114">Video/image APIs (async jobs)</text>
+  <rect x="326" y="134" width="248" height="34" rx="6" class="box"/><text x="336" y="156">Voice / music / ASR APIs</text>
+  <rect x="326" y="176" width="248" height="34" rx="6" class="box"/><text x="336" y="198">Render/edit APIs, cloud storage</text>
+  <text x="326" y="236" class="t-muted">+ best models, no hardware, scales</text>
+  <text x="326" y="254" class="t-muted">− cost/use, limits, lock-in, data leaves</text>
+  <rect x="610" y="10" width="280" height="270" rx="12" class="box-d"/>
+  <text x="626" y="36" class="t-d">C · Hybrid (typical)</text>
+  <rect x="626" y="50" width="248" height="34" rx="6" class="box"/><text x="636" y="72">Local: agent, plan, project state</text>
+  <rect x="626" y="92" width="248" height="34" rx="6" class="box-a"/><text x="636" y="114">Cloud: generative shots, voice</text>
+  <rect x="626" y="134" width="248" height="34" rx="6" class="box-b"/><text x="636" y="156">Local: 2D/3D render, compositing</text>
+  <rect x="626" y="176" width="248" height="34" rx="6" class="box"/><text x="636" y="198">Local QA tools + cloud video model</text>
+  <text x="626" y="236" class="t-muted">+ right tool per step, controllable cost</text>
+  <text x="626" y="254" class="t-muted">− more moving parts to orchestrate</text>
+</svg>
+</figure>
+
+<h2>Architecture A — local production</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Concern</th><th>What to expect</th></tr></thead>
+<tbody>
+<tr><td>Hardware</td><td>Code-driven 2D, FFmpeg, ASR and many TTS models run on an ordinary developer machine. Blender renders benefit greatly from a modern NVIDIA GPU. Open <b>video</b> models are the heavy part: lighter models (e.g. HunyuanVideo 1.5 at 8.3B, ~14 GB VRAM reported) fit consumer cards; practical use of large models such as LTX-2.5 (~19B) wants 24–32 GB+; the 33B MiniMax H3 examples use multiple GPUs. <span class="ev p">Practice</span> (model cards and secondary reports, 2026)</td></tr>
+<tr><td>Windows specifics</td><td>NVIDIA CUDA is the smooth path; ComfyUI ships a Windows portable build; Blender, FFmpeg, Node-based renderers and Python libraries run natively. Some research repos assume Linux — WSL2 helps. <span class="ev p">Practice</span></td></tr>
+<tr><td>Installation &amp; maintenance</td><td>Python environments, CUDA versions, model weights (tens of GB each), custom nodes that break on update. The single largest hidden cost of local AI. <span class="ev p">Practice</span></td></tr>
+<tr><td>Performance</td><td>A few seconds of open-model video can take minutes per clip on a single consumer GPU; renders and encodes are predictable.</td></tr>
+<tr><td>Privacy &amp; control</td><td>Best: nothing leaves the machine; models never change underneath you; seeds reproduce.</td></tr>
+<tr><td>Quality</td><td>Open video models trail the closed leaders on leaderboards; the gap varies by month. <span class="ev v">Verified</span> (Artificial Analysis board, 2026-10-17: top entries are closed or licence-restricted)</td></tr>
+<tr><td>Licences</td><td>"Open weights" ≠ free for commercial use: Wan 2.2 is Apache-2.0, LTX-2.5 is free only under US$10M revenue, others restrict territories (incl. the EU) or commercial use. <span class="ev v">Verified</span> for Wan/LTX; see <a href="12-engineering-legal.html">page 12</a></td></tr>
+</tbody></table></div>
+
+<h2>Architecture B — cloud production</h2>
+<h3>The universal async job pattern</h3>
+<figure class="diagram">
+<svg viewBox="0 0 860 170" role="img" aria-label="Async job submit poll download">
+  <defs><marker id="c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-accent"/></marker></defs>
+  <rect x="10" y="50" width="140" height="60" rx="8" class="box-accent"/><text x="22" y="76" class="t-title">1 Upload refs</text><text x="22" y="94" class="t-muted">images / audio</text>
+  <rect x="180" y="50" width="140" height="60" rx="8" class="box"/><text x="192" y="76" class="t-title">2 Submit job</text><text x="192" y="94" class="t-muted">→ job/request id</text>
+  <rect x="350" y="50" width="160" height="60" rx="8" class="box"/><text x="362" y="76" class="t-title">3 Wait</text><text x="362" y="94" class="t-muted">poll status or webhook</text>
+  <rect x="540" y="50" width="140" height="60" rx="8" class="box"/><text x="552" y="76" class="t-title">4 Download</text><text x="552" y="94" class="t-muted">immediately!</text>
+  <rect x="710" y="50" width="140" height="60" rx="8" class="box-ok"/><text x="722" y="76" class="t-title">5 Record</text><text x="722" y="94" class="t-muted">manifest + cost</text>
+  <path d="M150,80 L177,80" class="line-accent" marker-end="url(#c1)"/><path d="M320,80 L347,80" class="line-accent" marker-end="url(#c1)"/>
+  <path d="M510,80 L537,80" class="line-accent" marker-end="url(#c1)"/><path d="M680,80 L707,80" class="line-accent" marker-end="url(#c1)"/>
+  <text x="350" y="138" class="t-muted">IN_QUEUE → IN_PROGRESS → COMPLETED / FAILED; retries must be idempotent</text>
+  <text x="540" y="30" class="t-muted">e.g. Veo outputs kept only 2 days</text>
+</svg>
+</figure>
+<p>All major generation APIs follow this shape: fal's queue API (submit → status polling, streaming, or a webhook, with cancellation), Replicate predictions (poll or webhook, optional synchronous wait), Google's long-running operations for Veo (poll until done; generated videos are stored for only 2 days). <span class="ev v">Verified</span> (<a href="https://fal.ai/docs/model-endpoints/queue">fal docs</a>, <a href="https://replicate.com/docs/topics/predictions/create-a-prediction">Replicate docs</a>, <a href="https://ai.google.dev/gemini-api/docs/veo">Gemini Veo docs</a>)</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Concern</th><th>What to expect</th></tr></thead>
+<tbody>
+<tr><td>APIs &amp; SDKs</td><td>Vendor APIs (Google, Runway, MiniMax, Kling, ElevenLabs…), aggregators (fal, Replicate, Runway as reseller, ComfyUI partner nodes), some MCP servers.</td></tr>
+<tr><td>Reliability</td><td>Jobs fail, time out, or get blocked by content filters (some platforms still bill blocked outputs). Generation latency for Veo ranges from ~11 s to ~6 min at peak per Google docs. <span class="ev v">Verified</span></td></tr>
+<tr><td>Rate limits &amp; quotas</td><td>Per-key concurrency limits; tiered quotas; plan for a queue in your orchestrator.</td></tr>
+<tr><td>Access restrictions</td><td>Regional: e.g. Gemini Omni video editing of uploads not available in the EEA, Switzerland or UK; Veo person-generation settings restricted in the EU/UK/CH/MENA. <span class="ev v">Verified</span> (Gemini docs, 2026-10-17). Relevant if you work from Germany.</td></tr>
+<tr><td>Change risk</td><td>Models and endpoints are deprecated quickly: Sora shut down in 2026; the original Nano Banana image model was scheduled to shut down 2026-10-02; aggregator endpoints carry deprecation notices. <span class="ev v">Verified</span></td></tr>
+<tr><td>Cost</td><td>Per second of generated video: roughly $0.05–0.70 depending on model, tier and resolution (Oct 2026). Voice: cents per minute. <span class="ev v">Verified</span> ranges from vendor/aggregator price pages</td></tr>
+<tr><td>Quality &amp; scale</td><td>Best available models; parallel jobs; no hardware to manage.</td></tr>
+</tbody></table></div>
+
+<h2>Architecture C — hybrid production</h2>
+<p>The typical split, with reasoning:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Step</th><th>Where</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Agent, planning, project state</td><td>Local (or your own cloud sandbox)</td><td>Your files, your repo, resumable</td></tr>
+<tr><td>Generative video and keyframes</td><td>Cloud API</td><td>Quality; no GPU; pay only for accepted takes + retries</td></tr>
+<tr><td>3D and 2D rendering</td><td>Local (or cloud render for big jobs, e.g. Remotion Lambda)</td><td>Deterministic, private, cheap</td></tr>
+<tr><td>Narration</td><td>Cloud TTS (quality) or local TTS (privacy/cost)</td><td>Depends on voice requirements</td></tr>
+<tr><td>Compositing, mixing, encoding</td><td>Local FFmpeg</td><td>Fast, free, exact</td></tr>
+<tr><td>QA</td><td>Local probes/detectors/ASR + cloud vision/video model</td><td>Cheap checks first, expensive judgement last</td></tr>
+<tr><td>Rented GPUs (serverless GPU platforms)</td><td>Middle ground</td><td>Run open models without owning hardware — e.g. claude-code-video-toolkit uses a serverless GPU platform for open models <span class="ev v">Verified</span> (README)</td></tr>
+</tbody></table></div>
+
+<h2>Trade-offs side by side</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Dimension</th><th>Local</th><th>Cloud</th><th>Hybrid</th></tr></thead>
+<tbody>
+<tr><td>Latency per iteration</td><td>Low for render/edit; high for open-model video</td><td>Queue + generation minutes; network transfers</td><td>Fast loops locally, slow loops only for generated shots</td></tr>
+<tr><td>Determinism</td><td>High (pinned versions, seeds)</td><td>Low–medium (silent model updates)</td><td>High for the backbone</td></tr>
+<tr><td>Reproducibility</td><td>Rebuildable</td><td>Keep the output files; requests may not reproduce</td><td>Rebuildable except pinned generated clips</td></tr>
+<tr><td>Vendor lock-in</td><td>Low</td><td>High if you use vendor-specific features (templates, avatars)</td><td>Medium; isolate vendors behind an adapter</td></tr>
+<tr><td>Data privacy</td><td>Best</td><td>Data and likeness go to vendors; check retention and training terms</td><td>Choose per asset</td></tr>
+<tr><td>Creative control</td><td>High (but weaker models)</td><td>Model-dependent</td><td>Highest overall</td></tr>
+<tr><td>Upfront cost</td><td>GPU + setup time</td><td>None</td><td>Low</td></tr>
+<tr><td>Marginal cost</td><td>Electricity</td><td>Per second / per character</td><td>Mostly in generated shots</td></tr>
+</tbody></table></div>
+<p class="small muted"><span class="ev i">Inference</span> from the facts above.</p>
+
+<div class="callout key"><span class="title">An adapter layer is the cheapest insurance</span>
+<p>Wrap every external generator behind one internal interface (<code>generate_clip(spec) → file + metadata</code>). When a provider changes prices, deprecates a model, or shuts down — as happened with Sora — you change one adapter, not your pipeline. Record provider, model, version and cost in the manifest for every call. <span class="ev i">Inference</span></p></div>
+
+<h2>Total cost of production — the honest version</h2>
+<ol>
+<li><b>Your time</b> reviewing and directing (largest for quality work).</li>
+<li><b>Iteration multiplier</b>: generative shots typically need several attempts; budget 2–4× the final seconds. <span class="ev p">Practice</span></li>
+<li><b>Agent tokens</b>: planning, code, and especially visual QA (images are token-heavy).</li>
+<li><b>Generation APIs</b>: per second/character/image.</li>
+<li><b>Licences</b>: stock footage, music, fonts, software (e.g. Remotion company licence, Resolve Studio).</li>
+<li><b>Compute and maintenance</b>: local GPU, cloud rendering, storage.</li>
+</ol>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decision Framework</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+<style>
+  .q { margin: .5rem 0; }
+  .q label { display: block; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; margin: 4px 0; cursor: pointer; background: var(--bg-elev); }
+  .q label:hover { border-color: var(--accent); }
+  .q input { margin-right: 8px; }
+  #rec .card { box-shadow: none; }
+  .score { font-variant-numeric: tabular-nums; font-weight: 700; }
+</style>
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 13 · §13 + Deliverable G — Technology decision matrix</div>
+<h1>Decision framework: choosing the method for each shot</h1>
+<p class="lead">The core skill of an AI video director — human or agent — is routing each shot to the right machine. This page gives the rules, a trade-off matrix, an interactive helper, and three reference stacks.</p>
+
+<h2>Try it: which approach for this shot?</h2>
+<p class="small muted">Tick what's true for <b>one shot</b>. The helper applies the routing rules from this page. <span class="ev i">Inference</span> — a teaching aid, not an oracle.</p>
+<div class="card" style="box-shadow:none">
+<div class="q" id="helper">
+<label><input type="checkbox" value="text"> Shows exact text, numbers, equations, charts or UI</label>
+<label><input type="checkbox" value="physics"> Motion must be physically or technically correct</label>
+<label><input type="checkbox" value="photo"> Needs a photoreal or cinematic look</label>
+<label><input type="checkbox" value="organic"> Organic subjects: nature, crowds, weather, people in action</label>
+<label><input type="checkbox" value="real"> Must show a real event, real product or a real person truthfully</label>
+<label><input type="checkbox" value="presenter"> A person talking to camera</label>
+<label><input type="checkbox" value="recurring"> A character/object that recurs across many shots and must stay identical</label>
+<label><input type="checkbox" value="budget"> Very tight budget / no GPU</label>
+<label><input type="checkbox" value="fast"> Must be revisable quickly and repeatably</label>
+<label><input type="checkbox" value="calm"> It's a calm shot under narration (no specific action)</label>
+</div>
+<div id="rec"></div>
+</div>
+
+<h2>The rules behind it</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Question</th><th>Rule of thumb</th></tr></thead>
+<tbody>
+<tr><td>Generative video or code-driven animation?</td><td>If anything in the shot must be <i>exactly right</i> (text, data, mechanism, brand), use code/rendering. If it only needs to be <i>plausible and beautiful</i>, generative video is cheaper. If both: render the exact parts, generate the rest, composite (D4), or restyle a render (D2).</td></tr>
+<tr><td>When is 3D rendering preferable?</td><td>Objects must stay identical across many shots; camera must move precisely; mechanisms or physics must be correct; you need many variations of the same scene.</td></tr>
+<tr><td>When to generate a still first?</td><td>Almost always before image-to-video: stills are cheap to generate and inspect, fix composition and identity, and give I2V a precise starting point.</td></tr>
+<tr><td>External API or local inference?</td><td>API for best quality and no hardware; local for privacy, cost at high volume, deterministic re-runs, and licence-permitting open models. Check open-model licences for your region (some exclude the EU).</td></tr>
+<tr><td>Generate audio separately?</td><td>Yes for narrated, multi-shot videos (consistent voice, exact words, stems, captions). Native audio is fine for short standalone clips and ambience.</td></tr>
+<tr><td>Use a professional editing application?</td><td>For a human finishing pass (grade, mix, client review) — via a timeline hand-off (FCPXML/OTIO). Not as the agent's main engine unless it has a stable scripting API (Resolve Studio).</td></tr>
+<tr><td>What is easy to automate precisely?</td><td>Rendering code, assembly, timing from timestamps, captions, loudness, encoding, metadata checks, partial rebuilds.</td></tr>
+<tr><td>What stays probabilistic?</td><td>Any generative output (video, image, voice prosody, music), AI judgement of quality, and the agent's own creative choices.</td></tr>
+<tr><td>How to combine for professional results?</td><td>Deterministic backbone (script, timeline, renders, mix) + generative inserts with references + one look (grade, typography, sound) + human checkpoints.</td></tr>
+</tbody></table></div>
+
+<h2>Trade-off matrix</h2>
+<p class="small muted">5 = best. Relative ratings for a typical 2026 setup. <span class="ev i">Inference</span> from pages 2–12.</p>
+<div class="table-wrap"><table class="compact" data-sortable>
+<thead><tr><th>Dimension</th><th>A generative video</th><th>B 2D code</th><th>B 3D render</th><th>C assembly / stock</th><th>A4 avatar</th></tr></thead>
+<tbody>
+<tr><td>Visual quality (photoreal)</td><td>5</td><td>2</td><td>4</td><td>4</td><td>4</td></tr>
+<tr><td>Creative control (precision)</td><td>2</td><td>5</td><td>5</td><td>3</td><td>3</td></tr>
+<tr><td>Consistency across shots</td><td>2</td><td>5</td><td>5</td><td>3</td><td>5</td></tr>
+<tr><td>Determinism / reproducibility</td><td>1</td><td>5</td><td>5</td><td>5</td><td>3</td></tr>
+<tr><td>Automation by an agent</td><td>4</td><td>5</td><td>3</td><td>5</td><td>5</td></tr>
+<tr><td>Speed to first result</td><td>5</td><td>3</td><td>2</td><td>4</td><td>5</td></tr>
+<tr><td>Marginal cost (5 = cheapest)</td><td>2</td><td>5</td><td>4</td><td>4</td><td>3</td></tr>
+<tr><td>Hardware needs (5 = least)</td><td>5 (API) / 1 (local)</td><td>5</td><td>3</td><td>5</td><td>5</td></tr>
+<tr><td>Maintainability over time</td><td>2 (models churn)</td><td>5</td><td>4</td><td>4</td><td>3</td></tr>
+<tr><td>Agent compatibility</td><td>4</td><td>5</td><td>4</td><td>5</td><td>4</td></tr>
+</tbody></table></div>
+
+<h2>Reference stacks: beginner → advanced</h2>
+<p>Illustrative architectures for a Windows-based engineer using a coding agent — not universal solutions. Tool names are examples of a class; see the <a href="06-ecosystem.html">explorer</a> for alternatives.</p>
+<div data-tabs>
+<div class="tabs"><button data-tab="s1">Beginner</button><button data-tab="s2">Intermediate</button><button data-tab="s3">Advanced</button></div>
+<div class="tab-panel" data-panel="s1">
+<h4>Goal: narrated explainers and product videos, mostly code-driven</h4>
+<ul>
+<li><b>Agent</b>: Claude Code / Codex / Cursor with a video skill pack (Remotion skills or HyperFrames skills; or Manim).</li>
+<li><b>Visuals</b>: one code framework (React/HTML-based or Manim). A few generated b-roll clips via a single API (e.g. a "Fast/Lite" tier of a major model).</li>
+<li><b>Voice</b>: one cloud TTS (or a local open model if licence fits); word timings from the vendor or from faster-whisper.</li>
+<li><b>Music</b>: licensed library track or a music API with commercial terms.</li>
+<li><b>Assembly</b>: the framework's renderer + FFmpeg; captions from timestamps; two-pass loudness.</li>
+<li><b>QA</b>: ffprobe, loudness, ASR-vs-script, agent inspects stills at cue points; you watch the result.</li>
+<li><b>Cost profile</b>: mostly agent tokens + cents of TTS + a few dollars of generated b-roll.</li>
+</ul>
+</div>
+<div class="tab-panel" data-panel="s2">
+<h4>Goal: documentary-style and marketing videos with mixed technologies</h4>
+<ul>
+<li>Everything in Beginner, plus:</li>
+<li><b>Keyframes</b> with an image model using reference images; <b>I2V</b> via an aggregator (fal/Replicate/Runway API) behind your own adapter.</li>
+<li><b>3D</b>: Blender driven headlessly with Python (optionally via an MCP server).</li>
+<li><b>Project as a build</b>: shotlist.json + timeline.json + DAG with input hashing; job table for async generation; cost ledger.</li>
+<li><b>QA stack</b>: detectors + OCR + frames-to-vision-model + one whole-video pass with a video-capable model + human gates.</li>
+<li><b>Provenance</b>: asset manifest with licences; sign final export with C2PA.</li>
+</ul>
+</div>
+<div class="tab-panel" data-panel="s3">
+<h4>Goal: cinematic, character-driven or high-volume production</h4>
+<ul>
+<li>Everything in Intermediate, plus:</li>
+<li><b>Local/rented GPU</b> running licence-compatible open models in ComfyUI (e.g. Wan 2.2 Apache-2.0, LTX-2.5 under its revenue threshold) for cheap iterations, LoRAs for characters/products, control signals (depth/pose) for D2 restyles.</li>
+<li><b>Hybrid CG + AI</b>: 3D blockouts with exact cameras → video-to-video restyle; avatars/lip-sync with consent records.</li>
+<li><b>Director + subagents</b>: parallel shot builders and specialised critics (continuity, legibility, pacing, brand) under one coordinator.</li>
+<li><b>Finishing hand-off</b> to a pro NLE (OTIO/FCPXML) for grade and mix; multi-format deliverables; localisation.</li>
+<li><b>Operations</b>: containerised toolchain, pinned versions, spend limits per key, monitoring of model deprecations.</li>
+</ul>
+</div>
+</div>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script>
+window.PAGE_INIT = function () {
+  var box = document.getElementById("helper"), out = document.getElementById("rec");
+  var R = {
+    A: { n: "A · Generative video (image-to-video from a designed still)", c: "a" },
+    B2: { n: "B · 2D code-driven animation", c: "b" },
+    B3: { n: "B · 3D render (+ simulation)", c: "b" },
+    C: { n: "C · Real footage / screen capture / licensed archive", c: "c" },
+    C1: { n: "C1 · Still image with slow motion (pan/zoom/parallax)", c: "c" },
+    AV: { n: "A4 · Avatar or recorded presenter (with consent)", c: "a" },
+    D: { n: "D · Hybrid: render exact parts, generate the look, composite", c: "d" }
+  };
+  function decide(s) {
+    var sc = { A: 0, B2: 0, B3: 0, C: 0, C1: 0, AV: 0, D: 0 }, why = [];
+    if (s.text) { sc.B2 += 4; sc.D += 2; sc.A -= 3; why.push("Exact text/data → only rendering guarantees correctness."); }
+    if (s.physics) { sc.B3 += 4; sc.B2 += 1; sc.D += 1; sc.A -= 3; why.push("Correct motion → simulate/keyframe it; generative models only imitate plausibility."); }
+    if (s.photo) { sc.A += 3; sc.D += 2; sc.C += 1; sc.B2 -= 2; why.push("Photoreal look → generative video or footage; 3D photorealism is expensive."); }
+    if (s.organic) { sc.A += 3; sc.C += 1; sc.B3 -= 1; why.push("Organic subjects are where generative models shine and 3D is costly."); }
+    if (s.real) { sc.C += 5; sc.A -= 2; why.push("Truthful depiction → real footage or capture; label any reconstruction."); }
+    if (s.presenter) { sc.AV += 5; why.push("Talking presenter → avatar platform or a recorded human."); }
+    if (s.recurring) { sc.B3 += 2; sc.B2 += 1; sc.D += 1; sc.A -= 1; why.push("Recurring identity → rendered assets or strong references/LoRAs."); }
+    if (s.budget) { sc.B2 += 2; sc.C1 += 3; sc.A -= 1; sc.B3 -= 1; why.push("Tight budget → code and stills are nearly free."); }
+    if (s.fast) { sc.B2 += 2; sc.B3 += 1; sc.C1 += 1; sc.A -= 1; why.push("Repeatable revisions → deterministic methods."); }
+    if (s.calm) { sc.C1 += 3; sc.A += 1; why.push("Calm narration bed → a well-chosen still with slow motion often suffices."); }
+    if (s.text && (s.photo || s.organic)) { sc.D += 3; why.push("Exact overlay + realistic plate → classic hybrid composite (D4) or CG-to-video restyle (D2)."); }
+    if (s.physics && s.photo) { sc.D += 3; }
+    return { sc: sc, why: why };
+  }
+  function render() {
+    var s = {};
+    Array.prototype.forEach.call(box.querySelectorAll("input"), function (i) { s[i.value] = i.checked; });
+    var any = Object.keys(s).some(function (k) { return s[k]; });
+    if (!any) { out.innerHTML = '<p class="muted">Tick at least one box.</p>'; return; }
+    var r = decide(s), keys = Object.keys(r.sc).sort(function (a, b) { return r.sc[b] - r.sc[a]; });
+    var top = keys.filter(function (k) { return r.sc[k] > 0; }).slice(0, 3);
+    if (!top.length) top = ["B2"];
+    var h = '<div class="cards">';
+    top.forEach(function (k, i) {
+      h += '<div class="card ' + R[k].c + '"><h4>' + (i === 0 ? "Best fit: " : "Also consider: ") + R[k].n + '</h4><p class="score">score ' + r.sc[k] + "</p></div>";
+    });
+    h += "</div><ul>" + r.why.map(function (w) { return "<li>" + w + "</li>"; }).join("") + "</ul>";
+    out.innerHTML = h;
+  }
+  box.addEventListener("change", render); render();
+};
+</script>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

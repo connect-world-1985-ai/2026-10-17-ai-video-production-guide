@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent as Video Director</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 7 · Deliverable E — Autonomous production architecture · §7</div>
+<h1>How a coding agent becomes a video director</h1>
+<p class="lead">The demos that look like "an AI made a whole film" are, underneath, a planner writing structured files, a programmer calling tools, and a critic reading back frames, transcripts and numbers. This page takes that apart: planning, technology choice, orchestration, self-inspection, revision, and multi-agent setups — with what the evidence actually supports.</p>
+
+<h2>The architecture in one diagram</h2>
+<figure class="diagram">
+<svg viewBox="0 0 900 640" role="img" aria-label="Autonomous video production architecture with feedback loops">
+  <defs>
+    <marker id="d1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-accent"/></marker>
+    <marker id="d2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-loop"/></marker>
+    <marker id="d3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker>
+  </defs>
+  <!-- user -->
+  <rect x="20" y="20" width="170" height="64" rx="10" class="box-accent"/><text x="34" y="46" class="t-title">User</text><text x="34" y="66" class="t-muted">brief · approvals · taste</text>
+  <!-- agent -->
+  <rect x="250" y="14" width="400" height="80" rx="12" class="box-d"/>
+  <text x="266" y="40" class="t-d">Central agent (director / producer)</text>
+  <text x="266" y="60" class="t-muted">LLM coding agent: plans, writes code, calls tools,</text>
+  <text x="266" y="76" class="t-muted">reads results, decides what to change next</text>
+  <!-- project state -->
+  <rect x="700" y="14" width="180" height="200" rx="10" class="box"/>
+  <text x="712" y="38" class="t-title">Project state (files)</text>
+  <text x="712" y="60" class="t-muted">brief.md · research/</text>
+  <text x="712" y="78" class="t-muted">script.md · lexicon</text>
+  <text x="712" y="96" class="t-muted">shotlist.json</text>
+  <text x="712" y="114" class="t-muted">style bible · refs/</text>
+  <text x="712" y="132" class="t-muted">timeline.json</text>
+  <text x="712" y="150" class="t-muted">assets/ + manifest</text>
+  <text x="712" y="168" class="t-muted">decisions.log · qa/</text>
+  <text x="712" y="186" class="t-muted">costs.csv</text>
+  <text x="712" y="204" class="t-muted">(git + object storage)</text>
+  <!-- planning -->
+  <rect x="250" y="130" width="400" height="60" rx="10" class="box"/>
+  <text x="266" y="154" class="t-title">Creative planning</text>
+  <text x="266" y="174" class="t-muted">research → script → storyboard → shot list → acceptance criteria</text>
+  <!-- tools layer -->
+  <rect x="20" y="240" width="860" height="160" rx="12" class="box"/>
+  <text x="34" y="262" class="t-title">Production tools (called via code, CLI, SDK, HTTP API, MCP)</text>
+  <rect x="34" y="276" width="160" height="110" rx="8" class="box-a"/><text x="44" y="298" class="t-a">Generative APIs</text><text x="44" y="318" class="t-muted">video · image</text><text x="44" y="334" class="t-muted">avatar · upscale</text><text x="44" y="350" class="t-muted">async jobs, cost</text><text x="44" y="366" class="t-muted">probabilistic</text>
+  <rect x="204" y="276" width="160" height="110" rx="8" class="box-b"/><text x="214" y="298" class="t-b">Renderers</text><text x="214" y="318" class="t-muted">2D code (web/Py)</text><text x="214" y="334" class="t-muted">3D (Blender)</text><text x="214" y="350" class="t-muted">simulation</text><text x="214" y="366" class="t-muted">deterministic</text>
+  <rect x="374" y="276" width="160" height="110" rx="8" class="box-accent"/><text x="384" y="298" class="t-title">Audio</text><text x="384" y="318" class="t-muted">TTS · music · SFX</text><text x="384" y="334" class="t-muted">ASR / alignment</text><text x="384" y="350" class="t-muted">mix · loudness</text>
+  <rect x="544" y="276" width="160" height="110" rx="8" class="box-c"/><text x="554" y="298" class="t-c">Editing / assembly</text><text x="554" y="318" class="t-muted">timeline → FFmpeg</text><text x="554" y="334" class="t-muted">or NLE / JSON API</text><text x="554" y="350" class="t-muted">captions, encode</text>
+  <rect x="714" y="276" width="152" height="110" rx="8" class="box"/><text x="724" y="298" class="t-title">Assets</text><text x="724" y="318" class="t-muted">stock / archive</text><text x="724" y="334" class="t-muted">licences</text><text x="724" y="350" class="t-muted">brand kit</text>
+  <!-- QA -->
+  <rect x="250" y="440" width="400" height="76" rx="10" class="box-warn"/>
+  <text x="266" y="464" class="t-title">Quality inspection</text>
+  <text x="266" y="484" class="t-muted">probes &amp; detectors · frames → vision model · whole clip → video model</text>
+  <text x="266" y="500" class="t-muted">ASR vs script · loudness · brief checklist · (human review)</text>
+  <!-- delivery -->
+  <rect x="700" y="440" width="180" height="76" rx="10" class="box-ok"/>
+  <text x="712" y="464" class="t-title">Final delivery</text><text x="712" y="484" class="t-muted">masters, platform encodes,</text><text x="712" y="500" class="t-muted">captions, provenance</text>
+  <!-- refinement -->
+  <rect x="20" y="440" width="190" height="76" rx="10" class="box-d"/>
+  <text x="34" y="464" class="t-d">Diagnose &amp; revise</text><text x="34" y="484" class="t-muted">map issue → smallest</text><text x="34" y="500" class="t-muted">change → rebuild subset</text>
+  <!-- arrows -->
+  <path d="M190,52 L247,52" class="line-accent" marker-end="url(#d1)"/>
+  <path d="M650,52 L697,52" class="line" marker-end="url(#d3)"/>
+  <path d="M450,94 L450,127" class="line-accent" marker-end="url(#d1)"/>
+  <path d="M450,190 L450,237" class="line-accent" marker-end="url(#d1)"/>
+  <path d="M450,400 L450,437" class="line-accent" marker-end="url(#d1)"/>
+  <path d="M650,478 L697,478" class="line-accent" marker-end="url(#d1)"/>
+  <path d="M250,478 L213,478" class="line-loop" marker-end="url(#d2)"/>
+  <path d="M115,440 C115,420 115,410 115,403" class="line-loop" marker-end="url(#d2)"/>
+  <path d="M20,470 L8,470 L8,175 L247,175" class="line-loop" marker-end="url(#d2)"/>
+  <path d="M790,516 L790,560 L892,560 L892,228 L105,228 L105,87" class="line-loop" marker-end="url(#d2)"/>
+  <text x="600" y="576" class="t-muted">review → user approves or asks for changes</text>
+  <text x="300" y="590" class="t-muted">human approval checkpoints: after plan · after rough cut · before publish</text>
+  <text x="30" y="550" class="t-muted">small fix → re-render one shot</text>
+  <text x="30" y="566" class="t-muted">big fix → back to planning</text>
+  <text x="34" y="620" class="t-muted">Red dashed = feedback loops. Everything the agent knows lives in the project files, so another agent (or you) can resume at any point.</text>
+</svg>
+<figcaption>Deliverable E. The loop is the product: Plan → Generate → Render → Inspect → Diagnose → Revise → Render again. <span class="ev i">Inference</span> synthesised from the documented systems on <a href="11-documented-workflows.html">page 11</a>.</figcaption>
+</figure>
+
+<h2>1 · Creative planning: from a sentence to a production plan</h2>
+<p>The agent's first job is to turn a vague request into <b>structured, checkable artefacts</b>. A good plan is mostly data:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Artefact</th><th>Content</th><th>How reliable is an LLM at it?</th></tr></thead>
+<tbody>
+<tr><td>Creative brief / objectives</td><td>Audience, tone, length, platform, key messages, must-haves</td><td>Good, if it asks or states assumptions <span class="ev p">Practice</span></td></tr>
+<tr><td>Research notes</td><td>Facts with sources</td><td>Good <i>with web search and citations</i>; unreliable from memory (hallucinated numbers) <span class="ev p">Practice</span></td></tr>
+<tr><td>Script / narration</td><td>Words, timed at ~130–160 wpm</td><td>Strong — this is core LLM competence; still needs fact-check and a human ear</td></tr>
+<tr><td>Storyboard</td><td>One frame description (or generated still) per shot</td><td>Descriptions good; spatial composition and visual taste weaker</td></tr>
+<tr><td>Shot list</td><td>Per shot: duration, type, technology, camera, assets, audio cues</td><td>Strong as structure; durations must later be measured from audio</td></tr>
+<tr><td>Style bible</td><td>Palette, fonts, look, references, camera grammar, sound palette</td><td>Medium; generic unless given references</td></tr>
+<tr><td>Acceptance criteria</td><td>Testable checks: "no text artefacts", "−14 LUFS ±1", "all facts sourced"</td><td>Strong — and the key to later self-evaluation</td></tr>
+<tr><td>Schedule &amp; budget</td><td>Order of jobs, parallelism, API cost estimate</td><td>Good for structure; cost estimates need real price tables</td></tr>
+</tbody></table></div>
+<details><summary>What a machine-readable shot looks like</summary><div class="body">
+<pre><code>{
+  "id": "S07",
+  "beat": "Entry burn slows the booster",
+  "narration_ref": "seg_05",           // duration comes from the measured audio
+  "tech": "B:3d",                      // routed to Blender
+  "camera": "slow orbit, 35mm, booster centre-frame, horizon low third",
+  "assets": ["booster_v3.blend", "earth_hdri_2k.exr"],
+  "overlays": [{"text": "ENTRY BURN", "at_word": "burn", "style": "label"}],
+  "sfx": [{"id": "engine_roar", "at_word": "ignite", "gain_db": -12}],
+  "acceptance": ["engines visibly firing retrograde", "no clipping of label", "matches palette P2"],
+  "status": "rendered", "version": 3, "inputs_hash": "9f2c…"
+}</code></pre>
+<p class="small muted">Illustrative structure (not a standard). Keeping status, version and an input hash per shot is what makes resuming and partial re-rendering possible. <span class="ev i">Inference</span></p>
+</div></details>
+
+<h2>2 · Technology selection per shot</h2>
+<p>Different shots in the same video can — and usually should — use different technologies. A routing table the agent can apply:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>If the shot needs…</th><th>Route to</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Exact text, numbers, equations, charts, UI</td><td><span class="ap b">B</span> 2D code</td><td>Only rendering guarantees correctness</td></tr>
+<tr><td>Physically/technically accurate motion (trajectories, mechanisms)</td><td><span class="ap b">B</span> 3D + simulation</td><td>Correct by construction</td></tr>
+<tr><td>Photoreal atmosphere, nature, crowds, "cinematic" b-roll</td><td><span class="ap a">A</span> generative video (I2V from a checked keyframe)</td><td>Cheapest route to realism</td></tr>
+<tr><td>A real event, real product, real person</td><td><span class="ap c">C</span> licensed footage / screen capture</td><td>Truthfulness and rights</td></tr>
+<tr><td>A presenter</td><td><span class="ap a">A4</span> avatar (with consent) or recorded human</td><td>—</td></tr>
+<tr><td>Something cheap and calm under narration</td><td><span class="ap c">C1</span> still + slow pan, or parallax</td><td>Low cost, full control</td></tr>
+<tr><td>Realistic look + exact motion</td><td><span class="ap d">D2</span> 3D blockout → video-to-video</td><td>Combines B's control with A's look</td></tr>
+</tbody></table></div>
+<p><b>Keeping mixed shots consistent</b> is a design task: one palette and type system for all overlays; one colour grade/LUT across every shot; reference images (character sheets, product photos) passed to every generative call; the same lens/camera grammar in 3D and in prompts; a single music bed and room tone that glue cuts together. <span class="ev p">Practice</span></p>
+
+<h2>3 · Tool orchestration: how the agent actually drives software</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Mechanism</th><th>Example</th><th>Strength</th><th>Weakness</th></tr></thead>
+<tbody>
+<tr><td>Generate source code, then run it</td><td>Write a Remotion composition / Manim scene / Blender script; render via CLI</td><td>Deterministic, diffable, reviewable</td><td>Needs the toolchain installed</td></tr>
+<tr><td>Command-line tools</td><td>FFmpeg, ffprobe, Whisper, Blender <code>-b</code></td><td>Universal, scriptable</td><td>Syntax errors; must validate outputs</td></tr>
+<tr><td>Cloud APIs / SDKs</td><td>Submit a video job, poll, download</td><td>Access to best models; no GPU needed</td><td>Cost, rate limits, model changes, async complexity</td></tr>
+<tr><td>MCP servers</td><td>Blender MCP, Resolve MCP, vendor MCPs</td><td>Tools appear as typed functions; easy to wire up</td><td>Thin wrappers; quality varies; security of arbitrary code execution</td></tr>
+<tr><td>Agent skills</td><td>Remotion / HyperFrames / video-use skills</td><td>Encode expert know-how and hard rules (e.g. "subtitles last in the filter chain")</td><td>Only as good as their authors' experience</td></tr>
+<tr><td>Subagents</td><td>One subagent per animation or per critic aspect</td><td>Parallelism, focused context</td><td>Coordination overhead; inconsistent styles if not constrained</td></tr>
+<tr><td>GUI automation</td><td>Clicking through an app without an API</td><td>Last resort for closed apps</td><td>Fragile, slow, often against terms</td></tr>
+</tbody></table></div>
+
+<h3>Three levels of autonomy</h3>
+<div class="cards">
+<div class="card"><h4>Direct tool use</h4><p>The agent runs commands one by one in conversation. Fast to start, hard to reproduce: the "pipeline" exists only in the chat history.</p></div>
+<div class="card"><h4>Scripted workflow</h4><p>The agent writes the pipeline as code (a build script / DAG with cached steps) and runs it. Reproducible and resumable; changes are code diffs.</p></div>
+<div class="card"><h4>Autonomous loop</h4><p>The agent runs the pipeline, inspects outputs, and edits plan or code without asking — within a budget and with approval gates.</p></div>
+</div>
+<p>The robust combination is <b>"scripted workflow + autonomous loop around it"</b>: the agent uses its judgement to edit the plan and code, but every production run is a reproducible build. That mirrors how good software teams use CI. <span class="ev i">Inference</span></p>
+
+<h2>4 · Autonomous quality inspection: how an agent "watches" its video</h2>
+<p>Current coding agents mostly cannot watch a video the way you do. Claude's documented API input is images (no video), and Gemini's API accepts video but samples it at <b>1 frame per second by default</b>. So inspection is a <b>portfolio of cheaper, partial views</b>. <span class="ev v">Verified</span> (<a href="https://platform.claude.com/docs/en/build-with-claude/vision">Claude vision docs</a>, <a href="https://ai.google.dev/gemini-api/docs/video-understanding">Gemini video docs</a>)</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>What it catches</th><th>What it misses</th><th>Cost</th><th>Reliability</th></tr></thead>
+<tbody>
+<tr><td><b>Metadata probes</b> (ffprobe)</td><td>Wrong duration, fps, resolution, missing audio stream</td><td>Anything visual</td><td>~0</td><td>Exact</td></tr>
+<tr><td><b>Signal detectors</b> (black/freeze/silence detect, loudness, clipping)</td><td>Black frames, frozen frames, silence gaps, loudness off-target</td><td>Content errors</td><td>~0</td><td>Exact</td></tr>
+<tr><td><b>Frame sampling → vision model</b></td><td>Composition, legibility, wrong objects, style mismatch, text artefacts (with OCR)</td><td>Motion, flicker, one-frame glitches between samples, timing</td><td>Claude: ≈1,560 tokens per 1080p frame (standard tier) → 60 frames ≈ 94k tokens</td><td>Good for stills; depends on sampling choice</td></tr>
+<tr><td><b>Smart sampling</b> (scene changes, cut boundaries ±, cue-point frames, filmstrips/contact sheets)</td><td>Bad cuts, transitions, overlay timing at known events</td><td>Problems between chosen points</td><td>Same as above, better targeted</td><td>Much better than uniform sampling <span class="ev p">Practice</span></td></tr>
+<tr><td><b>Whole clip → video model</b> (Gemini)</td><td>Narrative flow, gross continuity, A/V mismatch at coarse level</td><td>Sub-second events, temporal order subtleties</td><td>≈100–300 tokens per second of video</td><td>Moderate; weak temporal reasoning (below)</td></tr>
+<tr><td><b>Reference comparison</b> (embeddings, face/identity similarity)</td><td>Character/product drift vs reference images</td><td>Why it drifted</td><td>Low (local models)</td><td>Good as an alarm</td></tr>
+<tr><td><b>OCR on frames</b></td><td>Misspelled or garbled on-screen text</td><td>—</td><td>Low</td><td>High for clean text</td></tr>
+<tr><td><b>ASR vs script</b></td><td>Skipped/mispronounced words, music masking speech, caption errors</td><td>Tone, emotion</td><td>Low</td><td>High</td></tr>
+<tr><td><b>Timing checks</b></td><td>Cue points vs event frames, caption sync, A/V offset</td><td>—</td><td>~0</td><td>Exact (if events are logged)</td></tr>
+<tr><td><b>Brief checklist audit</b></td><td>Missing required content, length, messages</td><td>Quality</td><td>Low</td><td>Good when criteria are testable</td></tr>
+<tr><td><b>Human review</b></td><td>Taste, emotion, subtle wrongness, brand fit</td><td>Fatigue on long reviews</td><td>Your time</td><td>Still the gold standard</td></tr>
+</tbody></table></div>
+
+<div class="callout warn"><span class="title">What current AI judges genuinely fail to notice</span>
+<ul>
+<li><b>Temporal order and fine motion.</b> On the TOMATO benchmark, humans scored 95.2% while the best model scored 37.9%; shuffling frames barely hurt models (37.8% → 28.5%), suggesting they lean on single frames. <span class="ev v">Verified</span> (<a href="https://arxiv.org/abs/2410.23266">arXiv 2410.23266</a>, 2024-era models). Vinoground found ~90% human vs ~50% GPT-4o on temporal counterfactuals (<a href="https://arxiv.org/abs/2410.02763">arXiv 2410.02763</a>).</li>
+<li><b>Anything between samples</b>: single-frame glitches, flicker, brief morphing.</li>
+<li><b>Lip-sync drift of a few frames</b>, A/V offset, rhythm and pacing that "feel off".</li>
+<li><b>Physics plausibility</b> beyond obvious failures.</li>
+<li><b>Its own blind spots</b>: a judge model scoring output produced with help from the same model family can be biased; Code2Video uses Gemini 2.5 Pro as both in-loop critic and evaluation judge. <span class="ev i">Inference</span></li>
+</ul>
+<p>Encouragingly, judges that see the rendered output do much better than those that only read code: one study reports 87.8% agreement with humans for a VLM judge viewing rendered video vs 69.1% for a text-only judge (<a href="https://arxiv.org/abs/2602.10840">SimuScene, arXiv 2602.10840</a>, appendix). <span class="ev v">Verified</span></p></div>
+
+<p>A practical inspection stack, cheapest first: <b>probes → detectors → ASR/OCR → targeted frames to a vision model → one whole-video pass → human</b>. Each layer only runs if the previous passed. <span class="ev i">Inference</span></p>
+
+<h2>5 · Iterative improvement: from critique to concrete change</h2>
+<p>The hard step is translating "this looks wrong" into an edit. Two kinds of fixes behave completely differently:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Problem</th><th>Concrete modification</th><th>Kind</th></tr></thead>
+<tbody>
+<tr><td>Camera move too fast</td><td>Extend keyframe span 2 s → 3.5 s; ease-in-out curve</td><td>Deterministic <span class="ap b">B</span></td></tr>
+<tr><td>Scene too dark</td><td>Raise key light / exposure; or grade +0.5 stop in post</td><td>Deterministic</td></tr>
+<tr><td>Label overlaps the booster</td><td>Move overlay anchor; re-composite only V2 layer</td><td>Deterministic</td></tr>
+<tr><td>Narration too early for the visual</td><td>Shift segment start; or retime animation to the word timestamp</td><td>Deterministic</td></tr>
+<tr><td>Music too loud under speech</td><td>Duck −6 dB in speech regions; re-mix only audio</td><td>Deterministic</td></tr>
+<tr><td>Weak transition</td><td>Swap cut type (dissolve → match cut); adjust duration</td><td>Deterministic</td></tr>
+<tr><td>Generated shot has a melting hand / wrong logo</td><td>Re-generate with new seed, tighter prompt, or I2V from a corrected still; or cut shorter</td><td>Probabilistic <span class="ap a">A</span></td></tr>
+<tr><td>Character looks different from shot 3</td><td>Re-generate with reference images / LoRA; or replace with rendered shot</td><td>Probabilistic</td></tr>
+<tr><td>Composition of generated shot weak</td><td>Design the start frame as a still first, then I2V</td><td>Partly deterministic</td></tr>
+<tr><td>Continuity break between shots</td><td>Chain last frame → first frame; insert a cutaway; reorder</td><td>Mixed</td></tr>
+</tbody></table></div>
+<p><b>Re-render only what changed.</b> Treat the production like a build system: each shot's output is a function of its inputs (code, parameters, assets, model version, seed). Hash the inputs; if the hash didn't change, reuse the cached output. Narration change → only affected shots and the audio mix rebuild. This is the same idea as <code>make</code> or Bazel, applied to media. <span class="ev i">Inference</span></p>
+
+<h3>Knowing when to stop</h3>
+<ul>
+<li><b>All acceptance criteria pass</b> (the reason to write testable criteria up front).</li>
+<li><b>Iteration cap per shot</b> — video-use caps self-evaluation at 3 passes; after that, escalate to the human. <span class="ev v">Verified</span> (<a href="https://github.com/browser-use/video-use">video-use SKILL.md</a>)</li>
+<li><b>Budget cap</b> in money and time, tracked in a cost ledger.</li>
+<li><b>Diminishing returns</b>: the critic's issues are now matters of taste, or contradict earlier critiques (oscillation).</li>
+<li><b>Human gate</b>: the agent presents the cut with a list of known compromises. <span class="ev p">Practice</span></li>
+</ul>
+
+<h2>6 · Multi-agent production: what the evidence says</h2>
+<p>Role-play crews (scriptwriter, director, animator, editor, QA…) are popular in research and marketing. What is actually supported:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Evidence</th><th>Finding</th><th>Strength</th></tr></thead>
+<tbody>
+<tr><td>FilmAgent (<a href="https://arxiv.org/abs/2501.12909">arXiv 2501.12909</a>)</td><td>Multi-agent crew in virtual 3D scored 3.98 vs 3.04 for a single agent (human ratings)</td><td>Weak–moderate: 15 story ideas, small rater pool</td></tr>
+<tr><td>Code2Video (<a href="https://arxiv.org/abs/2510.01174">arXiv 2510.01174</a>)</td><td>Planner + coder + critic pipeline: aesthetics/quiz 87.9/86.0 vs 37.8/40.0 for direct code generation (Claude Opus 4.1). Removing the <b>planner</b> hurt most; removing the critic hurt less</td><td>Moderate: shows <i>decomposition</i> matters; judge is an LLM</td></tr>
+<tr><td>TheoremExplainAgent (<a href="https://arxiv.org/abs/2502.19400">arXiv 2502.19400</a>)</td><td>Full-video success varied hugely by model (o3-mini 93.8% vs Claude 3.5 Sonnet 2.1%); main failures were code hallucinations and layout overlaps</td><td>Moderate; 2025-era models</td></tr>
+<tr><td>General agent research (<a href="https://arxiv.org/abs/2512.08296">Kim et al.</a>, <a href="https://arxiv.org/abs/2503.13657">Cemri et al.</a>)</td><td>Multi-agent helps parallelisable tasks and hurts sequential ones; multi-agent frameworks show high failure rates from coordination problems</td><td>Strong, but not video-specific</td></tr>
+</tbody></table></div>
+<div class="callout key"><span class="title">Recommendation</span>
+<p>One strong <b>director agent</b> owns the plan and the project files; it dispatches <b>specialist subagents</b> for work that is parallel and well-specified (render shot 4, write animation 7, critique pacing, critique legibility), each with a narrow brief and the style bible. Avoid committees of peer agents debating creative choices. Practitioner repos follow this pattern (video-use: parallel animation sub-agents; product-launch-video: four parallel critics). <span class="ev i">Inference</span> supported by the evidence above.</p></div>
+
+<h3>How agents share state</h3>
+<ul>
+<li><b>Files, not chat</b>: brief, script, shot list, style bible, timeline, manifest, decision log — all in a project folder under version control. Media binaries in a content-addressed store or Git LFS. <span class="ev p">Practice</span> (video-use keeps <code>project.md</code>, <code>edl.json</code>, cached transcripts, a <code>verify/</code> folder)</li>
+<li><b>Contracts between agents</b>: a subagent receives a shot spec + style bible and must return a file at a known path plus a short report.</li>
+<li><b>One writer per file</b>: the director merges; subagents propose.</li>
+</ul>
+
+<h2>How close are agents to being autonomous directors?</h2>
+<div class="cards">
+<div class="card"><h4>Today, reliably</h4><p>Planning documents, scripts with sourced facts, code-driven animation, assembly, captions, mixing to spec, objective QA, partial re-renders, keeping a reproducible project.</p></div>
+<div class="card"><h4>Today, with supervision</h4><p>Choosing generative shots, judging visual quality from frames, iterating style, routing shots across technologies, editing real footage (with plan approval).</p></div>
+<div class="card"><h4>Not yet</h4><p>Consistent taste over a whole film, reliable temporal judgement, long-form character consistency without human curation, knowing when "good enough" is good enough for <i>your</i> audience.</p></div>
+</div>
+<p class="small muted"><span class="ev i">Inference</span> from pages 11 and 14.</p>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audio for Video</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 4 · Deliverable D — Technical foundations (part 3)</div>
+<h1>Audio: speech, music, sound effects and the mix</h1>
+<p class="lead">Audio carries more of a video's perceived quality than most engineers expect, and in explanatory videos the narration usually sets the timing for everything else. This page explains how each kind of sound is generated and how sound and picture are joined.</p>
+
+<h2>The four audio layers</h2>
+<div class="cards">
+<div class="card"><h4>Dialogue / narration</h4><p>The information carrier. Text-to-speech (TTS), a cloned or designed voice, or a recorded human. Must be intelligible above everything else.</p></div>
+<div class="card"><h4>Music</h4><p>Emotion and pacing. Generated, licensed from a library, or composed. Usually "ducked" (lowered) under speech.</p></div>
+<div class="card"><h4>Sound effects (SFX) &amp; foley</h4><p>Specific events: an engine ignition, a click, a whoosh on a transition. Generated, from libraries, or produced natively by a video model.</p></div>
+<div class="card"><h4>Ambience / room tone</h4><p>Continuous background (wind, control-room hum) that makes cuts feel continuous and silence feel natural.</p></div>
+</div>
+
+<h2>How text-to-speech works</h2>
+<figure class="diagram">
+<svg viewBox="0 0 860 220" role="img" aria-label="TTS pipeline">
+  <defs><marker id="au1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-accent"/></marker></defs>
+  <rect x="10" y="40" width="150" height="70" rx="8" class="box-accent"/><text x="22" y="66" class="t-title">Text</text><text x="22" y="86" class="t-muted">"Max-Q at T+62 s"</text>
+  <rect x="195" y="40" width="160" height="70" rx="8" class="box"/><text x="207" y="66" class="t-title">Text frontend</text><text x="207" y="86" class="t-muted">normalise: "T plus sixty-</text><text x="207" y="100" class="t-muted">two seconds", phonemes</text>
+  <rect x="390" y="40" width="200" height="70" rx="8" class="box-a"/><text x="402" y="66" class="t-a">Acoustic model</text><text x="402" y="86" class="t-muted">predicts audio tokens or</text><text x="402" y="100" class="t-muted">spectrogram, given voice prompt</text>
+  <rect x="625" y="40" width="220" height="70" rx="8" class="box"/><text x="637" y="66" class="t-title">Decoder / vocoder</text><text x="637" y="86" class="t-muted">tokens/spectrogram → waveform</text>
+  <rect x="390" y="140" width="200" height="54" rx="8" class="box-accent"/><text x="402" y="162" class="t-title">Voice reference</text><text x="402" y="180" class="t-muted">a few seconds of a speaker</text>
+  <path d="M160,75 L192,75" class="line-accent" marker-end="url(#au1)"/>
+  <path d="M355,75 L387,75" class="line-accent" marker-end="url(#au1)"/>
+  <path d="M590,75 L622,75" class="line-accent" marker-end="url(#au1)"/>
+  <path d="M490,140 L490,113" class="line-accent" marker-end="url(#au1)"/>
+  <text x="625" y="150" class="t-muted">Optional outputs that matter for video:</text>
+  <text x="625" y="168" class="t-muted">• character/word timestamps</text>
+  <text x="625" y="186" class="t-muted">• viseme (mouth-shape) events</text>
+</svg>
+</figure>
+<p>Modern systems come in two broad families <span class="ev v">Verified</span> (from the original papers):</p>
+<ul>
+<li><b>Codec language models.</b> A neural audio codec (<a href="https://arxiv.org/abs/2107.03312">SoundStream</a>, <a href="https://arxiv.org/abs/2210.13438">EnCodec</a>) compresses audio into discrete tokens. A transformer — essentially an LLM — predicts those tokens from the text plus a short voice sample. <a href="https://arxiv.org/abs/2301.02111">VALL-E</a> showed zero-shot voice cloning from a 3-second prompt this way. Very natural prosody; can occasionally skip or repeat words, like any sampled LLM output.</li>
+<li><b>Diffusion / flow-matching models.</b> Generate spectrogram or latent features for the whole utterance at once (e.g. <a href="https://arxiv.org/abs/2410.06885">F5-TTS</a>), then decode. Same family of ideas as image/video diffusion (<a href="02-neural-video.html">page 2</a>).</li>
+</ul>
+<p>What you control: the text (punctuation is prosody), the voice, speed, and on newer models emotion/style tags or natural-language instructions ("calm, documentary tone"). SSML markup (pauses, emphasis, pronunciation) is supported by the big cloud speech services. <span class="ev p">Practice</span></p>
+
+<div class="callout warn"><span class="title">Pronunciation is the classic TTS bug in technical videos</span>
+<p>Acronyms, part numbers, units, and names ("Starship", "LOX", "T-minus", "Δv") are where TTS fails. An agent should keep a <b>pronunciation lexicon</b> for the project (phonetic respellings or SSML phonemes) and verify by running speech recognition on the output and diffing against the script. <span class="ev i">Inference</span></p></div>
+
+<h2>How music and sound effects are generated</h2>
+<div class="cards">
+<div class="card"><h4>Token language models</h4><p>Music as codec tokens predicted by a transformer, conditioned on text (and optionally melody). Example: Meta's <a href="https://arxiv.org/abs/2306.05284">MusicGen</a>. <span class="ev v">Verified</span></p></div>
+<div class="card"><h4>Latent diffusion with timing</h4><p>A diffusion transformer over compressed audio latents, conditioned on text <i>and</i> on start time / total duration, so you can ask for "exactly 47 seconds". Example: <a href="https://arxiv.org/abs/2402.04825">Stable Audio</a>. Stable Audio 3.0 (May 2026) released open-weight small/medium models trained on licensed data. <span class="ev v">Verified</span></p></div>
+<div class="card"><h4>Song generators with vocals</h4><p>Commercial products generate full songs with lyrics. Architectures of the leading consumer products are not published. <span class="ev u">Unverified</span> internals. Legal status matters — see below.</p></div>
+<div class="card"><h4>Video-to-audio (foley)</h4><p>Models that watch a silent clip and generate synchronised sound (impacts, engines, footsteps), e.g. the open MMAudio. Useful for generated or rendered shots without sound. <span class="ev p">Practice</span></p></div>
+</div>
+<p>Status notes that affect tool choice (Oct 2026): the leading consumer song generator (Suno) has <b>no official public API</b> — "Suno APIs" sold online are unofficial wrappers; Udio disabled downloads in Oct 2025 after a label settlement; ElevenLabs and Google (Lyria) offer music generation through APIs. Details and dates: <a href="06-ecosystem.html">page 6</a> and <a href="12-engineering-legal.html">page 12</a>. <span class="ev v">Verified</span> (vendor release notes and trade press, 2026-10-17)</p>
+
+<h2>Joint audio-video generation vs a separate audio pipeline</h2>
+<div class="table-wrap"><table>
+<thead><tr><th></th><th>Native audio from the video model</th><th>Separate audio pipeline</th></tr></thead>
+<tbody>
+<tr><td>Examples (Oct 2026)</td><td>Google Veo 3.1, Kling 3.0, ByteDance Seedance 2.0, Alibaba Wan 2.6, Lightricks LTX-2 (open weights) all generate sound with picture. OpenAI's Sora 2 also did, but OpenAI shut Sora down (app closed 26 Apr 2026, API ended 24 Sep 2026).</td><td>TTS + music + SFX + ASR + mixing, each from a separate tool</td></tr>
+<tr><td>Sync of on-screen events</td><td>Excellent within a clip (impacts, lips)</td><td>Must be aligned by timestamps or video-to-audio models</td></tr>
+<tr><td>Consistent narrator across 2 min</td><td>Poor (each clip generated independently)</td><td>Excellent (same voice, same settings)</td></tr>
+<tr><td>Exact wording</td><td>Usually close, not guaranteed</td><td>Exact (verify with ASR)</td></tr>
+<tr><td>Mixing control</td><td>One mixed track, no stems</td><td>Full: separate stems, ducking, loudness</td></tr>
+<tr><td>Subtitles</td><td>Need ASR afterwards</td><td>Script + timestamps already known</td></tr>
+<tr><td>Best for</td><td>Short cinematic moments, social clips, dialogue scenes</td><td>Narrated, edited, multi-shot videos</td></tr>
+</tbody></table></div>
+<p class="small muted">Model list: vendor pages and press, 2026-10-17; several via secondary aggregators <span class="ev p">Practice</span>. Sora timeline confirmed by multiple outlets incl. <a href="https://engadget.com/ai/openai-is-shutting-down-its-sora-video-generation-app-211023358.html">Engadget</a> and <a href="https://the-decoder.com/openai-sets-two-stage-sora-shutdown-with-app-closing-april-2026-and-api-following-in-september/">The Decoder</a> <span class="ev v">Verified</span>.</p>
+
+<h2>Timing: how audio and picture are aligned</h2>
+<p>In narrated videos, the industry habit is <b>audio-first</b>: lock the narration, then cut picture to it. <span class="ev p">Practice</span> For an agent this becomes a concrete data flow:</p>
+<ol class="stepper">
+<li><b>Script → segments.</b> Split the narration into segments that map to shots or beats (e.g. one paragraph per shot).</li>
+<li><b>Synthesise each segment</b> separately (easy to regenerate one line later) or the whole script (more natural flow) — then measure each segment's duration.</li>
+<li><b>Get word timings.</b> Either from the TTS vendor (ElevenLabs returns character-level alignment; Azure emits word-boundary and viseme events; Amazon Polly returns "speech marks") or by running forced alignment / ASR with word timestamps (WhisperX, faster-whisper) on the audio. <span class="ev v">Verified</span> (vendor docs, 2026-10-17)</li>
+<li><b>Derive shot durations and cue points</b> from the timings: shot 4 lasts as long as segment 4 plus a breath; the "landing legs deploy" animation starts at the word "legs".</li>
+<li><b>Generate/render picture to those durations</b>, add music cut to the overall length, place SFX on the cue points.</li>
+<li><b>Build captions</b> from the same word timings (no extra ASR needed when the script is known).</li>
+</ol>
+<figure class="diagram">
+<svg viewBox="0 0 860 170" role="img" aria-label="Narration words driving animation cue points">
+  <line x1="20" y1="40" x2="840" y2="40" class="line"/>
+  <text x="20" y="28" class="t-muted">narration (word timestamps)</text>
+  <rect x="40" y="48" width="70" height="22" rx="4" class="box-accent"/><text x="46" y="64" class="t-muted">"At"</text>
+  <rect x="114" y="48" width="90" height="22" rx="4" class="box-accent"/><text x="120" y="64" class="t-muted">"forty"</text>
+  <rect x="208" y="48" width="110" height="22" rx="4" class="box-accent"/><text x="214" y="64" class="t-muted">"metres,"</text>
+  <rect x="340" y="48" width="70" height="22" rx="4" class="box-accent"/><text x="346" y="64" class="t-muted">"the"</text>
+  <rect x="414" y="48" width="90" height="22" rx="4" class="box-accent"/><text x="420" y="64" class="t-muted">"legs"</text>
+  <rect x="508" y="48" width="120" height="22" rx="4" class="box-accent"/><text x="514" y="64" class="t-muted">"deploy."</text>
+  <line x1="414" y1="70" x2="414" y2="130" class="line-loop"/>
+  <rect x="414" y="100" width="300" height="24" rx="4" class="box-b"/><text x="422" y="117" class="t-muted">animation: legs unfold (starts on the word)</text>
+  <rect x="508" y="132" width="60" height="22" rx="4" class="box-c"/><text x="512" y="148" class="t-muted">clunk SFX</text>
+  <text x="20" y="117" class="t-muted">cue point = word start time →</text>
+</svg>
+<figcaption>When timestamps drive the animation, re-recording the narration (new voice, faster pace) re-times the whole video automatically. That is a key reason code-driven pipelines are so revisable.</figcaption>
+</figure>
+
+<h3>Try it: how long will my narration be?</h3>
+<p>Typical documentary narration runs at roughly 130–160 words per minute. <span class="ev p">Practice</span> Paste a script to estimate duration and see why a "2-minute video" means about 260–320 words.</p>
+<div class="card" style="box-shadow:none">
+<textarea id="nar" rows="5" style="width:100%;font:inherit;font-size:14px;padding:8px;border:1px solid var(--border-strong);border-radius:6px;background:var(--bg);color:var(--fg)">Rockets used to be thrown away after a single flight. Today, the first stage of some launch vehicles flies back, slows itself with its own engines, and lands upright on a pad or a ship at sea. How does a tower of steel falling from the edge of space manage to stop, exactly on target, with only seconds of fuel to spare?</textarea>
+<div class="toolbar"><label for="wpm">Pace</label><input id="wpm" type="range" min="110" max="190" value="145"><span id="wpmv" class="count"></span></div>
+<p id="narout" style="margin:.2rem 0;font-weight:600"></p>
+</div>
+
+<h2>Lip-sync and visemes</h2>
+<p>For animated characters or avatars, mouths must match sounds. Two routes: (1) <b>viseme events</b> from TTS — Azure AI Speech emits 22 viseme IDs with timing, and 3D blend-shape frames (55 values at 60 fps) usable to drive a face rig <span class="ev v">Verified</span> (<a href="https://learn.microsoft.com/en-us/azure/ai-services/speech-service/how-to-speech-synthesis-viseme">Microsoft docs</a>); (2) <b>neural lip-sync</b> models that modify video frames directly from audio (avatar platforms and open models, see <a href="06-ecosystem.html">page 6</a>). Route 1 is exact and deterministic for rendered characters; route 2 is the only option for photoreal faces.</p>
+
+<h2>Mixing: making the layers sit together</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Concept</th><th>What it means</th><th>Automatable?</th></tr></thead>
+<tbody>
+<tr><td>Gain staging</td><td>Set each track's level so speech is clearly on top</td><td>Yes (measured levels)</td></tr>
+<tr><td>Ducking (side-chain compression)</td><td>Music automatically drops a few dB whenever the voice speaks</td><td>Yes (FFmpeg <code>sidechaincompress</code>, or keyframed volume from word timings)</td></tr>
+<tr><td>EQ</td><td>Cut music frequencies that clash with the voice (~1–4 kHz presence range)</td><td>Partly (presets)</td></tr>
+<tr><td>Loudness normalisation</td><td>Hit a target integrated loudness in LUFS with a true-peak ceiling</td><td>Yes (two-pass FFmpeg <code>loudnorm</code>, pyloudnorm, Auphonic API)</td></tr>
+<tr><td>Fades and crossfades</td><td>Avoid clicks at cuts; smooth music transitions</td><td>Yes</td></tr>
+<tr><td>Cleanup</td><td>Denoise, de-reverb, separate voice from music (stems)</td><td>Yes (Demucs/UVR-style separation, denoisers)</td></tr>
+<tr><td>Taste</td><td>Is the music too emotional? Does the whoosh feel cheap?</td><td>Weakly (an AI judge can comment; humans decide)</td></tr>
+</tbody></table></div>
+<div class="callout key"><span class="title">Loudness targets you will meet</span>
+<p><b>EBU R128</b> (European broadcast): −23 LUFS integrated, max true peak −1 dBTP. <b>ATSC A/85</b> (US broadcast): −24 LKFS. <span class="ev v">Verified</span> (<a href="https://tech.ebu.ch/publications/r128">EBU</a>). For online platforms, about <b>−14 LUFS</b> is the commonly used reference for YouTube and streaming, because louder uploads get turned down — but no official YouTube page states it. <span class="ev u">Unverified</span> as an official spec; widely used <span class="ev p">Practice</span>. LUFS and LKFS are the same ITU-R BS.1770 measurement.</p></div>
+
+<h2>What an agent can check in audio, objectively</h2>
+<ul>
+<li><b>Words</b>: run ASR on the final mix and diff against the script (word error rate); catches TTS skips, mispronunciations that change words, and music masking speech. <span class="ev p">Practice</span></li>
+<li><b>Levels</b>: integrated loudness, true peak, loudness range; voice-to-music ratio in speech regions.</li>
+<li><b>Timing</b>: cue points vs animation event frames; gaps and overlaps between segments; total duration vs target.</li>
+<li><b>Clipping, silence, DC offset, sample-rate mismatches</b>: trivial to measure.</li>
+<li><b>Hard to check automatically</b>: whether the voice <i>sounds</i> natural and confident, whether music fits the mood, whether a sound effect feels cheap. Audio-capable multimodal models can give opinions, but treat them as a weak signal. <span class="ev i">Inference</span></li>
+</ul>
+
+<h2>Rights, consent and voices</h2>
+<p>Voice cloning of real people requires their consent; major vendors enforce verification for professional clones (ElevenLabs requires the voice owner to verify). Generated music has active litigation and plan-dependent commercial rights; many free tiers are non-commercial. Open TTS models have mixed licences (some MIT/Apache, some custom or non-commercial). Full detail: <a href="12-engineering-legal.html">page 12</a>. <span class="ev v">Verified</span> (vendor help pages, 2026-10-17)</p>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script>
+window.PAGE_INIT = function () {
+  var ta = document.getElementById("nar"), r = document.getElementById("wpm");
+  var v = document.getElementById("wpmv"), out = document.getElementById("narout");
+  function upd() {
+    var words = (ta.value.trim().match(/\S+/g) || []).length;
+    var wpm = +r.value, sec = words / wpm * 60;
+    v.textContent = wpm + " words/min";
+    out.textContent = words + " words ≈ " + Math.floor(sec / 60) + " min " + Math.round(sec % 60) +
+      " s of narration. A 2-minute video at this pace holds ≈ " + Math.round(wpm * 2) + " words (minus pauses for music and visuals).";
+  }
+  ta.addEventListener("input", upd); r.addEventListener("input", upd); upd();
+};
+</script>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

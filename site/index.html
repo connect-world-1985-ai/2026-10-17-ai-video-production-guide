@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Video Production — The Big Picture</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 0 · Deliverable A — Executive overview</div>
+<h1>How AI-assisted videos are actually made</h1>
+<p class="lead">A field guide for a software engineer who wants to direct video production with coding agents. Vendor-neutral, evidence-labelled, written in October 2026.</p>
+
+<div class="callout key">
+<span class="title">The one-paragraph answer</span>
+<p>There is no single "AI video" technology. A finished video is almost always <b>assembled on a timeline</b> from shots and sounds that came from very different machines: some shots are <b>imagined pixel by pixel by a neural network</b>, some are <b>computed by a renderer from a scene described in code</b>, some are real footage or stills, and the voice, music and effects come from separate audio models. A coding agent turns into a "director" when it writes the plan as data, picks the right machine for each shot, calls those machines through code, CLIs and APIs, then <b>watches its own output</b> (frames, transcripts, loudness numbers) and edits the plan until the result matches the brief. The reliable parts of that loop are the deterministic ones (code, rendering, assembly, measurement). The unreliable parts are the generative samples and the agent's own taste.</p>
+</div>
+
+<h2>The mental model in four pictures</h2>
+
+<h3>1. Four ways to get pixels</h3>
+<p>Every frame on screen was produced by one of four mechanisms. Learning to tell them apart is the most important skill in this whole field, because each one has a different cost, controllability and failure pattern.</p>
+
+<div class="cards">
+  <div class="card a"><h4><span class="ap a">A</span> Neural synthesis</h4><p>A trained model <b>imagines</b> pixels from a text prompt, an image or another video. Nothing is "modelled": there are no objects, only learned statistics of how the world looks and moves.</p><p><b>Feels like:</b> sampling from an LLM. Beautiful, fast to start, hard to control exactly, never quite the same twice.</p></div>
+  <div class="card b"><h4><span class="ap b">B</span> Rendered scene</h4><p>Code describes a <b>scene</b> (shapes, text, 3D meshes, lights, a camera, keyframes over time). A renderer computes each frame deterministically.</p><p><b>Feels like:</b> compiled software. Exact, diffable, repeatable, but you have to build everything you show.</p></div>
+  <div class="card c"><h4><span class="ap c">C</span> Assembly</h4><p>A <b>timeline</b> places existing media (clips, images, voice, music, captions) in time and composites them into the final video.</p><p><b>Feels like:</b> a linker/build step. Mostly deterministic; quality depends on the parts.</p></div>
+  <div class="card d"><h4><span class="ap d">D</span> Hybrid</h4><p>Real productions mix all three: a rendered diagram here, a generated cinematic shot there, a narrated timeline over all of it, sometimes AI re-styling a rendered pass.</p><p><b>Feels like:</b> a micro-service system with a build pipeline.</p></div>
+</div>
+
+<p>Real footage (filmed or stock) is a fifth source that enters through <span class="ap c">C</span>, and AI can also <i>edit</i> real footage (cut it, caption it, relight it, restyle it) — see the <a href="01-taxonomy.html">taxonomy</a>.</p>
+
+<h3>2. A video is a stack of layers on a timeline</h3>
+<figure class="diagram">
+<svg viewBox="0 0 820 300" role="img" aria-label="Timeline with video, graphics, caption, voice, music and sound-effect tracks">
+  <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+  <text x="10" y="22" class="t-title">One 2-minute video = many tracks, each filled by a different "machine"</text>
+  <!-- time ruler -->
+  <line x1="130" y1="44" x2="800" y2="44" class="line"/>
+  <text x="130" y="38" class="t-muted">0:00</text><text x="290" y="38" class="t-muted">0:30</text><text x="455" y="38" class="t-muted">1:00</text><text x="620" y="38" class="t-muted">1:30</text><text x="770" y="38" class="t-muted">2:00</text>
+  <!-- tracks -->
+  <text x="10" y="74">V1 shots</text>
+  <rect x="130" y="58" width="150" height="26" rx="4" class="box-a"/><text x="138" y="76" class="t-muted">generated cinematic</text>
+  <rect x="282" y="58" width="190" height="26" rx="4" class="box-b"/><text x="290" y="76" class="t-muted">3D render (code)</text>
+  <rect x="474" y="58" width="120" height="26" rx="4" class="box-c"/><text x="482" y="76" class="t-muted">archive footage</text>
+  <rect x="596" y="58" width="204" height="26" rx="4" class="box-a"/><text x="604" y="76" class="t-muted">generated + edited</text>
+  <text x="10" y="110">V2 graphics</text>
+  <rect x="300" y="94" width="160" height="26" rx="4" class="box-b"/><text x="308" y="112" class="t-muted">diagram overlay (2D code)</text>
+  <rect x="620" y="94" width="110" height="26" rx="4" class="box-b"/><text x="628" y="112" class="t-muted">lower third</text>
+  <text x="10" y="146">Captions</text>
+  <rect x="130" y="130" width="670" height="26" rx="4" class="box"/><text x="138" y="148" class="t-muted">subtitles from speech-recognition word timings</text>
+  <text x="10" y="182">A1 voice</text>
+  <rect x="140" y="166" width="300" height="26" rx="4" class="box-accent"/><text x="148" y="184" class="t-muted">TTS narration, part 1</text>
+  <rect x="470" y="166" width="320" height="26" rx="4" class="box-accent"/><text x="478" y="184" class="t-muted">TTS narration, part 2</text>
+  <text x="10" y="218">A2 music</text>
+  <rect x="130" y="202" width="670" height="26" rx="4" class="box-d"/><text x="138" y="220" class="t-muted">generated or licensed score, ducked under voice</text>
+  <text x="10" y="254">A3 SFX</text>
+  <rect x="200" y="238" width="60" height="26" rx="4" class="box-c"/><rect x="380" y="238" width="40" height="26" rx="4" class="box-c"/><rect x="640" y="238" width="90" height="26" rx="4" class="box-c"/>
+  <text x="208" y="256" class="t-muted">boom</text><text x="384" y="256" class="t-muted">hiss</text><text x="646" y="256" class="t-muted">landing</text>
+  <text x="130" y="290" class="t-muted">red = neural (A) · teal = rendered from code (B) · ochre = captured/stock/sfx (C) · blue = speech · purple = music</text>
+</svg>
+<figcaption>Everything below the first track is usually produced separately and aligned in time by the editor (human or agent). That is why "AI video" in practice means "AI-assisted assembly".</figcaption>
+</figure>
+
+<h3>3. The production lifecycle is a build pipeline with a feedback loop</h3>
+<figure class="diagram">
+<svg viewBox="0 0 820 230" role="img" aria-label="Plan, generate, assemble, inspect, revise loop">
+  <defs>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-accent"/></marker>
+    <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-loop"/></marker>
+  </defs>
+  <rect x="10" y="60" width="130" height="70" rx="8" class="box-accent"/><text x="22" y="88" class="t-title">1 Plan</text><text x="22" y="108" class="t-muted">brief → script →</text><text x="22" y="122" class="t-muted">shot list (as data)</text>
+  <rect x="175" y="60" width="140" height="70" rx="8" class="box"/><text x="187" y="88" class="t-title">2 Make assets</text><text x="187" y="108" class="t-muted">gen / render / TTS /</text><text x="187" y="122" class="t-muted">music / stock</text>
+  <rect x="350" y="60" width="130" height="70" rx="8" class="box"/><text x="362" y="88" class="t-title">3 Assemble</text><text x="362" y="108" class="t-muted">timeline, sync,</text><text x="362" y="122" class="t-muted">captions, mix</text>
+  <rect x="515" y="60" width="130" height="70" rx="8" class="box-warn"/><text x="527" y="88" class="t-title">4 Inspect</text><text x="527" y="108" class="t-muted">frames, ASR, LUFS,</text><text x="527" y="122" class="t-muted">VLM judge, human</text>
+  <rect x="680" y="60" width="130" height="70" rx="8" class="box-ok"/><text x="692" y="88" class="t-title">5 Deliver</text><text x="692" y="108" class="t-muted">encode, captions,</text><text x="692" y="122" class="t-muted">provenance</text>
+  <path d="M140,95 L172,95" class="line-accent" marker-end="url(#a2)"/>
+  <path d="M315,95 L347,95" class="line-accent" marker-end="url(#a2)"/>
+  <path d="M480,95 L512,95" class="line-accent" marker-end="url(#a2)"/>
+  <path d="M645,95 L677,95" class="line-accent" marker-end="url(#a2)"/>
+  <path d="M580,130 C580,200 250,200 245,134" class="line-loop" marker-end="url(#a3)"/>
+  <text x="300" y="196" class="t-muted">diagnose → change ONE thing (prompt, keyframe, timing, volume) → rebuild only that shot</text>
+  <path d="M560,60 C560,10 80,10 76,56" class="line-loop" marker-end="url(#a3)"/>
+  <text x="220" y="24" class="t-muted">bigger problem → revise the plan (script, shot type, technology)</text>
+</svg>
+<figcaption>The agent's real superpower is the loop, not any single generator. Making the loop cheap (re-render one shot, not the whole film) is an engineering problem — covered in <a href="07-agent-director.html">page 7</a> and <a href="12-engineering-legal.html">page 12</a>.</figcaption>
+</figure>
+
+<h3>4. Where the agent sits</h3>
+<p>A coding agent (Claude Code, Codex, Cursor, Gemini CLI…) does not "see" or "draw" video by itself. It is a planner and programmer that can:</p>
+<ul>
+<li><b>write</b> scene code (a React/Remotion composition, a Manim scene, a Blender Python script, an FFmpeg filter graph);</li>
+<li><b>call</b> tools: CLIs, SDKs, cloud model APIs, MCP servers;</li>
+<li><b>read</b> results back in a form it can reason about: still frames as images, transcripts as text, measurements as numbers, or whole clips via a video-capable model;</li>
+<li><b>keep state</b> in files: the plan, the shot list, asset manifest, decisions, costs.</li>
+</ul>
+<p>Everything "magical" in agent video demos reduces to those four abilities plus good tools. <span class="ev i">Inference</span></p>
+
+<h2>Three things engineers usually get wrong at first</h2>
+<ol>
+<li><b>"The best model will make my whole video."</b> Text-to-video models produce short clips (typically single-digit to tens of seconds per generation as of 2026) with limited control over exact text, numbers, diagrams and continuity. Explanatory and technical videos are mostly <span class="ap b">B</span> + <span class="ap c">C</span>, with <span class="ap a">A</span> for atmosphere. <span class="ev p">Practice</span></li>
+<li><b>"The agent can watch the video like I do."</b> Most agents inspect sampled frames and text side-channels. Models that accept real video exist, but they sample at low frame rates and miss fast or subtle problems (flicker, a one-frame glitch, lip-sync drift). Measurement code catches what eyes-by-proxy miss. <span class="ev p">Practice</span></li>
+<li><b>"Audio is an afterthought."</b> Viewers forgive imperfect pictures far more than bad sound. Narration usually drives the timing of the whole edit: you generate the voice first, read its word timestamps, and cut the pictures to it. <span class="ev p">Practice</span></li>
+</ol>
+
+<h2>How to read this guide</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>If you want to…</th><th>Read</th></tr></thead>
+<tbody>
+<tr><td>Recognise which mechanism made a given video</td><td><a href="01-taxonomy.html">1 Taxonomy</a></td></tr>
+<tr><td>Understand what's inside a video model, a renderer, a TTS voice, an editor</td><td><a href="02-neural-video.html">2</a> · <a href="03-programmatic-graphics.html">3</a> · <a href="04-audio.html">4</a> · <a href="05-editing-compositing.html">5</a></td></tr>
+<tr><td>Know the tools and which ones an agent can actually drive</td><td><a href="06-ecosystem.html">6 Ecosystem explorer</a></td></tr>
+<tr><td>See how an agent plans, orchestrates, inspects and revises</td><td><a href="07-agent-director.html">7 Agent architecture</a> · <a href="08-worked-example.html">8 Worked example</a></td></tr>
+<tr><td>Choose local vs cloud and estimate cost</td><td><a href="09-architectures.html">9 Architectures</a> · <a href="12-engineering-legal.html">12 Engineering & legal</a></td></tr>
+<tr><td>Pick a strategy for your type of video</td><td><a href="10-video-types.html">10 Video types</a> · <a href="13-decision-framework.html">13 Decision framework</a></td></tr>
+<tr><td>Separate real agent workflows from marketing</td><td><a href="11-documented-workflows.html">11 Documented workflows</a> · <a href="14-maturity.html">14 Maturity</a></td></tr>
+<tr><td>Plan your learning and next experiments</td><td><a href="15-roadmap.html">15 Roadmap</a></td></tr>
+</tbody></table></div>
+
+<h3>Evidence labels</h3>
+<p>Claims carry one of five labels (hover a label for its meaning, or press <b>Labels</b> in the top bar):</p>
+<div class="legend">
+<span><span class="ev v">Verified</span> primary source checked</span>
+<span><span class="ev p">Practice</span> widely documented practice</span>
+<span><span class="ev i">Inference</span> my analysis</span>
+<span><span class="ev u">Unverified</span> claimed, not confirmed</span>
+<span><span class="ev x">Experimental</span> research / demo grade</span>
+</div>
+<p class="small muted">Prices, versions and star counts change monthly. Every number in this guide carries the date it was checked; the <a href="sources.html">sources page</a> lists the links. Treat anything older than ~3 months as needing a re-check.</p>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

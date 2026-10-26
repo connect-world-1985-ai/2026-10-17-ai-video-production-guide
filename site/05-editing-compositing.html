@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editing, Compositing and Encoding</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 5 · Deliverable D — Technical foundations (part 4)</div>
+<h1>Editing, compositing, finishing and encoding</h1>
+<p class="lead">Post-production is where separately made shots and sounds become one video. For an agent, it is also the most deterministic and automatable part of the whole pipeline.</p>
+
+<h2>Four jobs that people lump together as "editing"</h2>
+<div class="cards">
+<div class="card c"><h4>Editing (the cut)</h4><p>Which shot, in which order, for how long, with which transition. Storytelling and rhythm.</p></div>
+<div class="card c"><h4>Compositing</h4><p>Stacking layers <i>within</i> a shot: text over footage, a diagram over a render, a keyed presenter over a background.</p></div>
+<div class="card c"><h4>Finishing</h4><p>Colour grading, stabilisation, upscaling, frame-rate conversion, denoise, captions, final mix.</p></div>
+<div class="card c"><h4>Encoding &amp; delivery</h4><p>Compressing into a codec and container for each target (YouTube, social 9:16, archive master), with captions and metadata.</p></div>
+</div>
+
+<h2>The timeline as a data structure</h2>
+<p>Every editor — Premiere, Resolve, Final Cut, a JSON video API, an FFmpeg command — represents the same thing:</p>
+<pre><code>timeline:
+  fps: 30, resolution: 1920x1080, duration: 120.0
+  video_tracks:
+    V1: [ {asset: shot01.mp4, in: 0.0, out: 6.5, at: 0.0, transition_in: none},
+          {asset: shot02_render.mov, in: 0.0, out: 9.0, at: 6.5, transition_in: {xfade, 0.5s}} … ]
+    V2: [ {asset: label_altitude.mov (alpha), at: 12.0, out: 4.0} … ]
+  audio_tracks:
+    A1 narration: [ {asset: vo_seg01.wav, at: 0.4}, … ]
+    A2 music:     [ {asset: score.wav, at: 0.0, gain_db: -18, duck_under: A1} ]
+    A3 sfx:       [ {asset: touchdown.wav, at: 104.2} ]
+  captions: captions.srt</code></pre>
+<p>That structure is plain data, so an agent can generate, diff, validate and version it like any config file. <b>Making the timeline the single source of truth</b> is the main architectural decision for agent-driven editing. <span class="ev i">Inference</span> Interchange formats exist to move timelines between tools: EDL (old, simple), FCPXML (Final Cut), AAF/XML (Avid/Premiere), and the open <a href="https://github.com/AcademySoftwareFoundation/OpenTimelineIO">OpenTimelineIO</a> (Academy Software Foundation, Apache-2.0). <span class="ev v">Verified</span></p>
+
+<h2>Compositing: layers, alpha and mattes</h2>
+<figure class="diagram">
+<svg viewBox="0 0 860 210" role="img" aria-label="Compositing layers with alpha">
+  <rect x="20" y="30" width="200" height="120" rx="6" class="box-a"/><text x="30" y="52" class="t-a">Layer 1: background</text><text x="30" y="72" class="t-muted">generated sky + sea</text>
+  <rect x="60" y="60" width="200" height="120" rx="6" class="box-b" opacity=".9"/><text x="70" y="82" class="t-b">Layer 2: rendered booster</text><text x="70" y="102" class="t-muted">RGBA (transparent around it)</text>
+  <rect x="100" y="90" width="200" height="100" rx="6" class="box-c" opacity=".9"/><text x="110" y="112" class="t-c">Layer 3: labels</text><text x="110" y="132" class="t-muted">"ALTITUDE 40 m"</text>
+  <text x="330" y="110" class="t-title">= one composited frame</text>
+  <rect x="520" y="30" width="320" height="160" rx="8" class="box"/>
+  <text x="536" y="56" class="t-title">Key ideas</text>
+  <text x="536" y="80" class="t-muted">• alpha channel = per-pixel transparency</text>
+  <text x="536" y="100" class="t-muted">• matte/mask = which pixels a layer affects</text>
+  <text x="536" y="120" class="t-muted">• keying = make a colour (green) transparent</text>
+  <text x="536" y="140" class="t-muted">• rotoscoping/segmentation = AI masks per frame</text>
+  <text x="536" y="160" class="t-muted">• tracking = labels follow a moving object</text>
+  <text x="536" y="180" class="t-muted">• blend modes: normal, add (glow), multiply…</text>
+</svg>
+<figcaption>Rendering elements with transparency (ProRes 4444, PNG sequences, WebM/VP9 with alpha) lets the agent change one layer — say, a typo in a label — without re-rendering the expensive 3D layer underneath.</figcaption>
+</figure>
+<p>AI has changed compositing mostly through <b>segmentation and matting</b>: models like Meta's SAM family produce per-object masks across a video from a click or a text prompt; background-removal models cut people or products out without a green screen. Generated footage has no alpha channel, so mattes are the bridge between <span class="ap a">A</span> footage and <span class="ap b">B</span> overlays. <span class="ev p">Practice</span></p>
+
+<h2>Automated editing techniques</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Technique</th><th>How it works</th><th>Typical tools</th><th>Reliability</th></tr></thead>
+<tbody>
+<tr><td>Shot / scene detection</td><td>Detect cuts by frame-difference or content histograms</td><td>PySceneDetect, FFmpeg <code>select='gt(scene,0.3)'</code></td><td>High for hard cuts, lower for dissolves</td></tr>
+<tr><td>Silence / filler removal</td><td>Cut where audio is below a threshold or ASR finds "um"</td><td>auto-editor, text-based editors</td><td>High</td></tr>
+<tr><td>Text-based editing</td><td>Edit the transcript; the video follows the word timestamps</td><td>Descript-style editors, ASR + FFmpeg</td><td>High mechanically; story judgement is the hard part</td></tr>
+<tr><td>Highlight / clip extraction</td><td>LLM reads transcript, picks segments; vision model checks framing</td><td>Clipping apps, custom pipelines</td><td>Medium — subjective</td></tr>
+<tr><td>Auto-reframe (16:9 → 9:16)</td><td>Track faces/subjects, crop window follows them</td><td>NLE features, custom tracking</td><td>Medium-high</td></tr>
+<tr><td>Beat-synced cutting</td><td>Detect music beats; place cuts on beats</td><td>Audio analysis libraries, music APIs with beat data</td><td>High mechanically</td></tr>
+<tr><td>Retiming</td><td>Speed ramps, slow motion; frame interpolation to fill frames</td><td>FFmpeg <code>setpts</code>, RIFE-style interpolation</td><td>High; interpolation can smear fast motion</td></tr>
+<tr><td>Transitions</td><td>Crossfade, dissolve, wipe, match cut</td><td>FFmpeg <code>xfade</code>, every NLE</td><td>High (choosing <i>which</i> is a taste call)</td></tr>
+</tbody></table></div>
+
+<h2>Finishing</h2>
+<h3>Colour</h3>
+<p><b>Colour correction</b> makes shots technically consistent (exposure, white balance); <b>grading</b> gives them a look. In mixed pipelines this matters more than usual, because generated, rendered and stock shots each arrive with a different "look". A shared LUT (look-up table) or grade applied to all shots, plus matched exposure, is the cheapest way to make a hybrid video feel like one film. <span class="ev p">Practice</span> Delivery for the web is almost always SDR <b>Rec.709</b>. <span class="ev p">Practice</span></p>
+<h3>Stabilisation</h3>
+<p>Analyse motion between frames and counter-shift/rotate (FFmpeg <code>vidstab</code>, NLE stabilisers). Mostly relevant for captured footage; generated shots sometimes need the opposite (adding subtle camera shake to match).</p>
+<h3>Enhancement: upscaling, interpolation, restoration</h3>
+<p>Generated video often comes out at 720p or 1080p and 24 fps or lower. Neural <b>upscalers</b> add plausible detail (Real-ESRGAN family, SeedVR, commercial tools like Topaz); <b>frame interpolation</b> (RIFE, FILM) synthesises in-between frames for smoother motion or slow motion. Both are generative: they can invent detail or smear text. Apply them before compositing exact overlays, not after. <span class="ev p">Practice</span></p>
+<h3>Captions and subtitles</h3>
+<ul>
+<li><b>Formats</b>: SRT (plain, universal), WebVTT (web), ASS/SSA (styled, for burned-in "karaoke" captions).</li>
+<li><b>Burned-in</b> (rendered into pixels; social media style) vs <b>sidecar</b> (separate file; accessible, searchable, translatable). Deliver sidecar captions even when you also burn them in. <span class="ev p">Practice</span></li>
+<li><b>Timing</b> comes from word timestamps (<a href="04-audio.html">page 4</a>). Good captions follow line-length and reading-speed rules (roughly ≤ 42 characters per line and ≤ 2 lines is a common broadcast guideline). <span class="ev p">Practice</span></li>
+</ul>
+
+<h2>Encoding and delivery</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Term</th><th>Plain meaning</th><th>Typical choice</th></tr></thead>
+<tbody>
+<tr><td>Codec</td><td>How frames are compressed</td><td>H.264 (universal), H.265/HEVC or AV1 (smaller files), ProRes / DNxHR (editing masters)</td></tr>
+<tr><td>Container</td><td>File that holds video + audio + subtitle streams</td><td>MP4 (delivery), MOV (masters), MKV/WebM</td></tr>
+<tr><td>Frame rate</td><td>Frames per second; must stay consistent across the timeline</td><td>24/25/30 (cinematic/PAL/web), 60 for UI demos</td></tr>
+<tr><td>Bitrate / quality</td><td>Data per second; constant-quality modes (CRF) are simplest</td><td>See platform specs</td></tr>
+<tr><td>Pixel format</td><td>Chroma subsampling and bit depth</td><td><code>yuv420p</code> 8-bit for compatibility</td></tr>
+<tr><td>Hardware encoding</td><td>GPU encoders (NVIDIA NVENC, Intel QSV, AMD AMF)</td><td>Fast previews; software x264/x265 for best quality per bit</td></tr>
+</tbody></table></div>
+<p><b>YouTube's own recommended upload settings</b> (help page, accessed 2026-10-17): MP4 container, H.264 High Profile with progressive scan and 4:2:0, AAC-LC (or Opus) audio at 48 kHz, native frame rate; SDR 1080p at about 8 Mbps (12 Mbps at 48–60 fps), 2160p at 35–45 Mbps. <span class="ev v">Verified</span> (<a href="https://support.google.com/youtube/answer/1722171">support.google.com/youtube/answer/1722171</a>)</p>
+
+<h2>FFmpeg: the universal back end</h2>
+<p>Almost every programmatic video tool ends in <a href="https://ffmpeg.org/">FFmpeg</a> (current major release line 9.x as of Sept 2026 <span class="ev v">Verified</span>). It is worth knowing what it can do, even if you never write a filter graph by hand — your agent will.</p>
+<details><summary>What FFmpeg covers (with tiny illustrative commands)</summary><div class="body">
+<div class="table-wrap"><table class="compact">
+<thead><tr><th>Job</th><th>Illustration</th></tr></thead>
+<tbody>
+<tr><td>Image sequence → video</td><td><code>ffmpeg -framerate 30 -i f_%05d.png -c:v libx264 -pix_fmt yuv420p out.mp4</code></td></tr>
+<tr><td>Concatenate clips</td><td>concat demuxer with a list file, or the <code>concat</code> filter</td></tr>
+<tr><td>Crossfade two clips</td><td><code>xfade=transition=fade:duration=0.5:offset=6</code></td></tr>
+<tr><td>Overlay a transparent layer</td><td><code>overlay=x=100:y=50:enable='between(t,12,16)'</code></td></tr>
+<tr><td>Burn subtitles</td><td><code>subtitles=captions.srt</code> or <code>ass=styled.ass</code></td></tr>
+<tr><td>Duck music under voice</td><td><code>sidechaincompress</code> with the voice as side-chain</td></tr>
+<tr><td>Normalise loudness</td><td><code>loudnorm=I=-14:TP=-1:LRA=11</code> (two-pass for accuracy)</td></tr>
+<tr><td>Extract frames for inspection</td><td><code>fps=1</code>, or <code>select='gt(scene,0.3)'</code> for scene changes</td></tr>
+<tr><td>Measure</td><td><code>ffprobe</code> (durations, streams), <code>ebur128</code> (loudness), <code>blackdetect</code>, <code>silencedetect</code>, <code>freezedetect</code></td></tr>
+</tbody></table></div>
+<p class="small muted">Illustrative only — not complete commands. FFmpeg's filter syntax is powerful but notoriously error-prone; agents do well with it when they validate output with <code>ffprobe</code> after each step.</p>
+</div></details>
+
+<h2>Where professional editing applications fit</h2>
+<p>A professional NLE (DaVinci Resolve, Premiere Pro, Final Cut Pro, Avid) is the right tool for a <b>human finishing pass</b>: grading, fine audio mixing, reviewing with a client. For an agent, they matter in three ways:</p>
+<ol>
+<li><b>As a destination</b>: the agent exports a timeline (FCPXML, OTIO, EDL) plus media so a human editor can open and polish it. This is a robust hand-off pattern. <span class="ev i">Inference</span></li>
+<li><b>As a scripted engine</b>: Resolve has Python/Lua scripting — but since <b>Resolve 21.1 (2026), Python scripting is Studio-only</b> (release note quoted by Puget Systems: "We have moved the ability to script in Python to the Studio version"; Studio costs US$295). <span class="ev v">Verified</span> (<a href="https://www.pugetsystems.com/blog/2026/09/10/how-davinci-resolve-free-v21-1-scripting-changes-affect-puget-bench/">Puget Systems, 2026-09-10</a>). Adobe is moving Premiere scripting from ExtendScript to UXP; community reports say the new timeline API still has gaps. <span class="ev u">Unverified</span> detail.</li>
+<li><b>Via MCP bridges</b>: community MCP servers wrap NLE scripting APIs so an agent can call "add clip", "render" etc. Useful, but they inherit every limitation of the underlying scripting API. <span class="ev p">Practice</span></li>
+</ol>
+<p>Consumer editors without APIs (e.g. CapCut, which has no official editing API as of Oct 2026) are poor targets for autonomous agents; UI automation of them is fragile and may violate terms. <span class="ev p">Practice</span></p>
+
+<h2>Why this layer matters most for an agent</h2>
+<ul>
+<li>It is <b>deterministic</b>: same timeline + same assets = same video.</li>
+<li>It is <b>cheap</b>: re-assembling a 2-minute video takes seconds to minutes; regenerating its shots costs money.</li>
+<li>It is <b>measurable</b>: durations, loudness, black frames, caption timing can all be checked by code.</li>
+<li>It <b>absorbs imperfection</b>: a cut 0.5 s earlier hides a generated artefact; a crossfade hides a continuity jump. Good editing is the cheapest quality fix for generative footage. <span class="ev p">Practice</span></li>
+</ul>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Industry Maturity</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+<style>
+  .mat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 1rem 0; }
+  @media (max-width: 760px) { .mat-grid { grid-template-columns: 1fr; } }
+  .mat-col { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-elev); padding: 12px 14px; }
+  .mat-col h3 { margin: 0 0 .5rem; font-size: 1.05rem; }
+  .mat-col.ok { border-top: 4px solid var(--ev-verified); }
+  .mat-col.mid { border-top: 4px solid var(--ev-inference); }
+  .mat-col.exp { border-top: 4px solid var(--ev-experimental); }
+  .mat-col ul { padding-left: 1.1em; font-size: 14.5px; }
+</style>
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 14 · Deliverable H — Current industry maturity</div>
+<h1>What works today, what works with limits, what is experimental</h1>
+<p class="lead">An honest map for October 2026, based on the documented workflows (<a href="11-documented-workflows.html">page 11</a>), benchmarks and vendor documentation. Use it to set expectations before you build.</p>
+
+<div class="mat-grid">
+<div class="mat-col ok"><h3>Reliable to automate today</h3>
+<ul>
+<li>Script drafting from sourced research</li>
+<li>Code-driven 2D animation, charts, kinetic type, math</li>
+<li>Headless rendering (web-based frameworks, Manim, Blender)</li>
+<li>Timeline assembly, transitions, compositing of overlays</li>
+<li>TTS narration with word timestamps</li>
+<li>Captions from timestamps; ASR-based caption QA</li>
+<li>Loudness normalisation, ducking, encoding to platform specs</li>
+<li>Silence/filler cutting of recorded talks</li>
+<li>Scripted screen-capture product demos</li>
+<li>Avatar presenter videos via platform APIs (with consent)</li>
+<li>Objective QA: probes, detectors, OCR, timing checks</li>
+<li>Partial re-rendering with a build graph</li>
+</ul></div>
+<div class="mat-col mid"><h3>Works, with significant limits</h3>
+<ul>
+<li>Generative b-roll and cinematic inserts (needs takes + selection)</li>
+<li>Image-to-video from designed keyframes</li>
+<li>Character/product consistency across shots (references, LoRAs)</li>
+<li>Agent judging visual quality from sampled frames</li>
+<li>Whole-video review by a video-capable model (≈1 fps)</li>
+<li>Editing real footage by conversation (with plan approval)</li>
+<li>3D scene building by agents (assets, lighting are weak spots)</li>
+<li>Music generation with clear commercial rights</li>
+<li>Lip-sync / dubbing for localisation</li>
+<li>Multi-agent role decomposition (planner + coder + critic)</li>
+</ul></div>
+<div class="mat-col exp"><h3>Experimental / not dependable</h3>
+<ul>
+<li>Fully autonomous cinematic short films from one prompt</li>
+<li>Long continuous takes with stable identity and physics</li>
+<li>AI judgement of temporal order, fine motion, physics plausibility</li>
+<li>Agent "taste" over a whole film without human curation</li>
+<li>Peer multi-agent "film crews" outperforming one strong agent</li>
+<li>Real-time / interactive world models as virtual sets</li>
+<li>CG-to-photoreal restyle without shimmer on long shots</li>
+<li>Robust provenance that survives every re-encode</li>
+</ul></div>
+</div>
+<p class="small muted"><span class="ev i">Inference</span> — a synthesis. Supporting evidence: TOMATO / Vinoground on temporal reasoning; Code2Video and TheoremExplainAgent success rates; FilmAgent's small evaluation; video-use and product-launch-video workflows; C2PA survival tests.</p>
+
+<h2>Answers to the big questions</h2>
+<details open><summary>How close are today's coding agents to being autonomous directors, editors and production teams?</summary><div class="body">
+<p>For <b>code-driven and assembly-driven videos</b> (explainers, product demos, presentations, edits of footage) they are already competent <b>editors and motion designers with a supervisor</b>: they plan, build, render, inspect and fix, and documented workflows exist. For <b>cinematic, character-driven work</b> they are <b>production assistants</b>: they run the machinery and pre-filter takes, but selection, taste and continuity remain human. <span class="ev i">Inference</span></p>
+</div></details>
+<details><summary>What limitations prevent completely autonomous professional production?</summary><div class="body">
+<ol>
+<li><b>Perception</b>: agents see samples of the video, not the video; temporal reasoning of current models is far below humans on benchmarks.</li>
+<li><b>Generative control</b>: video models don't take exact specifications; consistency and physics are approximate.</li>
+<li><b>Taste and audience judgement</b>: no reliable automatic measure of "good" for a specific audience.</li>
+<li><b>Cost of iteration</b>: each generative attempt costs money; loops need budgets and stopping rules.</li>
+<li><b>Rights and responsibility</b>: licences, consent and disclosure need an accountable human.</li>
+<li><b>Tool churn</b>: models and APIs change or disappear within months (e.g. Sora's shutdown).</li>
+</ol>
+</div></details>
+<details><summary>What would change this picture?</summary><div class="body">
+<ul>
+<li>Coding agents with native, high-frame-rate video understanding and better temporal reasoning.</li>
+<li>Generative models that accept exact 3D/camera/layout specifications (bridging A and B).</li>
+<li>Stable, versioned model endpoints with reproducible seeds.</li>
+<li>Evaluation suites tied to briefs (not generic aesthetics) for agent self-QA.</li>
+</ul>
+<p><span class="ev i">Inference</span></p>
+</div></details>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

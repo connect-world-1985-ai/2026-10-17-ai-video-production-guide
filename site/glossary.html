@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glossary</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Reference</div>
+<h1>Glossary</h1>
+<p class="lead">Terms from video production, graphics, audio and generative AI, in plain language.</p>
+<div class="toolbar"><input type="search" data-filter-for="gl" placeholder="Filter terms…"></div>
+<div class="table-wrap"><table id="gl" class="compact">
+<thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Alpha channel</td><td>Per-pixel transparency stored with an image or video, so a layer can sit over another.</td></tr>
+<tr><td>ASR</td><td>Automatic speech recognition — turning speech into text, ideally with word timestamps.</td></tr>
+<tr><td>Aspect ratio</td><td>Width:height of the frame — 16:9 (YouTube), 9:16 (Shorts/Reels/TikTok), 1:1.</td></tr>
+<tr><td>B-roll</td><td>Supporting footage shown while narration or interview audio continues.</td></tr>
+<tr><td>Bitrate</td><td>Data per second in an encoded video; higher = more quality and larger files.</td></tr>
+<tr><td>C2PA / Content Credentials</td><td>Open standard for signed provenance metadata describing how a media file was made and edited.</td></tr>
+<tr><td>Classifier-free guidance</td><td>Diffusion trick that strengthens prompt adherence by contrasting predictions with and without the prompt.</td></tr>
+<tr><td>Codec</td><td>Compression method for video/audio (H.264, H.265, AV1, ProRes, AAC, Opus).</td></tr>
+<tr><td>Colour grading / LUT</td><td>Giving footage a look; a LUT (look-up table) is a reusable colour transform.</td></tr>
+<tr><td>Compositing</td><td>Combining layers (footage, renders, text) into one image per frame.</td></tr>
+<tr><td>Container</td><td>File format holding streams (MP4, MOV, MKV, WebM).</td></tr>
+<tr><td>ControlNet</td><td>Method to condition image/video generation on structure (pose, depth, edges).</td></tr>
+<tr><td>Cue point</td><td>A time at which something must happen (animation start, SFX), often tied to a narration word.</td></tr>
+<tr><td>Diffusion model</td><td>Generative model that creates data by iteratively removing noise.</td></tr>
+<tr><td>DiT (Diffusion Transformer)</td><td>Transformer used as the denoiser in diffusion; the dominant video-model backbone.</td></tr>
+<tr><td>Ducking</td><td>Automatically lowering music when speech is present (side-chain compression).</td></tr>
+<tr><td>EDL / FCPXML / OTIO</td><td>Timeline interchange formats: Edit Decision List, Final Cut XML, OpenTimelineIO.</td></tr>
+<tr><td>Easing</td><td>The speed curve of an animation between keyframes (linear, ease-in-out, spring).</td></tr>
+<tr><td>F-curve</td><td>Blender's name for an animation curve of a property over time.</td></tr>
+<tr><td>First/last-frame conditioning</td><td>Giving a video model the exact start (and end) image so it generates the motion between.</td></tr>
+<tr><td>Flow matching / rectified flow</td><td>Training method that learns to move noise straight toward data; fewer sampling steps than classic diffusion.</td></tr>
+<tr><td>Foley</td><td>Everyday sound effects synced to on-screen action (footsteps, clunks).</td></tr>
+<tr><td>Forced alignment</td><td>Given audio and its exact text, compute when each word/phoneme is spoken.</td></tr>
+<tr><td>fps</td><td>Frames per second (24 cinematic, 25 PAL, 30 web, 60 smooth UI).</td></tr>
+<tr><td>Frame interpolation</td><td>Synthesising in-between frames to raise fps or create slow motion.</td></tr>
+<tr><td>Gaussian splatting / NeRF</td><td>Ways to reconstruct a real 3D scene from photos and render new views.</td></tr>
+<tr><td>Headless rendering</td><td>Rendering without a visible UI, from a script or command line — what agents need.</td></tr>
+<tr><td>I2V / T2V / V2V</td><td>Image-to-video, text-to-video, video-to-video generation.</td></tr>
+<tr><td>Keyframe</td><td>(Animation) a stored value at a point in time; (generation) a designed still that anchors a shot.</td></tr>
+<tr><td>Latent space</td><td>Compressed representation where generative models work; decoded back to pixels.</td></tr>
+<tr><td>LoRA</td><td>Small fine-tuned adapter that teaches a model a character, product or style.</td></tr>
+<tr><td>Lower third</td><td>Text graphic in the lower part of the frame (name, title, label).</td></tr>
+<tr><td>LUFS / LKFS</td><td>Loudness units (ITU-R BS.1770); targets like −23 (EBU R128) or about −14 (online).</td></tr>
+<tr><td>Matte / mask</td><td>Defines which pixels an effect or layer affects; AI segmentation creates them automatically.</td></tr>
+<tr><td>MCP</td><td>Model Context Protocol — a standard way to expose tools to AI agents.</td></tr>
+<tr><td>Mocap</td><td>Motion capture — recording real movement to drive a 3D character.</td></tr>
+<tr><td>NLE</td><td>Non-linear editor (Premiere, Resolve, Final Cut, Kdenlive).</td></tr>
+<tr><td>Path tracing</td><td>Physically based rendering by simulating many light paths per pixel.</td></tr>
+<tr><td>PBR</td><td>Physically based rendering materials (base colour, roughness, metallic).</td></tr>
+<tr><td>Rasterisation</td><td>Fast GPU rendering by projecting triangles to the screen.</td></tr>
+<tr><td>Rec.709</td><td>Standard colour space for HD/SDR video.</td></tr>
+<tr><td>Reference-to-video</td><td>Generation conditioned on reference images (and sometimes videos/audio) to keep identity.</td></tr>
+<tr><td>Scene graph</td><td>Tree of objects with transforms that describes a 2D/3D scene.</td></tr>
+<tr><td>Seed</td><td>Number that fixes the initial noise of a generation; same seed + same model → similar output.</td></tr>
+<tr><td>Shot list</td><td>Per-shot plan: content, duration, camera, technology, assets, audio cues.</td></tr>
+<tr><td>Spacetime patches</td><td>Small 3D blocks of a video latent used as transformer tokens.</td></tr>
+<tr><td>SRT / VTT / ASS</td><td>Subtitle formats (simple, web, styled).</td></tr>
+<tr><td>SSML</td><td>Markup to control TTS (pauses, emphasis, pronunciation).</td></tr>
+<tr><td>Storyboard</td><td>Sequence of frames showing what each shot looks like.</td></tr>
+<tr><td>SynthID</td><td>Google's invisible watermark for AI-generated media.</td></tr>
+<tr><td>Timeline</td><td>Tracks of clips placed in time; the data structure behind any edit.</td></tr>
+<tr><td>True peak (dBTP)</td><td>Peak level including inter-sample peaks; commonly kept ≤ −1 dBTP.</td></tr>
+<tr><td>TTS</td><td>Text-to-speech.</td></tr>
+<tr><td>VAE</td><td>Variational autoencoder; compresses images/video into latents and decodes them.</td></tr>
+<tr><td>Viseme</td><td>Visual mouth shape corresponding to a speech sound; used for lip-sync.</td></tr>
+<tr><td>VLM</td><td>Vision-language model — an LLM that can read images (and sometimes video).</td></tr>
+<tr><td>World model</td><td>Model that generates an explorable, action-responsive environment frame by frame.</td></tr>
+</tbody></table></div>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

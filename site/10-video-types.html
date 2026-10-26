@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Types and Strategies</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 10 · §10 + Deliverable F — Production strategies by video type</div>
+<h1>Twelve video types, twelve strategies</h1>
+<p class="lead">A stack that is perfect for a math explainer is useless for a music video. This page shows what makes each category technically different, what to build it with, how far an agent can automate it, and how quality is judged.</p>
+
+<h2>Overview matrix</h2>
+<p class="small muted">Approach weight: ●●● main method · ●● common · ● occasional. Automation = how much a coding agent can do end-to-end today with human checkpoints. <span class="ev i">Inference</span> based on pages 2–7 and 11.</p>
+<div class="table-wrap"><table class="compact" data-sortable>
+<thead><tr><th>Type</th><th>A neural</th><th>B rendered</th><th>C assembly</th><th>Audio role</th><th>Agent automation</th><th>Relative cost</th></tr></thead>
+<tbody>
+<tr><td>1 Educational explainer</td><td>●</td><td>●●●</td><td>●●</td><td>Narration drives everything</td><td data-v="5">High</td><td data-v="1">Low</td></tr>
+<tr><td>2 Scientific / engineering viz</td><td>●</td><td>●●●</td><td>●●</td><td>Narration + subtle SFX</td><td data-v="4">High (correctness needs expert review)</td><td data-v="2">Low–Med</td></tr>
+<tr><td>3 Business presentation</td><td>●</td><td>●●●</td><td>●●●</td><td>Narration or presenter</td><td data-v="5">High</td><td data-v="1">Low</td></tr>
+<tr><td>4 Cinematic / photoreal</td><td>●●●</td><td>●</td><td>●●</td><td>Score, design, dialogue</td><td data-v="2">Low–Med (curation-heavy)</td><td data-v="5">High</td></tr>
+<tr><td>5 Marketing / advertising</td><td>●●</td><td>●●</td><td>●●●</td><td>Music + VO; brand sound</td><td data-v="3">Medium</td><td data-v="4">Med–High</td></tr>
+<tr><td>6 Social media short</td><td>●●</td><td>●●</td><td>●●●</td><td>Trending audio, captions</td><td data-v="4">High for templates</td><td data-v="1">Low</td></tr>
+<tr><td>7 Documentary-style</td><td>●●</td><td>●●</td><td>●●●</td><td>Narration, archive sound, score</td><td data-v="3">Medium</td><td data-v="3">Medium</td></tr>
+<tr><td>8 Animated storytelling</td><td>●●●</td><td>●●</td><td>●●</td><td>Dialogue, score, foley</td><td data-v="2">Low–Med</td><td data-v="4">Med–High</td></tr>
+<tr><td>9 Digital presenter / avatar</td><td>●●● (A4)</td><td>●</td><td>●●</td><td>Speech is the input</td><td data-v="5">High</td><td data-v="2">Low–Med</td></tr>
+<tr><td>10 Music video</td><td>●●●</td><td>●●</td><td>●●●</td><td>Music is the timeline</td><td data-v="3">Medium (beat-sync easy; visuals curated)</td><td data-v="4">Med–High</td></tr>
+<tr><td>11 Product demo</td><td>●</td><td>●●</td><td>●●● (screen capture)</td><td>Narration, UI sounds</td><td data-v="5">High for software</td><td data-v="1">Low</td></tr>
+<tr><td>12 Hybrid mixed-style</td><td>●●</td><td>●●</td><td>●●●</td><td>Glue across styles</td><td data-v="3">Medium</td><td data-v="3">Medium</td></tr>
+</tbody></table></div>
+
+<h2>Category by category</h2>
+<p><button class="chip" data-toggle-all="types">Expand all</button></p>
+<div id="types">
+
+<details><summary>1 · Educational and explanatory animation</summary><div class="body">
+<dl class="kv">
+<dt>What's different</dt><dd>Correctness and clarity beat realism. Viewers must follow one idea at a time; text, symbols and diagrams must be exact.</dd>
+<dt>Methods</dt><dd>Code-driven 2D (math/diagram animation), narration-first timing, occasional stills or generated b-roll for context.</dd>
+<dt>Tools (classes)</dt><dd>Manim-style Python libraries; React/HTML video frameworks; TTS + forced alignment; FFmpeg.</dd>
+<dt>Audio</dt><dd>Narration is the backbone; light music bed; minimal SFX.</dd>
+<dt>Automation</dt><dd>High — the strongest documented agent results are here (Code2Video, TheoremExplainAgent, Remotion/HyperFrames skills).</dd>
+<dt>Limits</dt><dd>Layout overlaps and code errors were the top failures in TheoremExplainAgent; pedagogical quality still needs a teacher's eye.</dd>
+<dt>Evaluate by</dt><dd>Accuracy, legibility, pacing; Code2Video's "TeachQuiz" idea — can a viewer answer questions after watching? <span class="ev v">Verified</span> concept (<a href="https://arxiv.org/abs/2510.01174">arXiv 2510.01174</a>)</dd>
+</dl></div></details>
+
+<details><summary>2 · Scientific and engineering visualisation</summary><div class="body">
+<dl class="kv">
+<dt>What's different</dt><dd>The picture must be a function of real data or physics. A plausible-looking but wrong plume or trajectory is a defect, not a style.</dd>
+<dt>Methods</dt><dd>Simulation → 3D render (Blender, ParaView) or 2D plots; annotation overlays; generative video only for non-technical context.</dd>
+<dt>Automation</dt><dd>High for building and rendering; domain review required for correctness.</dd>
+<dt>Evaluate by</dt><dd>Expert review of each claim; data provenance; units and scales.</dd>
+</dl></div></details>
+
+<details><summary>3 · Professional business presentations</summary><div class="body">
+<dl class="kv">
+<dt>What's different</dt><dd>Brand compliance (fonts, colours, logos), data charts, speaker or narration, often generated from existing slides or documents.</dd>
+<dt>Methods</dt><dd>Template-driven 2D (slides → animated scenes), charts from data, TTS or avatar presenter, captions.</dd>
+<dt>Automation</dt><dd>High. Main risk: generic look; fix with a strong brand kit.</dd>
+<dt>Evaluate by</dt><dd>Brand checklist, data accuracy, message clarity, length.</dd>
+</dl></div></details>
+
+<details><summary>4 · Cinematic and photorealistic video</summary><div class="body">
+<dl class="kv">
+<dt>What's different</dt><dd>Lighting, lens, performance, continuity and emotion. Every frame is judged as a picture.</dd>
+<dt>Methods</dt><dd>Keyframe-first: designed stills with references → image-to-video per shot → many takes → human selection → editing, grading, sound design. Professional AI films are heavily curated.</dd>
+<dt>Automation</dt><dd>Low–medium. Agents can run the pipeline, generate candidates and pre-filter; selection and taste remain human.</dd>
+<dt>Limits</dt><dd>Character consistency across shots, hands/physics, clip length; cost of many takes.</dd>
+<dt>Evaluate by</dt><dd>Human review; continuity sheet; reference-identity checks.</dd>
+</dl></div></details>
+
+<details><summary>5 · Marketing and advertising</summary><div class="body">
+<dl class="kv">
+<dt>What's different</dt><dd>Exact product appearance, legal claims, brand voice, many variants (formats, languages, A/B versions).</dd>
+<dt>Methods</dt><dd>Product renders or photos (exact) + generated environments; templated variants; avatar or VO localisation.</dd>
+<dt>Automation</dt><dd>Medium — variant generation is very automatable; the hero concept is not.</dd>
+<dt>Limits</dt><dd>Generative models alter logos and product details; commercial-use terms of each tool; disclosure rules.</dd>
+<dt>Evaluate by</dt><dd>Brand/legal review, product-fidelity checks, platform specs, performance metrics after launch.</dd>
+</dl></div></details>
+
+<details><summary>6 · Social media content</summary><div class="body">
+<dl class="kv">
+<dt>What's different</dt><dd>Vertical 9:16, first 1–2 seconds decide retention, burned-in captions, fast pacing, trends.</dd>
+<dt>Methods</dt><dd>Template assembly (stock/generated clips + TTS + big captions), clipping long videos, short generated clips with native audio.</dd>
+<dt>Automation</dt><dd>High for templated formats (e.g. MoneyPrinterTurbo-style pipelines); originality is the bottleneck.</dd>
+<dt>Evaluate by</dt><dd>Hook strength, caption legibility on a phone, safe areas, platform labelling rules for AI content.</dd>
+</dl></div></details>
+
+<details><summary>7 · Documentary-style productions</summary><div class="body">
+<dl class="kv">
+<dt>What's different</dt><dd>Credibility: real footage, sourced facts, restraint. Generated imagery that looks like evidence can mislead.</dd>
+<dt>Methods</dt><dd>Archive footage and stills (with motion), interviews, rendered reconstructions, generated atmosphere clearly as illustration; narration and score.</dd>
+<dt>Automation</dt><dd>Medium: research and assembly yes; archive licensing and editorial ethics need humans.</dd>
+<dt>Evaluate by</dt><dd>Fact audit, rights audit, disclosure of reconstructions.</dd>
+</dl></div></details>
+
+<details><summary>8 · Animated storytelling</summary><div class="body">
+<dl class="kv">
+<dt>What's different</dt><dd>Characters that must stay on-model across dozens of shots, acting, dialogue, story structure.</dd>
+<dt>Methods</dt><dd>Generative: character sheets + references/LoRAs → keyframes → I2V; or 3D characters with mocap; or 2D rigs. Multi-agent research systems (MovieAgent, ViMax, FilmAgent) target this.</dd>
+<dt>Automation</dt><dd>Low–medium; research-grade systems exist, but evidence of consistent quality at length is thin.</dd>
+<dt>Evaluate by</dt><dd>Character consistency checks, story review, audience test.</dd>
+</dl></div></details>
+
+<details><summary>9 · Digital presenters and AI avatars</summary><div class="body">
+<dl class="kv">
+<dt>What's different</dt><dd>A single talking person; lip-sync and natural gestures; multilingual versions.</dd>
+<dt>Methods</dt><dd>Avatar platforms (script → video) or open audio-driven models; slides/b-roll composited around the presenter.</dd>
+<dt>Automation</dt><dd>High via platform APIs.</dd>
+<dt>Limits</dt><dd>Uncanny moments over long takes; consent and likeness rules (vendors require on-camera consent for personal twins).</dd>
+<dt>Evaluate by</dt><dd>Lip-sync quality (sync metrics, human check), pronunciation, viewer trust.</dd>
+</dl></div></details>
+
+<details><summary>10 · Music videos</summary><div class="body">
+<dl class="kv">
+<dt>What's different</dt><dd>The song is fixed and is the timeline; visuals follow beats, sections and lyrics.</dd>
+<dt>Methods</dt><dd>Beat/section analysis → shot plan → generated or rendered visuals → beat-synced cuts; research system AutoMV automates this end-to-end.</dd>
+<dt>Automation</dt><dd>Medium: sync is mechanical; aesthetic coherence is curated.</dd>
+<dt>Evaluate by</dt><dd>Sync accuracy, visual coherence, artist approval.</dd>
+</dl></div></details>
+
+<details><summary>11 · Product demonstrations</summary><div class="body">
+<dl class="kv">
+<dt>What's different</dt><dd>Must show the real product truthfully; UI changes often.</dd>
+<dt>Methods</dt><dd>Scripted browser/app automation recorded headlessly, zoom/cursor highlights, narration, captions; rendered product shots for hardware.</dd>
+<dt>Automation</dt><dd>High for software: re-record automatically when the UI changes. Product-launch-video (EveryInc) is a documented Claude Code workflow for this. <span class="ev v">Verified</span></dd>
+<dt>Evaluate by</dt><dd>Accuracy vs current product, readability of UI text, length.</dd>
+</dl></div></details>
+
+<details><summary>12 · Hybrid productions mixing styles</summary><div class="body">
+<dl class="kv">
+<dt>What's different</dt><dd>Consistency across fundamentally different sources.</dd>
+<dt>Methods</dt><dd>Strong style bible, one grade, shared typography, sound glue; deliberate style transitions.</dd>
+<dt>Automation</dt><dd>Medium: routing and assembly automate; cohesion needs taste.</dd>
+<dt>Evaluate by</dt><dd>Does it feel like one film? Human review.</dd>
+</dl></div></details>
+</div>
+
+<h2>Why one stack fails for another category</h2>
+<ul>
+<li>A <b>Remotion/Manim stack</b> is ideal for explainers and product demos but cannot produce believable people or landscapes.</li>
+<li>A <b>generative-video stack</b> makes stunning cinematic shots but is the wrong tool for anything that must be exactly right (data, UI, math, physics, logos).</li>
+<li>An <b>avatar platform</b> is unbeatable for a talking presenter and unusable for anything else.</li>
+<li>A <b>template video API</b> scales social variants cheaply but gives generic results for storytelling.</li>
+<li>A <b>3D engine</b> gives total control but turns every new object into an asset-creation project.</li>
+</ul>
+<p><span class="ev i">Inference</span></p>
+
+<h2>End-to-end workflows (Deliverable F)</h2>
+<div data-tabs>
+<div class="tabs"><button data-tab="w1">Explainer (code-first)</button><button data-tab="w2">Product demo</button><button data-tab="w3">Social short</button><button data-tab="w4">Avatar training video</button><button data-tab="w5">Cinematic short</button></div>
+<div class="tab-panel" data-panel="w1">
+<ol class="stepper">
+<li>Agent drafts outline + script from sources; you approve.</li>
+<li>TTS per segment → word timestamps.</li>
+<li>Agent writes scenes in a code framework (Manim or Remotion/HyperFrames), each scene's duration from its segment.</li>
+<li>Render previews; agent inspects stills at cue points and fixes overlaps.</li>
+<li>Music bed, ducking, loudness; captions from timestamps.</li>
+<li>Final render; ASR check; you review.</li>
+</ol>
+<p class="small muted">Typical cost: almost entirely agent tokens + TTS. Highest automation of any category.</p>
+</div>
+<div class="tab-panel" data-panel="w2">
+<ol class="stepper">
+<li>Agent writes a browser-automation script for the demo path (deterministic, re-runnable).</li>
+<li>Record at high resolution; log timestamps of each action.</li>
+<li>Narration written to the action log; TTS; timings.</li>
+<li>Code framework adds zooms, highlights, callouts at logged timestamps.</li>
+<li>Critic pass on frames for UI legibility; re-record if the UI changed.</li>
+</ol>
+</div>
+<div class="tab-panel" data-panel="w3">
+<ol class="stepper">
+<li>Hook-first script (≤ 60 s), 9:16.</li>
+<li>Mix of generated clips (native audio OK), stills with motion, and kinetic captions.</li>
+<li>Word-level burned-in captions inside platform safe areas.</li>
+<li>Produce 3–5 variants of the hook; human picks.</li>
+<li>Label AI-generated realistic content per platform rules.</li>
+</ol>
+</div>
+<div class="tab-panel" data-panel="w4">
+<ol class="stepper">
+<li>Script per module; pronunciation lexicon.</li>
+<li>Avatar platform API (stock avatar, or a consented personal twin) → presenter clips.</li>
+<li>Slides/diagrams rendered in code; composite presenter + slides.</li>
+<li>Translate script → re-voice → lip-sync for each language.</li>
+<li>Caption files per language; QA with ASR per language.</li>
+</ol>
+</div>
+<div class="tab-panel" data-panel="w5">
+<ol class="stepper">
+<li>Treatment + shot list; character and location reference sheets.</li>
+<li>Keyframes per shot with an image model using references; you approve the boards.</li>
+<li>I2V per shot, 3–4 takes; agent pre-filters with frame checks; you pick.</li>
+<li>Edit, grade, sound design, score; dialogue via TTS or native audio.</li>
+<li>Continuity review; regenerate weak shots.</li>
+</ol>
+<p class="small muted">Lowest automation; highest generation spend; the agent is a production assistant here, not the director.</p>
+</div>
+</div>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

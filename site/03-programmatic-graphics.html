@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programmatic Graphics and Rendering</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 3 · Deliverable D — Technical foundations (part 2)</div>
+<h1>Programmatic 2D/3D animation and rendering</h1>
+<p class="lead">How code becomes moving pictures. This is the part of video production that behaves most like normal software engineering, and where coding agents are strongest.</p>
+
+<h2>The core idea: a video is a function of time</h2>
+<p>Every code-driven animation tool, from a math-explainer library to a film renderer, implements the same loop:</p>
+<pre><code>for frame in range(duration_seconds * fps):      # e.g. 120 s × 30 fps = 3,600 frames
+    t = frame / fps
+    scene_state = evaluate_scene(t)               # where is everything at time t?
+    image = render(scene_state, camera_at(t))     # turn the state into pixels
+    write(image)                                  # PNG sequence or straight to an encoder
+encode(frames, audio) -> video.mp4</code></pre>
+<p>Everything else on this page is detail about <code>evaluate_scene</code> (scene graphs, keyframes, simulation) and <code>render</code> (2D drawing, rasterisation, ray tracing). <span class="ev p">Practice</span></p>
+
+<div class="callout key"><span class="title">The single most important rule for agent-written animation</span>
+<p>The picture at frame <i>n</i> must depend <b>only</b> on <i>n</i> (and fixed inputs), never on wall-clock time, network timing or random numbers without a seed. Frame-based renderers render frames out of order and in parallel; anything time- or timer-based will flicker or desync. Remotion's documentation builds everything around <code>useCurrentFrame()</code> for this reason; HyperFrames seeks a timeline to each frame before capture. <span class="ev v">Verified</span> (<a href="https://www.remotion.dev/docs/the-fundamentals">Remotion fundamentals</a>, <a href="https://github.com/heygen-com/hyperframes">HyperFrames README</a>)</p></div>
+
+<h2>Scene graphs: how a scene is represented</h2>
+<p>A scene graph is a tree of nodes. Each node has a transform (position, rotation, scale) relative to its parent, plus content (a shape, a mesh, text, a light, a camera). Moving a parent moves its children — exactly like the DOM, or a React component tree.</p>
+<figure class="diagram">
+<svg viewBox="0 0 860 250" role="img" aria-label="Scene graph example for a rocket landing scene">
+  <defs><marker id="s1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+  <rect x="360" y="10" width="140" height="34" rx="6" class="box-accent"/><text x="400" y="32" class="t-title">Scene</text>
+  <rect x="40" y="80" width="150" height="34" rx="6" class="box-b"/><text x="52" y="102">Camera (path, FOV)</text>
+  <rect x="220" y="80" width="150" height="34" rx="6" class="box-b"/><text x="232" y="102">Sun light, sky</text>
+  <rect x="400" y="80" width="150" height="34" rx="6" class="box-b"/><text x="412" y="102">Landing pad mesh</text>
+  <rect x="610" y="80" width="200" height="34" rx="6" class="box-b"/><text x="622" y="102">Booster (group, keyframed)</text>
+  <rect x="470" y="160" width="110" height="34" rx="6" class="box"/><text x="482" y="182">Body mesh</text>
+  <rect x="590" y="160" width="110" height="34" rx="6" class="box"/><text x="602" y="182">Legs (rig)</text>
+  <rect x="710" y="160" width="140" height="34" rx="6" class="box"/><text x="722" y="182">Engine plume FX</text>
+  <rect x="40" y="160" width="300" height="34" rx="6" class="box-c"/><text x="52" y="182">2D overlay layer: labels, altitude readout</text>
+  <path d="M430,44 L115,78" class="line" marker-end="url(#s1)"/><path d="M430,44 L295,78" class="line" marker-end="url(#s1)"/>
+  <path d="M430,44 L475,78" class="line" marker-end="url(#s1)"/><path d="M430,44 L710,78" class="line" marker-end="url(#s1)"/>
+  <path d="M710,114 L525,158" class="line" marker-end="url(#s1)"/><path d="M710,114 L645,158" class="line" marker-end="url(#s1)"/><path d="M710,114 L780,158" class="line" marker-end="url(#s1)"/>
+  <path d="M430,44 C300,120 200,120 190,158" class="line" marker-end="url(#s1)"/>
+  <text x="40" y="232" class="t-muted">Change "Booster.position.y" keyframes and the body, legs and plume follow. Change the camera path without touching anything else. That separation is what makes revisions cheap.</text>
+</svg>
+</figure>
+
+<h2>Keyframes, interpolation and easing</h2>
+<p>You rarely specify every frame. You set <b>keyframes</b> — the value of a property at certain times — and the tool <b>interpolates</b> between them. The <b>easing curve</b> decides how: linear motion looks mechanical; ease-in/ease-out looks natural; springs overshoot and settle.</p>
+<figure class="diagram">
+<svg viewBox="0 0 860 220" role="img" aria-label="Keyframes with linear and eased interpolation">
+  <line x1="60" y1="180" x2="820" y2="180" class="line"/><line x1="60" y1="30" x2="60" y2="180" class="line"/>
+  <text x="66" y="200" class="t-muted">frame 0</text><text x="760" y="200" class="t-muted">frame 90</text>
+  <text x="8" y="40" class="t-muted">altitude</text>
+  <path d="M60,40 L820,170" class="line" stroke-dasharray="4 4"/>
+  <path d="M60,40 C420,40 460,170 820,170" class="line-accent"/>
+  <circle cx="60" cy="40" r="6" class="box-b"/><circle cx="820" cy="170" r="6" class="box-b"/>
+  <text x="280" y="120" class="t-muted">linear (dashed): constant speed, looks robotic</text>
+  <text x="430" y="60" class="t-muted">ease-in-out (solid): slow start, fast middle, gentle stop</text>
+  <text x="70" y="28" class="t-b">keyframe 1</text><text x="740" y="160" class="t-b">keyframe 2</text>
+</svg>
+<figcaption>Animation curves ("F-curves" in Blender, easing functions in web frameworks) are just functions of time. An agent changing "make the landing gentler" edits one curve, not 90 frames.</figcaption>
+</figure>
+<p>Timelines group animations: <i>this sequence starts at second 12 and lasts 4 seconds; inside it, the label fades in at 0.5 s</i>. Web frameworks express this as nested components or timelines; Python libraries as ordered <code>play()</code> calls; 3D suites as tracks and strips.</p>
+
+<h2>Cameras: cinematography as parameters</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Film term</th><th>What changes in the scene</th><th>Typical parameter</th></tr></thead>
+<tbody>
+<tr><td>Pan / tilt</td><td>Camera rotates in place</td><td>rotation (yaw / pitch) keyframes</td></tr>
+<tr><td>Dolly / truck / crane</td><td>Camera moves forward / sideways / up</td><td>position path</td></tr>
+<tr><td>Zoom</td><td>Lens focal length changes (perspective stays, framing tightens)</td><td>focal length / field of view</td></tr>
+<tr><td>Orbit</td><td>Camera circles a target, always looking at it</td><td>"look-at" constraint + circular path</td></tr>
+<tr><td>Rack focus / shallow depth of field</td><td>Focus distance and aperture</td><td>focus distance, f-stop</td></tr>
+<tr><td>Motion blur</td><td>Exposure time per frame</td><td>shutter angle (180° is the film default)</td></tr>
+<tr><td>Handheld feel</td><td>Small noise added to position/rotation</td><td>noise modifier with a seed</td></tr>
+</tbody></table></div>
+<p>An agent that knows this table can turn a critique such as "the camera move is too fast and feels cheap" into concrete edits: lengthen the keyframe interval, add ease-in-out, add slight motion blur. <span class="ev i">Inference</span></p>
+
+<h2>Geometry, materials, light and shaders (3D)</h2>
+<ul>
+<li><b>Geometry</b>: meshes of triangles/polygons, curves, volumes (smoke), point clouds or Gaussian splats.</li>
+<li><b>Materials</b>: most tools use physically based rendering (PBR) — base colour, roughness, metallic, normal maps, emission. A "brushed steel booster with soot streaks" is a material plus textures.</li>
+<li><b>Lights</b>: sun, area, point lights and environment (HDRI) images that light the scene from all directions.</li>
+<li><b>Shaders</b>: small programs that compute surface colour (and in 2D web tools, full-screen effects). Node-based shader graphs are the common UI; they are also scriptable.</li>
+</ul>
+
+<h2>Rendering: turning the scene into pixels</h2>
+<div class="cards">
+<div class="card b"><h4>Rasterisation (real-time)</h4><p>Project triangles to the screen, shade each pixel. Milliseconds per frame on a GPU. Game engines, browser WebGL, Blender EEVEE. Approximates shadows, reflections, global illumination.</p></div>
+<div class="card b"><h4>Path tracing (offline)</h4><p>Simulate many light rays per pixel bouncing through the scene. Physically accurate light; noisy unless many samples; seconds to minutes per frame. Blender Cycles, film renderers. AI denoisers cut the samples needed.</p></div>
+<div class="card b"><h4>2D vector rendering</h4><p>Draw shapes, text, SVG and images, typically via a headless browser (web frameworks) or Cairo/OpenGL (Python libraries). Fast; perfectly sharp text.</p></div>
+</div>
+<p><b>Cost intuition</b>: a 2-minute video at 30 fps is 3,600 frames. At 30 s/frame of path tracing that is 30 hours on one machine — which is why productions render in parallel, render at lower samples, or use real-time engines. At 50 ms/frame of 2D rendering it is 3 minutes. <span class="ev i">Inference</span> (arithmetic).</p>
+
+<h2>Physics and procedural motion</h2>
+<p>Some motion is not authored but <b>computed</b>: rigid bodies falling, smoke from an engine, particles, cloth, fluids, or a trajectory from real equations. Simulations are usually run once and <b>baked</b> (cached to disk per frame) so rendering is repeatable and parallelisable. Seeds make "random" particle systems deterministic. For an engineering explainer, the trajectory of a landing booster can come from an actual physics model in Python and be fed into the 3D scene as keyframes — the picture is then <i>correct by construction</i>, something a neural video model cannot guarantee. <span class="ev i">Inference</span></p>
+
+<h2>From images to a video file</h2>
+<ol class="stepper">
+<li><b>Render frames</b> as an image sequence (PNG, or EXR for high dynamic range) or stream them directly into an encoder.</li>
+<li><b>Encode</b> with a codec (H.264 for compatibility, H.265/AV1 for efficiency, ProRes for editing masters) at a fixed frame rate, usually via FFmpeg.</li>
+<li><b>Mux</b> audio tracks into the container (MP4/MOV/MKV).</li>
+</ol>
+<p>Image sequences are friendlier to automation: a crash at frame 2,100 resumes at 2,100, and an agent can fix one shot and re-render only its frame range. <span class="ev p">Practice</span></p>
+
+<h2>Three families of code-driven tools, in one glance</h2>
+<div data-tabs>
+<div class="tabs"><button data-tab="web">Web-based (HTML/React)</button><button data-tab="py">Python 2D (math/data)</button><button data-tab="3d">3D suites &amp; engines</button></div>
+<div class="tab-panel" data-panel="web">
+<p>Write a web page or React component whose appearance depends on the frame number; a headless Chromium seeks to each frame, screenshots it, and FFmpeg encodes. You get the entire web platform: CSS, SVG, fonts, Canvas, WebGL (Three.js), animation libraries, charts.</p>
+<p>Representative tools (Oct 2026): <b>Remotion</b> (React; ~64.7k GitHub stars; source-available licence, free for individuals and companies up to 3 people, paid above), <b>HyperFrames</b> by HeyGen (plain HTML + data attributes, Apache-2.0, ~65.7k stars since March 2026, explicitly "built for agents" with bundled agent skills), <b>Motion Canvas</b> / <b>Revideo</b> (TypeScript generators; Motion Canvas has had no release since Dec 2024). Star counts via GitHub API on 2026-10-17. <span class="ev v">Verified</span></p>
+<pre><code>// Remotion-style idea (illustrative, not a full program)
+const frame = useCurrentFrame();                    // 0, 1, 2, …
+const y = interpolate(frame, [0, 90], [800, 0], {easing: Easing.inOut(Easing.cubic)});
+return &lt;Booster style={{transform: `translateY(${y}px)`}} /&gt;;</code></pre>
+</div>
+<div class="tab-panel" data-panel="py">
+<p>Python libraries where you build a scene from objects (text, equations, graphs, shapes) and call animations in order. The style made famous by the 3Blue1Brown math channel.</p>
+<p>Representative: <b>Manim Community</b> (MIT, ~41.6k stars, v0.22.0 on 2026-10-08) and the original <b>manimgl</b> by 3Blue1Brown (~95k stars). Matplotlib and Plotly for data animation. <span class="ev v">Verified</span></p>
+<pre><code># Manim-style idea (illustrative)
+class Landing(Scene):
+    def construct(self):
+        eq = MathTex(r"\Delta v = I_{sp} g_0 \ln\frac{m_0}{m_f}")
+        self.play(Write(eq))
+        self.play(eq.animate.to_edge(UP), run_time=1.5)</code></pre>
+</div>
+<div class="tab-panel" data-panel="3d">
+<p>Full 3D applications with Python APIs or command-line rendering. <b>Blender</b> (free, GPL; 5.2.2 LTS released 2026-09-15) is the default for agents because it runs headless (<code>blender -b scene.blend -P script.py</code>) and everything is reachable from Python. Real-time engines (<b>Unreal</b>, <b>Unity</b>, <b>Godot</b>) render fast and have big asset ecosystems, but are heavier to automate. Web 3D (<b>Three.js</b>, ~116k stars) can be rendered through the web-based frameworks above. <span class="ev v">Verified</span></p>
+<pre><code># Blender-style idea (illustrative)
+import bpy
+booster = bpy.data.objects["Booster"]
+booster.location.z = 120; booster.keyframe_insert("location", frame=1)
+booster.location.z = 0;   booster.keyframe_insert("location", frame=240)
+bpy.context.scene.render.filepath = "//renders/shot07_"
+bpy.ops.render.render(animation=True)</code></pre>
+</div>
+</div>
+
+<h2>Strengths and limits for a coding agent</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Agents are good at</th><th>Agents struggle with</th></tr></thead>
+<tbody>
+<tr><td>Writing and refactoring scene code; parameterising scenes (data → animation)</td><td>Taste: spacing, rhythm, colour harmony, "does this look premium?"</td></tr>
+<tr><td>Precise layout, typography, timing to narration timestamps</td><td>Creating good 3D assets from scratch (modelling, texturing)</td></tr>
+<tr><td>Rendering stills at chosen frames to check their own work</td><td>Lighting and materials that look photoreal</td></tr>
+<tr><td>Deterministic re-renders of one shot after a fix</td><td>Spatial reasoning in 3D (camera framing, occlusion) without visual feedback</td></tr>
+<tr><td>Physics/data correctness (they can compute it)</td><td>Character animation and acting</td></tr>
+</tbody></table></div>
+<p class="small muted"><span class="ev i">Inference</span> from documented agent workflows (<a href="11-documented-workflows.html">page 11</a>) and the nature of the tasks. Generated 3D assets and AI-assisted look-dev narrow some of the right-hand gaps.</p>
+
+<p class="page-meta">Last reviewed 2026-10-17. Tool versions and stars: GitHub API and project sites, 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learning Roadmap</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 15 · Deliverables I &amp; J — Roadmap and further investigation</div>
+<h1>Learning roadmap and next steps</h1>
+<p class="lead">How to go from "I understand the landscape" to "I can design and supervise an agent video pipeline", in small hands-on stages — plus the open questions worth investigating together.</p>
+
+<h2>Learning roadmap (Deliverable I)</h2>
+<p class="small muted">Each stage has one concrete outcome. Stages build on each other; you can stop after any stage with a useful capability. <span class="ev i">Inference</span></p>
+<ol class="stepper">
+<li><b>Vocabulary &amp; anatomy of a video</b> — frames, fps, codecs, timelines, tracks, LUFS, captions. <i>Outcome</i>: take a video apart with ffprobe and FFmpeg (extract frames, audio, measure loudness). Pages <a href="05-editing-compositing.html">5</a>, <a href="04-audio.html">4</a>.</li>
+<li><b>Code-driven video with an agent</b> — have your coding agent build a 30-second animated explainer with one code framework (Remotion or HyperFrames for web skills; Manim for math). <i>Outcome</i>: you understand frame-based rendering and how the agent iterates on code. Page <a href="03-programmatic-graphics.html">3</a>.</li>
+<li><b>Narration-driven timing</b> — add TTS narration, extract word timestamps, drive cue points and captions from them, mix with a music bed at a loudness target. <i>Outcome</i>: the "audio-first" pipeline. Page <a href="04-audio.html">4</a>.</li>
+<li><b>Self-inspection loop</b> — make the agent sample frames at cue points, run ASR-vs-script and loudness checks, write a QA report and fix issues. <i>Outcome</i>: you see what agents catch and miss. Page <a href="07-agent-director.html">7</a>.</li>
+<li><b>Generative inserts</b> — generate keyframes with references, animate 2–3 with image-to-video via one API, composite exact overlays on top, grade to match. <i>Outcome</i>: you feel the cost/variance of generative shots. Page <a href="02-neural-video.html">2</a>.</li>
+<li><b>Project as a build</b> — shot list + timeline as data, input hashing, job table, cost ledger, partial re-renders. <i>Outcome</i>: a resumable, reproducible pipeline. Pages <a href="08-worked-example.html">8</a>, <a href="12-engineering-legal.html">12</a>.</li>
+<li><b>3D</b> — have the agent build and render one Blender shot headlessly (simple model, camera move, lighting from an HDRI). <i>Outcome</i>: where 3D beats generation, and where agents struggle.</li>
+<li><b>The full worked example</b> — produce a 2-minute documentary end to end with three human checkpoints. <i>Outcome</i>: your own reference pipeline and honest cost data.</li>
+<li><b>Advanced options</b> — local open models in ComfyUI, LoRAs, CG→video restyle, critic subagents, provenance signing, NLE hand-off.</li>
+</ol>
+
+<h2>Important open questions (Deliverable J)</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Question</th><th>Why it matters</th><th>How to investigate</th></tr></thead>
+<tbody>
+<tr><td>How good is frame-based self-QA in practice for your videos?</td><td>Determines how much human review you need</td><td>Seed known defects into renders; measure what each inspection layer catches and its token cost</td></tr>
+<tr><td>Which sampling strategy gives the best catch-rate per token?</td><td>QA cost can rival generation cost</td><td>Compare uniform vs scene-change vs cue-point vs filmstrip sampling on the same defect set</td></tr>
+<tr><td>Which generative model fits your style and budget?</td><td>Leaderboards measure general preference, not your use case</td><td>Same 10 shot specs across 3–4 models via one aggregator; blind rating</td></tr>
+<tr><td>How stable are consistency techniques across a whole video?</td><td>Recurring characters/products are the hard part</td><td>Reference images vs LoRA vs rendered asset; identity-similarity metrics per shot</td></tr>
+<tr><td>Does a director + critic-subagent setup beat a single agent for your tasks?</td><td>Published evidence is thin for video</td><td>A/B on the same brief with equal token budgets</td></tr>
+<tr><td>What is the true cost per finished minute?</td><td>Budgets and business cases</td><td>Cost ledger across 3–5 real productions, incl. your review time</td></tr>
+<tr><td>Which open models are licence-safe for you in the EU?</td><td>Some licences exclude the EU or cap revenue</td><td>Licence review per model version; keep a register</td></tr>
+<tr><td>How to meet AI Act Art. 50 and platform labelling in your pipeline?</td><td>Applies since Aug 2026</td><td>Map roles (provider/deployer), add disclosure + C2PA signing steps, legal review</td></tr>
+</tbody></table></div>
+
+<h2>Recommended next discussions</h2>
+<p>Based on what the research revealed, these five directions give the most leverage:</p>
+<div class="cards">
+<div class="card b"><h4>1 · Design your reference pipeline</h4><p>Concrete architecture for <i>your</i> first video category on Windows: tool choices, project layout, build graph, adapters, budgets — the beginner→intermediate stack made specific.</p></div>
+<div class="card d"><h4>2 · Agent self-QA deep dive</h4><p>Build and measure the inspection stack: what to sample, what to measure, how to turn critiques into diffs, and stopping rules. This is where agents gain or lose most.</p></div>
+<div class="card b"><h4>3 · Code-driven video frameworks compared hands-on</h4><p>Remotion vs HyperFrames vs Manim for agent use: licences, determinism, skills, Windows behaviour — with a tiny prototype in each.</p></div>
+<div class="card a"><h4>4 · Generative shot craft</h4><p>Keyframe-first workflows, references, I2V chaining, consistency, and cost control across 3–4 current models.</p></div>
+<div class="card c"><h4>5 · Rights, provenance and compliance by design</h4><p>Asset manifest, licence register, consent records, Art. 50 labelling and C2PA signing as automated pipeline steps.</p></div>
+</div>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

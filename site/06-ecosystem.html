@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ecosystem Map</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+<style>
+  .content { max-width: 1280px; }
+  .tool-table td:first-child { min-width: 180px; }
+  .tool-table td.desc { min-width: 280px; }
+  .fit { white-space: nowrap; }
+  .mat { font-size: 12px; font-weight: 700; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+  .mat.E { color: var(--ev-verified); background: var(--ev-verified-bg); }
+  .mat.M { color: var(--ev-practice); background: var(--ev-practice-bg); }
+  .mat.X { color: var(--ev-experimental); background: var(--ev-experimental-bg); }
+  .mat.R { color: var(--ev-unverified); background: var(--ev-unverified-bg); }
+  .cat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: .4rem 0 .8rem; }
+  .tool-name a { font-weight: 600; }
+</style>
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 6 · Deliverable C — Ecosystem map · §4 &amp; §5</div>
+<h1>Ecosystem map and tool explorer</h1>
+<p class="lead">About a hundred significant tools, models and services, grouped by <b>function</b> rather than vendor, each rated for how well a coding agent can drive it. Facts as seen on 2026-10-17; GitHub stars read from the GitHub API that day.</p>
+
+<div class="callout warn"><span class="title">How to read popularity numbers</span>
+<p>GitHub stars measure developer <i>interest</i>, not production use; leaderboard Elo scores measure <i>human preference on short prompts</i>, not usefulness in a pipeline; and the two leading video leaderboards disagreed on #1 on the same day (Artificial Analysis: Wan 3.0; LLM-Stats: Kling v3). Commercial products publish no comparable usage data. So this page groups tools by evidence instead of forcing a single ranking. <span class="ev i">Inference</span></p></div>
+
+<h2>Three distinctions that prevent bad tool choices</h2>
+<div class="cards">
+<div class="card"><h4>Model ≠ product</h4><p>"Kling 3.0" is a model; the Kling app, the Kling API, Runway's API, fal and Adobe Firefly are five different <i>products</i> that serve it — with different prices, limits and terms.</p></div>
+<div class="card"><h4>Developer tool ≠ end-user app</h4><p>A popular consumer app (CapCut, Midjourney, Suno) can be unusable for an agent: no official API, terms that forbid automation.</p></div>
+<div class="card"><h4>Agent fit ≠ quality</h4><p>FFmpeg has perfect agent fit and makes nothing beautiful by itself; Midjourney makes beautiful images and has no API. You need both kinds.</p></div>
+</div>
+
+<h2>Tool explorer</h2>
+<p class="small muted">Agent fit: <b>5</b> code/CLI, headless, deterministic · <b>4</b> stable API/SDK · <b>3</b> API with friction or heavy local setup · <b>2</b> GUI app with partial scripting · <b>1</b> GUI only / no API. Maturity: <span class="mat E">Established</span> <span class="mat M">Emerging</span> <span class="mat X">Experimental</span> <span class="mat R">Retired/restricted</span>.</p>
+<div class="cat-chips" id="cats"></div>
+<div class="toolbar">
+  <input type="search" id="q" placeholder="Search tools, capabilities, notes… (e.g. lip-sync, timestamps, Lambda)">
+  <select id="dep"><option value="">Any deployment</option><option value="local">Runs locally</option><option value="cloud">Cloud</option></select>
+  <select id="fit"><option value="0">Any agent fit</option><option value="4">Agent fit ≥ 4</option><option value="5">Agent fit = 5</option></select>
+  <select id="mat"><option value="">Any maturity</option><option value="E">Established</option><option value="M">Emerging</option><option value="X">Experimental</option><option value="R">Retired/restricted</option></select>
+  <span class="count" id="count"></span>
+</div>
+<div class="table-wrap"><table class="tool-table compact" id="tools" data-sortable>
+<thead><tr><th>Tool</th><th>Category</th><th>What it does</th><th>Control</th><th>Deploy</th><th>Agent fit</th><th>Maturity</th><th>Popularity evidence</th><th>Cost (dated)</th><th>Limitations</th></tr></thead>
+<tbody></tbody>
+</table></div>
+<p class="small muted">Each tool name links to its primary source (official docs, repo or pricing page; a few secondary sources where no primary page was reachable — those rows carry an <span class="ev u">Unverified</span> badge). Full research notes with every source: <a href="sources.html">sources page</a>.</p>
+
+<h2>Popularity and adoption, assessed separately (§5)</h2>
+<p>The brief asks for five separate assessments. Here they are per major category, as evidence-based groupings.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Category</th><th>Popular in video production</th><th>Popular with developers</th><th>Best suited to coding agents</th><th>Actually used in documented agent workflows</th><th>Mature &amp; maintainable</th></tr></thead>
+<tbody>
+<tr><td><b>Neural video</b></td><td>Veo, Kling, Seedance, Runway, Wan (consumer &amp; studio use)</td><td>Wan 2.x, LTX, HunyuanVideo (open weights); fal/Replicate hosts</td><td>Anything behind a stable async API (Veo via Gemini API, aggregator-served models)</td><td>Veo, Seedance, LTX-2 and FLUX via APIs in ViMax and claude-code-video-toolkit</td><td>Volatile: leaders change every few months; Sora was shut down within 18 months of launch</td></tr>
+<tr><td><b>Image</b></td><td>Midjourney, GPT Image, Nano Banana, FLUX</td><td>FLUX, Stable Diffusion, ComfyUI, diffusers</td><td>GPT Image, Nano Banana, FLUX (APIs); diffusers (local)</td><td>Nano Banana, GPT Image 2, FLUX.2 (ViMax, toolkit)</td><td>APIs stable; specific model IDs retire quickly</td></tr>
+<tr><td><b>Code-driven 2D</b></td><td>After Effects (pros), Manim (education)</td><td>Remotion, HyperFrames, Manim, Motion Canvas</td><td>Remotion, HyperFrames, Manim (code + headless CLI)</td><td><b>Strongest evidence of any category</b>: official skills (Remotion, HyperFrames), video-use, product-launch-video, Code2Video, TheoremExplainAgent</td><td>Remotion and Manim mature; HyperFrames young but very active</td></tr>
+<tr><td><b>3D</b></td><td>Blender, Unreal, Cinema 4D, Houdini, Maya</td><td>Blender, Three.js, Godot</td><td>Blender (Python + headless), Three.js</td><td>Blender MCP widely starred; end-to-end film claims are promotional</td><td>Blender very mature; MCP bridges young</td></tr>
+<tr><td><b>Editing</b></td><td>Premiere, Resolve, Final Cut, CapCut</td><td>FFmpeg, MoviePy, OpenTimelineIO</td><td>FFmpeg (universal), JSON video APIs</td><td>FFmpeg in nearly every pipeline; Resolve MCP</td><td>FFmpeg extremely mature; NLE scripting APIs in flux</td></tr>
+<tr><td><b>Speech</b></td><td>ElevenLabs dominant for AI voice</td><td>ElevenLabs, OpenAI, open TTS (VibeVoice, Chatterbox, Kokoro)</td><td>ElevenLabs, Azure (visemes), Polly (speech marks)</td><td>ElevenLabs (video-use, toolkits), Qwen3-TTS/Kokoro locally</td><td>Cloud TTS mature; PlayHT's 2025 shutdown shows vendor risk</td></tr>
+<tr><td><b>Music</b></td><td>Suno (consumer), stock libraries (pros)</td><td>MusicGen, ACE-Step, Stable Audio</td><td>ElevenLabs Music, Lyria, Stable Audio (APIs/weights)</td><td>ACE-Step (toolkit); stock libraries in templated shorts</td><td>Legal landscape unsettled; best-known consumer tools lack APIs</td></tr>
+<tr><td><b>ASR / captions</b></td><td>Built into editors</td><td>Whisper family, WhisperX</td><td>WhisperX, faster-whisper, cloud ASR</td><td>ElevenLabs Scribe (video-use), Whisper (many repos)</td><td>Very mature</td></tr>
+</tbody></table></div>
+<p class="small muted">Groupings: <span class="ev i">Inference</span> from the evidence on this page and the research notes; individual facts carry their own sources in the explorer.</p>
+
+<h2>Why certain tools became popular</h2>
+<ul>
+<li><b>FFmpeg</b> — it is the only tool that reads and writes essentially every format, so everything else wraps it. Agents inherit that universality. <span class="ev p">Practice</span></li>
+<li><b>Remotion</b> — it turned video into a React app, so web developers (and therefore LLMs trained on huge amounts of React) could make video with skills they already have; deterministic frame rendering makes it reviewable. <span class="ev i">Inference</span></li>
+<li><b>HyperFrames</b> — launched in 2026 explicitly "for agents": plain HTML instead of a framework, bundled skills, lint/preview/render commands an agent can call. Its very fast star growth (~65.7k in seven months) shows how much demand exists for agent-native video tooling. <span class="ev v">Verified</span> numbers / <span class="ev i">Inference</span> interpretation</li>
+<li><b>Manim</b> — a famous YouTube channel's tool made public; equations and geometry look crisp and correct. <span class="ev p">Practice</span></li>
+<li><b>ComfyUI</b> — node graphs made complex open-model pipelines shareable as JSON files; it then added paid API nodes for closed models, becoming a hub for both. <span class="ev p">Practice</span></li>
+<li><b>Blender</b> — free, complete, and fully scriptable in Python; the only pro-grade 3D suite an agent can install and drive without licence friction. <span class="ev p">Practice</span></li>
+<li><b>ElevenLabs</b> — voice quality plus a developer-friendly API arrived early, and it expanded to dubbing, music, SFX and transcription. <span class="ev p">Practice</span></li>
+<li><b>Closed video models</b> — quality jumps make the top spot change every few months; adoption follows the leaderboard and price, not loyalty. Expect churn. <span class="ev i">Inference</span></li>
+</ul>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script src="assets/js/data-tools.js"></script>
+<script>
+window.PAGE_INIT = function () {
+  var tools = window.TOOLS || [], cats = window.TOOL_CATS || {};
+  var state = { cat: "", q: "", dep: "", fit: 0, mat: "" };
+  var MAT = { E: "Established", M: "Emerging", X: "Experimental", R: "Retired" };
+  var EVN = { v: "", p: "", u: ' <span class="ev u">Unverified</span>' };
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function dots(n) { var s = ""; for (var i = 1; i <= 5; i++) s += i <= n ? "●" : '<span class="off">●</span>'; return '<span class="dots" title="' + n + '/5">' + s + "</span>"; }
+  // category chips
+  var chipBox = document.getElementById("cats");
+  var html = '<button class="chip" data-cat="" aria-pressed="true">All (' + tools.length + ")</button>";
+  Object.keys(cats).forEach(function (k) {
+    var n = tools.filter(function (t) { return t.c === k; }).length;
+    html += '<button class="chip" data-cat="' + k + '" aria-pressed="false">' + esc(cats[k]) + " (" + n + ")</button>";
+  });
+  chipBox.innerHTML = html;
+  chipBox.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    state.cat = b.getAttribute("data-cat");
+    Array.prototype.forEach.call(chipBox.children, function (c) { c.setAttribute("aria-pressed", c === b ? "true" : "false"); });
+    render();
+  });
+  document.getElementById("q").addEventListener("input", function (e) { state.q = e.target.value.toLowerCase(); render(); });
+  document.getElementById("dep").addEventListener("change", function (e) { state.dep = e.target.value; render(); });
+  document.getElementById("fit").addEventListener("change", function (e) { state.fit = +e.target.value; render(); });
+  document.getElementById("mat").addEventListener("change", function (e) { state.mat = e.target.value; render(); });
+  function render() {
+    var tb = document.querySelector("#tools tbody"), rows = "", n = 0;
+    tools.forEach(function (t) {
+      if (state.cat && t.c !== state.cat) return;
+      if (state.mat && t.m !== state.mat) return;
+      if (t.a < state.fit) return;
+      if (state.dep && t.dep.toLowerCase().indexOf(state.dep) < 0) return;
+      var hay = (t.n + " " + t.r + " " + t.d + " " + t.ctl + " " + t.l + " " + t.p + " " + (cats[t.c] || "")).toLowerCase();
+      if (state.q && hay.indexOf(state.q) < 0) return;
+      n++;
+      rows += "<tr><td class=\"tool-name\"><a href=\"" + esc(t.s) + "\" target=\"_blank\" rel=\"noopener\">" + esc(t.n) + "</a>" + EVN[t.ev || "p"] + "<div class=\"small muted\">" + esc(t.r) + "</div></td>" +
+        "<td>" + esc(cats[t.c]) + "</td><td class=\"desc\">" + esc(t.d) + "</td><td>" + esc(t.ctl) + "</td><td>" + esc(t.dep) + "</td>" +
+        "<td class=\"fit\" data-v=\"" + t.a + "\">" + dots(t.a) + "</td><td data-v=\"" + t.m + "\"><span class=\"mat " + t.m + "\">" + MAT[t.m] + "</span></td>" +
+        "<td>" + esc(t.p) + "</td><td>" + esc(t.$) + "</td><td>" + esc(t.l) + "</td></tr>";
+    });
+    tb.innerHTML = rows || '<tr><td colspan="10" class="muted">No tools match these filters.</td></tr>';
+    document.getElementById("count").textContent = n + " of " + tools.length + " shown";
+  }
+  render();
+};
+</script>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

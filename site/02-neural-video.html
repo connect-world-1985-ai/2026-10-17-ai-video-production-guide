@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neural Video Generation</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 2 · Deliverable D — Technical foundations (part 1)</div>
+<h1>Neural video generation: what happens inside the model</h1>
+<p class="lead">How a text prompt or an image becomes moving pixels, why it looks so good, and why it fails in the specific ways it does. No maths beyond what you need to reason about control and cost.</p>
+
+<h2>The intuition: sculpting a video out of noise</h2>
+<p>Imagine a block of TV static that is not just one frame but a whole <i>stack</i> of frames — a cube of noise with width, height and time. A video diffusion model has been trained on millions of real clips to answer one question: <i>"given this noisy cube and this description, what would it look like with a little less noise?"</i> Ask that question 20–50 times in a row and the static gradually resolves into a coherent clip that matches the description. <span class="ev v">Verified</span> — this is the standard denoising-diffusion formulation (<a href="https://arxiv.org/abs/2006.11239">Ho et al., 2020</a>).</p>
+<p>Three engineering tricks make this practical for video:</p>
+<ol>
+<li><b>Work in a compressed space ("latent")</b> instead of raw pixels — a video autoencoder (VAE) shrinks the clip first, the model denoises the small version, and the decoder blows it back up (<a href="https://arxiv.org/abs/2112.10752">latent diffusion, Rombach et al.</a>).</li>
+<li><b>Use a transformer as the denoiser</b> — the latent cube is cut into small "spacetime patches" that become tokens, like words in an LLM (<a href="https://arxiv.org/abs/2212.09748">Diffusion Transformer, Peebles &amp; Xie</a>; OpenAI's <a href="https://openai.com/index/video-generation-models-as-world-simulators/">Sora technical report</a> popularised the "spacetime patch" framing).</li>
+<li><b>Train with flow matching / rectified flow</b> — a cleaner variant of diffusion where the model learns a velocity field that moves noise straight toward data, allowing fewer steps (<a href="https://arxiv.org/abs/2210.02747">Lipman et al.</a>, <a href="https://arxiv.org/abs/2209.03003">Liu et al.</a>).</li>
+</ol>
+
+<h2>The pipeline, box by box</h2>
+<figure class="diagram">
+<svg viewBox="0 0 860 330" role="img" aria-label="Video diffusion transformer pipeline">
+  <defs><marker id="n1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-accent"/></marker></defs>
+  <!-- inputs -->
+  <rect x="10" y="20" width="150" height="54" rx="8" class="box-accent"/><text x="20" y="42" class="t-title">Text prompt</text><text x="20" y="60" class="t-muted">"aerial shot of a booster…"</text>
+  <rect x="10" y="90" width="150" height="54" rx="8" class="box-accent"/><text x="20" y="112" class="t-title">Optional images</text><text x="20" y="130" class="t-muted">start / end / reference</text>
+  <rect x="10" y="160" width="150" height="54" rx="8" class="box-accent"/><text x="20" y="182" class="t-title">Optional video</text><text x="20" y="200" class="t-muted">for V2V / extension</text>
+  <rect x="10" y="230" width="150" height="54" rx="8" class="box"/><text x="20" y="252" class="t-title">Random noise</text><text x="20" y="270" class="t-muted">the seed decides it</text>
+  <!-- encoders -->
+  <rect x="200" y="20" width="150" height="54" rx="8" class="box"/><text x="210" y="42" class="t-title">Text encoder</text><text x="210" y="60" class="t-muted">T5 / LLM → vectors</text>
+  <rect x="200" y="125" width="150" height="54" rx="8" class="box"/><text x="210" y="147" class="t-title">VAE encoder</text><text x="210" y="165" class="t-muted">pixels → latent</text>
+  <!-- denoiser -->
+  <rect x="395" y="60" width="230" height="200" rx="10" class="box-a"/>
+  <text x="408" y="86" class="t-a">Diffusion Transformer</text>
+  <text x="408" y="108" class="t-muted">latent cube → spacetime patches</text>
+  <text x="408" y="126" class="t-muted">→ tens of thousands of tokens</text>
+  <text x="408" y="150" class="t-muted">self-attention across space AND time</text>
+  <text x="408" y="168" class="t-muted">cross-attention to text vectors</text>
+  <text x="408" y="186" class="t-muted">image latents concatenated / as tokens</text>
+  <text x="408" y="214" class="t-title">repeat N steps (≈ 4–50)</text>
+  <text x="408" y="234" class="t-muted">each step: predict less-noisy latent</text>
+  <!-- decoder -->
+  <rect x="665" y="125" width="180" height="54" rx="8" class="box"/><text x="675" y="147" class="t-title">VAE decoder</text><text x="675" y="165" class="t-muted">latent → RGB frames</text>
+  <rect x="665" y="210" width="180" height="54" rx="8" class="box-ok"/><text x="675" y="232" class="t-title">Video file</text><text x="675" y="250" class="t-muted">(+ upscaler, + audio branch)</text>
+  <path d="M160,47 L197,47" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M160,117 L197,145" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M160,187 L197,160" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M350,47 C380,47 380,100 392,100" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M350,152 L392,152" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M160,257 C300,257 300,230 392,230" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M625,152 L662,152" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M755,179 L755,207" class="line-accent" marker-end="url(#n1)"/>
+  <text x="10" y="312" class="t-muted">Simplified from published open model reports (e.g. Wan 2.1, HunyuanVideo, CogVideoX). Closed models publish fewer details but describe the same family.</text>
+</svg>
+<figcaption>All frames of a clip are denoised <i>together</i>. That is why motion within a short clip is coherent — and why the clip length is limited.</figcaption>
+</figure>
+
+<h3>A concrete example of the numbers</h3>
+<p>The open Wan 2.1 report (<a href="https://arxiv.org/abs/2503.20314">arXiv 2503.20314</a>) gives enough detail to make this tangible <span class="ev v">Verified</span>:</p>
+<ul>
+<li>The video VAE compresses <b>4× in time and 8×8 in space</b> into 16 latent channels.</li>
+<li>Latents are then "patchified" 2×2 in space, so a clip becomes <code>(1 + T/4) × H/16 × W/16</code> tokens.</li>
+<li>The prompt is encoded by the <b>umT5</b> text encoder and injected through <b>cross-attention</b>; training uses <b>rectified flow</b> (flow matching).</li>
+</ul>
+<p>So an 81-frame 1280×720 clip (≈ 5 s at 16 fps) becomes 21 × 45 × 80 ≈ <b>75,600 tokens</b>, and full attention compares every token with every other token at every denoising step. <span class="ev i">Inference</span> (arithmetic from the stated formula). Doubling the duration roughly doubles the tokens and roughly <b>quadruples</b> the attention cost. That one fact explains why clips are short, why long videos are made of stitched segments, and why 1080p/4K usually comes from an upscaling pass.</p>
+
+<h2>How conditioning works (how your inputs steer it)</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Input</th><th>How it enters the model</th><th>What you control with it</th></tr></thead>
+<tbody>
+<tr><td>Text prompt</td><td>Encoded into vectors by a language model; denoiser attends to them (cross-attention, or joint text+video tokens in "MM-DiT" designs)</td><td>Subject, style, action, camera language — <i>as a description</i>, not a specification</td></tr>
+<tr><td>Guidance strength</td><td>Classifier-free guidance: the model predicts with and without the prompt and exaggerates the difference (<a href="https://arxiv.org/abs/2207.12598">Ho &amp; Salimans</a>)</td><td>Prompt adherence vs naturalness (too high → oversaturated, stiff)</td></tr>
+<tr><td>Start / end frame</td><td>The frame's latent is fed alongside the noisy latent (concatenation or as fixed tokens)</td><td>Exact composition at the boundaries; the model fills the motion between</td></tr>
+<tr><td>Reference images</td><td>Encoded as extra tokens the denoiser can attend to</td><td>Identity of a character/product/style across shots</td></tr>
+<tr><td>Source video</td><td>Its latent or derived signals (depth, pose, edges, flow) guide generation</td><td>Motion and structure are inherited; appearance is regenerated</td></tr>
+<tr><td>Camera control</td><td>Preset motions learned from data, or explicit camera-pose embeddings in research models</td><td>Pan/tilt/dolly/orbit — approximately, not to the centimetre</td></tr>
+<tr><td>Seed</td><td>Chooses the initial noise</td><td>Reproducibility on the same model version (if the provider exposes it)</td></tr>
+<tr><td>Prompt rewriting</td><td>Many products silently expand your prompt with an LLM before generation</td><td>Helps beginners; hurts precise control and reproducibility</td></tr>
+</tbody></table></div>
+<p class="small muted">Training captions shape what words mean to a model. Vendors re-caption training data with detailed machine captions so the model learns to follow long, descriptive prompts — the technique was described for images in OpenAI's DALL·E 3 paper (<a href="https://cdn.openai.com/papers/dall-e-3.pdf">PDF</a>) and adopted for video in the Sora report. <span class="ev v">Verified</span></p>
+
+<h2>How motion is generated and kept consistent</h2>
+<p>There is no physics engine, skeleton or object list inside the model. Motion is a <b>statistical pattern over the time axis</b> of the latent cube, learned from real video. Two architectural families handle time differently:</p>
+<div class="cards">
+<div class="card a"><h4>Joint ("bidirectional") generation</h4><p>All frames of the clip are denoised together with attention across time, so frame 1 "knows" about frame 80. Gives the most coherent short clips. Used by most current high-quality models. Cost grows fast with length.</p></div>
+<div class="card a"><h4>Autoregressive / streaming generation</h4><p>Frames (or chunks) are generated in order, each conditioned on the previous ones, like an LLM generating tokens. Enables long and real-time video and interactive "world models", but errors accumulate (drift). Research such as <a href="https://arxiv.org/abs/2506.08009">Self Forcing (2025)</a> reduces the train/test gap and reports real-time streaming on a single GPU. <span class="ev x">Experimental</span></p></div>
+</div>
+<p>Temporal consistency within a clip comes from attention across frames. Consistency <i>across</i> clips does not exist unless you provide it: the next generation knows nothing about the previous one except what you pass in (reference images, the last frame, the same prompt wording). This is the central constraint an agent has to design around. <span class="ev p">Practice</span></p>
+
+<h2>Why the typical artefacts happen</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Artefact</th><th>Likely cause</th><th>Mitigation</th></tr></thead>
+<tbody>
+<tr><td>Garbled or morphing text, logos, numbers</td><td>Fine detail is lost in the 8× compressed latent; text is rare and varied in training data</td><td>Never rely on generated text — composite exact text on top (B/C)</td></tr>
+<tr><td>Hands, fingers, small mechanical parts melt or multiply</td><td>High-frequency structure + occlusion + compression; no explicit 3D model</td><td>Avoid close-ups of fine mechanics; use 3D renders for technical parts</td></tr>
+<tr><td>Physics violations (things float, flames point the wrong way, a rocket lands like a feather)</td><td>Model learns appearance statistics, not laws; rare events (booster landings) are scarce in data</td><td>Use simulation/3D for scientifically important motion</td></tr>
+<tr><td>Identity drift (face/product changes mid-clip or between shots)</td><td>No persistent object identity; only attention within the clip</td><td>Reference images, start frames, shorter shots, character LoRAs</td></tr>
+<tr><td>Flicker / "boiling" textures</td><td>Per-frame or per-window processing (common in V2V), or decoder noise</td><td>Temporally aware models, lower denoise strength, deflicker in post</td></tr>
+<tr><td>Object permanence failures (things vanish behind an occluder)</td><td>Limited temporal context; nothing enforces object existence</td><td>Simpler blocking; cut away</td></tr>
+<tr><td>Slow-motion feel, "floaty" camera</td><td>Training data bias toward smooth cinematic footage; frame interpolation</td><td>Prompt for speed/energy; retime in edit</td></tr>
+<tr><td>Prompt ignored for one element</td><td>Attention spread across many concepts; text-encoder limits</td><td>Fewer concepts per shot; split into more shots; use I2V with a designed frame</td></tr>
+</tbody></table></div>
+<p class="small muted">Causes are <span class="ev i">Inference</span> grounded in the published architectures; symptoms are <span class="ev p">Practice</span> widely reported by users and model cards.</p>
+
+<h2>Extending, editing and combining clips</h2>
+<ul>
+<li><b>Extension</b>: generate a new segment conditioned on the last frames of the previous one. Each hop can drift; long "single takes" are usually several extensions with visible seams avoided by camera motion or cuts.</li>
+<li><b>First/last-frame chaining</b>: design keyframes as stills (cheap to check), then generate the motion between them. The most controllable way to tell a story with generated shots. <span class="ev p">Practice</span></li>
+<li><b>Inpainting / object edit</b>: regenerate only a masked region over time (remove a crane, change a logo).</li>
+<li><b>Restyle / relight</b>: video-to-video with a new prompt or reference.</li>
+<li><b>Upscale &amp; interpolate</b>: separate models raise resolution and frame rate after generation (see <a href="05-editing-compositing.html">page 5</a>).</li>
+<li><b>Combining</b>: ordinary editing — cuts hide inconsistency better than long takes. Professional AI films are typically many short shots, heavily curated. <span class="ev p">Practice</span></li>
+</ul>
+
+<h2>Native audio: joint vs separate</h2>
+<p>Newer models can generate sound with the picture: either one model with an audio branch that attends to the video tokens, or a video model followed by a video-to-audio model. Joint generation gives tight sync for diegetic sound (footsteps, impacts, short dialogue). Separate production gives control: a consistent narrator, licensed music, stems you can mix. For narrated, edited videos the separate pipeline remains the norm; native audio is used for ambience or discarded. <span class="ev i">Inference</span> (see <a href="04-audio.html">page 4</a>).</p>
+
+<h2>The control spectrum</h2>
+<figure class="diagram">
+<svg viewBox="0 0 860 170" role="img" aria-label="Control spectrum of neural video inputs">
+  <defs><linearGradient id="g2" x1="0" x2="1"><stop offset="0" stop-color="var(--c-a)"/><stop offset="1" stop-color="var(--c-b)"/></linearGradient></defs>
+  <rect x="20" y="70" width="820" height="12" rx="6" fill="url(#g2)" opacity=".75"/>
+  <text x="20" y="56" class="t-muted">least control</text><text x="760" y="56" class="t-muted">most control</text>
+  <g>
+  <circle cx="60" cy="76" r="7" class="box"/><text x="30" y="110">Text only</text>
+  <circle cx="200" cy="76" r="7" class="box"/><text x="160" y="110">+ camera preset</text>
+  <circle cx="340" cy="76" r="7" class="box"/><text x="300" y="110">+ reference images</text>
+  <circle cx="480" cy="76" r="7" class="box"/><text x="440" y="110">start frame (I2V)</text>
+  <circle cx="610" cy="76" r="7" class="box"/><text x="568" y="110">start + end frame</text>
+  <circle cx="760" cy="76" r="7" class="box"/><text x="690" y="110">V2V from rendered motion</text>
+  </g>
+  <text x="20" y="150" class="t-muted">Each step right moves more of the "decisions" from the model into something you (or your agent) authored and can inspect deterministically.</text>
+</svg>
+</figure>
+
+<h2>What this means for an agent</h2>
+<ul>
+<li>Treat every generation as a <b>sample</b>: budget for several attempts per shot and a selection step. <span class="ev p">Practice</span></li>
+<li>Move decisions <b>left of the generator</b>: produce and check keyframes, references and motion guides first; they are cheaper to inspect than video.</li>
+<li>Keep anything that must be exactly right (labels, data, logos, physics) <b>out</b> of the generator and composite it afterwards.</li>
+<li>Record model name, version, seed, prompt, references and parameters for every clip — providers update models and the same request may not reproduce later. <span class="ev i">Inference</span></li>
+<li>Short shots, many cuts; length is a cost and quality multiplier.</li>
+</ul>
+
+<details><summary>Further reading (primary papers)</summary><div class="body">
+<ul>
+<li>Ho, Jain, Abbeel — Denoising Diffusion Probabilistic Models (2020): <a href="https://arxiv.org/abs/2006.11239">arXiv 2006.11239</a></li>
+<li>Rombach et al. — High-Resolution Image Synthesis with Latent Diffusion Models: <a href="https://arxiv.org/abs/2112.10752">arXiv 2112.10752</a></li>
+<li>Peebles &amp; Xie — Scalable Diffusion Models with Transformers (DiT): <a href="https://arxiv.org/abs/2212.09748">arXiv 2212.09748</a></li>
+<li>Lipman et al. — Flow Matching for Generative Modeling: <a href="https://arxiv.org/abs/2210.02747">arXiv 2210.02747</a>; Liu et al. — Rectified Flow: <a href="https://arxiv.org/abs/2209.03003">arXiv 2209.03003</a></li>
+<li>Ho &amp; Salimans — Classifier-Free Diffusion Guidance: <a href="https://arxiv.org/abs/2207.12598">arXiv 2207.12598</a></li>
+<li>OpenAI — Video generation models as world simulators (Sora report, 2024): <a href="https://openai.com/index/video-generation-models-as-world-simulators/">openai.com</a></li>
+<li>Wan Team — Wan: Open and Advanced Large-Scale Video Generative Models: <a href="https://arxiv.org/abs/2503.20314">arXiv 2503.20314</a></li>
+<li>Huang et al. — Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion: <a href="https://arxiv.org/abs/2506.08009">arXiv 2506.08009</a></li>
+</ul>
+</div></details>
+
+<p>Which models exist right now, what they cost and how to call them: <a href="06-ecosystem.html">page 6 — ecosystem explorer</a>.</p>
+
+<p class="page-meta">Last reviewed 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

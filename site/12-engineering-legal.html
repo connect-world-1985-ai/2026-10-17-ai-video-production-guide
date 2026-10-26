@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engineering, Cost and Legal</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 12 · §12 — Practical engineering, rights and provenance</div>
+<h1>Engineering, cost, legal and provenance</h1>
+<p class="lead">The invisible half of autonomous video production: keeping a growing pile of media, jobs and decisions reproducible, affordable, auditable — and legally usable. <b>Not legal advice</b>; this page describes the landscape as of October 2026 for a reader working in the EU.</p>
+
+<h2>Part 1 — Engineering challenges</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Challenge</th><th>What goes wrong</th><th>Engineering answer</th></tr></thead>
+<tbody>
+<tr><td>Large media assets</td><td>Gigabytes of renders, takes and stems; Git chokes</td><td>Content-addressed storage (files named by hash), Git LFS or object storage; keep only manifests in Git; clean up rejected takes after a retention period</td></tr>
+<tr><td>Reproducible rendering</td><td>Same project renders differently next month</td><td>Pin tool versions (lockfiles, containers); seeds; render image sequences; never rely on wall-clock time in animations</td></tr>
+<tr><td>Versioning artefacts</td><td>"Which take was approved?"</td><td>Shot status + version in shotlist; approved takes are immutable files referenced by hash</td></tr>
+<tr><td>Long-running jobs</td><td>Agent session ends while 20 jobs are running</td><td>Job table on disk (id, status, submitted, provider job id); a resumable poller; webhooks into a local queue</td></tr>
+<tr><td>Failed API calls &amp; retries</td><td>Duplicate charges, half-downloaded files</td><td>Idempotency keys; deduplicate by request id; exponential backoff; verify downloads (size, ffprobe) before marking done</td></tr>
+<tr><td>Scene regeneration</td><td>Fixing one shot re-renders everything</td><td>Build-system thinking: dependency graph + input hashing; rebuild only invalidated nodes</td></tr>
+<tr><td>Cross-scene consistency</td><td>Characters, products and colours drift</td><td>Style bible, reference images on every call, one LUT, automated identity similarity checks</td></tr>
+<tr><td>Timing &amp; sync</td><td>Captions or animations drift after edits</td><td>Single source of truth = narration timestamps; everything derived from them</td></tr>
+<tr><td>Budget</td><td>A loop spends $200 regenerating one shot</td><td>Cost ledger per call; per-shot and per-project caps; agent must ask before exceeding</td></tr>
+<tr><td>Rendering performance</td><td>Hours of 3D render</td><td>Preview at low resolution/samples; parallel/cloud rendering; real-time engines for drafts</td></tr>
+<tr><td>Quality assurance</td><td>Agent declares success on a broken video</td><td>Automated QA gates in the build (see page 7); "done" means checks passed + human approval</td></tr>
+<tr><td>Human approval checkpoints</td><td>Agent spends budget in the wrong direction</td><td>Gates after plan, after rough cut, before publish; cheap previews for review</td></tr>
+<tr><td>Observability</td><td>Nobody knows why the agent did something</td><td>Decision log, per-step logs, cost ledger, QA reports in the project folder</td></tr>
+<tr><td>Security</td><td>Agent runs generated code with your credentials; MCP servers execute arbitrary code (e.g. Blender Python)</td><td>Sandbox/containers, least-privilege API keys with spend limits, no secrets in prompts or URLs, review third-party skills/MCP servers before installing</td></tr>
+</tbody></table></div>
+<p class="small muted"><span class="ev p">Practice</span> (standard media-pipeline and software-engineering practice) / <span class="ev i">Inference</span> for the agent-specific mapping.</p>
+
+<h3>A minimal, maintainable project layout</h3>
+<pre><code>project/
+  brief.md            research/            script.md        lexicon.yml
+  style/              (palette, fonts, LUT, reference images)
+  shotlist.json       timeline.json        decisions.log    costs.csv
+  src/                (scene code: 2D, 3D scripts, physics models)
+  jobs/               (external job table: provider, id, status)
+  assets/manifest.json  → media in object storage, named by sha256
+  qa/                 (reports, sampled frames, contact sheets)
+  out/                (previews, masters, captions)
+  build.py            (DAG: rebuild only what changed)</code></pre>
+<p class="small muted">Illustrative. The point is that the plan, the code and every decision are text files an agent (or a colleague) can read and resume.</p>
+
+<h2>Part 2 — Copyright of AI output</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Jurisdiction</th><th>Position (Oct 2026)</th></tr></thead>
+<tbody>
+<tr><td>USA</td><td>Human authorship required. The US Supreme Court declined to hear <i>Thaler v. Perlmutter</i> on 2 March 2026, leaving the ruling that AI alone cannot be an author in place. The Copyright Office's Part 2 report (29 Jan 2025) allows protection for human selection, arrangement and modification of AI material, case by case. <span class="ev p">Practice</span> (law-firm reports)</td></tr>
+<tr><td>EU</td><td>No specific rule; the "author's own intellectual creation" standard makes purely AI-generated output unlikely to be protected; the threshold for AI-assisted work is unsettled. A pending CJEU case (C-250/25) concerns training and outputs. <span class="ev p">Practice</span></td></tr>
+<tr><td>Germany</td><td>Courts have ruled on training, not output ownership: LAION (OLG Hamburg, Dec 2025) allowed scientific text-and-data mining for dataset building; GEMA v OpenAI (LG München I, 11 Nov 2025) treated memorised lyrics in a model as reproduction. <span class="ev p">Practice</span> (secondary)</td></tr>
+</tbody></table></div>
+<p><b>Implication</b>: the protectable parts of your video are the human parts — script, selection, editing, compositing, your own footage and voice. Log them. Contracts still decide who may <i>use</i> outputs. <span class="ev i">Inference</span></p>
+
+<h2>Part 3 — Commercial-use terms of tools</h2>
+<ul>
+<li><b>Free tiers are where commercial use is most often forbidden</b>: e.g. Luma Free/Lite (watermarked, non-commercial), ElevenLabs Free (no commercial licence; attribution required), Suno Free (non-commercial; subscribing later doesn't relicense old songs). <span class="ev p">Practice</span> (vendor help pages via search)</li>
+<li><b>Indemnities are an enterprise feature</b>: Google and OpenAI announced generative-AI indemnities for named services and paid tiers; Adobe's Firefly indemnity appears tied to enterprise agreements. Whether video models (Veo, Sora while it existed) are covered could not be confirmed. <span class="ev u">Unverified</span> — ask for written terms.</li>
+<li><b>Save a dated copy of the terms</b> you generated under, with your plan tier. Terms change often.</li>
+</ul>
+
+<h2>Part 4 — Open-model licences (check per version)</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Model</th><th>Licence</th><th>Commercial use</th><th>Watch out for</th></tr></thead>
+<tbody>
+<tr><td>Wan 2.1 / 2.2</td><td>Apache-2.0</td><td>Yes</td><td>— <span class="ev v">Verified</span> (LICENSE file)</td></tr>
+<tr><td>HunyuanVideo</td><td>Tencent Hunyuan Community Licence</td><td><b>Not licensed in the EU, UK or South Korea</b></td><td>The licence text states it "does not apply in the European Union, United Kingdom and South Korea"; 100M MAU clause <span class="ev v">Verified</span> (LICENSE.txt, 2026-10-17)</td></tr>
+<tr><td>LTX-2.x</td><td>LTX community licence</td><td>Free below ~US$10M annual revenue</td><td>Version-specific files <span class="ev v">Verified</span> (model card)</td></tr>
+<tr><td>MiniMax H3</td><td>MiniMax H3 Community Licence</td><td>Conditional</td><td>Application form for US/EU/UK/South Korea users <span class="ev v">Verified</span> (HF card); other terms <span class="ev u">Unverified</span></td></tr>
+<tr><td>FLUX.1 [dev]</td><td>Non-commercial licence</td><td>Weights: no; <b>outputs: yes</b> per licence text</td><td>Running the weights in a commercial service is grey <span class="ev v">Verified</span></td></tr>
+<tr><td>Stable Diffusion family</td><td>Stability Community Licence</td><td>Free up to US$1M revenue</td><td>Registration required <span class="ev v">Verified</span></td></tr>
+<tr><td>MusicGen weights</td><td>CC-BY-NC 4.0</td><td>No</td><td>Code is MIT, weights are not <span class="ev p">Practice</span></td></tr>
+<tr><td>Coqui XTTS-v2</td><td>CPML</td><td>No</td><td>Company closed — no one can sell a commercial licence <span class="ev p">Practice</span></td></tr>
+</tbody></table></div>
+<p>Rule of thumb: check licences per <b>model version</b>, per <b>artefact</b> (code vs weights vs outputs) and per <b>jurisdiction</b>; pin the licence file hash next to the weights hash. <span class="ev i">Inference</span></p>
+
+<h2>Part 5 — Voice and likeness</h2>
+<ul>
+<li><b>Germany/EU</b>: right to one's own image and general personality rights apply to deepfakes and voice imitation; GDPR covers biometric data. Get signed, scoped consent for any real person. <span class="ev u">Unverified</span> in this research (general knowledge) — confirm with a German legal source.</li>
+<li><b>Vendor checks</b>: ElevenLabs requires voice owners to verify professional clones; HeyGen requires an on-camera consent statement for digital twins; Synthesia puts consent obligations on the customer. Vendor checks are partial — keep your own releases. <span class="ev p">Practice</span></li>
+<li><b>Elsewhere</b>: Tennessee's ELVIS Act (2024) and California's AB 2602/1836 (2025) are in force; the US federal NO FAKES Act was reported stalled in October 2026; Denmark introduced a bill (8 Oct 2026) to give people copyright-like protection over face and voice, targeted for 2027. <span class="ev p">Practice</span> (secondary)</li>
+</ul>
+
+<h2>Part 6 — Labelling obligations</h2>
+<div class="callout key"><span class="title">EU AI Act, Article 50 — applies from 2 August 2026</span>
+<p><b>Providers</b> of generative AI systems must mark outputs in a machine-readable, detectable way. <b>Deployers</b> must disclose deepfakes (realistic content depicting real people, places or events). A Code of Practice on marking and labelling was published on 10 June 2026 and endorsed by the Commission. If you use vendor tools to make videos, you are typically a <i>deployer</i>; if you host or offer a model, you may be a <i>provider</i>. <span class="ev v">Verified</span> (<a href="https://digital-strategy.ec.europa.eu/en/policies/code-practice-ai-generated-content">European Commission</a>); role classification is a legal question.</p></div>
+<p><b>Platforms</b>: YouTube requires creators to disclose realistic altered or synthetic content (not needed for clearly unrealistic animation); TikTok reads C2PA Content Credentials to auto-label; Meta shows "AI info" labels. Check current help pages. <span class="ev p">Practice</span></p>
+<p>For the <a href="08-worked-example.html">rocket documentary</a>: generated shots of a real vehicle type are not deepfakes of people, but do not present generated imagery of real, branded vehicles as real footage; label reconstructions. <span class="ev i">Inference</span></p>
+
+<h2>Part 7 — Provenance technology</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Technology</th><th>What it is</th><th>Practical note</th></tr></thead>
+<tbody>
+<tr><td>C2PA / Content Credentials</td><td>Signed manifest in the file describing how it was made (spec 2.3, Jan 2026)</td><td>A 2026 test found re-encoding with common tools (incl. FFmpeg) strips or breaks manifests → <b>sign the final export</b> (e.g. with the open-source c2patool) <span class="ev p">Practice</span></td></tr>
+<tr><td>SynthID (Google)</td><td>Invisible watermark in Google-generated media; public detector portal since 7 Oct 2026</td><td>Only detects Google/partner content; absence proves nothing <span class="ev p">Practice</span></td></tr>
+<tr><td>Meta Video Seal</td><td>Open-source (MIT) neural video watermark</td><td>Option for marking your own outputs</td></tr>
+<tr><td>Visible watermarks</td><td>On free tiers of several tools</td><td>Never build a step that strips them (terms violation, conflicts with Art. 50 intent)</td></tr>
+</tbody></table></div>
+
+<h2>Part 8 — Music, stock and archive material</h2>
+<ul>
+<li><b>Royalty-free ≠ copyright-free</b>: a licence with a scope. Music needs composition + master rights for sync. Check online/monetised use.</li>
+<li><b>AI music &amp; Content ID</b>: a paid-plan permission doesn't prove copyright or exclusivity; don't register generated tracks in Content ID without clear rights.</li>
+<li><b>NASA</b> media is generally not copyrighted, but insignia/logos need permission and no endorsement may be implied. <b>ESA</b> has mixed terms (some CC BY-SA 3.0 IGO; commercial use otherwise needs authorisation). <b>Company media</b> (e.g. a launch provider's photo stream) — check the licence per item. <span class="ev p">Practice</span> (agency guidelines via search)</li>
+</ul>
+
+<h2>Part 9 — What the pipeline should record for every asset</h2>
+<details open><summary>Provenance manifest checklist</summary><div class="body">
+<ol>
+<li>Asset id, SHA-256, creation time, pipeline run id, step.</li>
+<li>Origin: generated · stock · public-agency · own footage · commissioned.</li>
+<li>Tool: vendor, product, model + version, API/UI, job id, seed.</li>
+<li>Account: plan tier and date; terms URL + dated snapshot hash.</li>
+<li>Open weights: licence id + file hash, territory check, revenue-threshold check.</li>
+<li>Inputs: prompt, references (with their own licences), LoRAs / voice ids.</li>
+<li>Rights: commercial use yes/no/conditional (+why), attribution string, indemnity, restrictions.</li>
+<li>People: real person depicted/voiced? consent record id and scope.</li>
+<li>Third-party marks/logos/characters: clearance note.</li>
+<li>Human contribution log (supports copyrightability).</li>
+<li>Provenance/marking: C2PA on input? watermark present? final signing step.</li>
+<li>Disclosure: AI Act role, label required, platform flags set.</li>
+<li>Review: reviewer, date, re-check date.</li>
+</ol>
+<p>Build rule: <b>fail the build</b> if licence, plan tier or consent record is missing for any asset in the final timeline. <span class="ev i">Inference</span> (from the R6 research synthesis)</p>
+</div></details>
+
+<p class="page-meta">Last reviewed 2026-10-17. Not legal advice.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

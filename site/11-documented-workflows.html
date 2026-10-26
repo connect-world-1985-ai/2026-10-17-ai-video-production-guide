@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documented Agent Video Workflows</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+<style>
+  .cls { font-size: 11.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+  .cls.vi { color: var(--ev-verified); background: var(--ev-verified-bg); }
+  .cls.pl { color: var(--ev-inference); background: var(--ev-inference-bg); }
+  .cls.pr { color: var(--ev-unverified); background: var(--ev-unverified-bg); }
+</style>
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Page 11 · §11 — Real implementations vs claims</div>
+<h1>Documented agent video workflows</h1>
+<p class="lead">What has actually been built, where you can read the code, and how much a human was involved. Every entry was classified on 2026-10-17 by reading the repository, skill file or paper.</p>
+
+<div class="legend">
+<span><span class="cls vi">Verified implementation</span> code/workflow publicly inspectable</span>
+<span><span class="cls pl">Plausible</span> tech is capable; exact workflow not inspectable</span>
+<span><span class="cls pr">Promotional</span> insufficient evidence of how it was made</span>
+</div>
+<div class="legend">
+<span><b>Autonomy High</b>: prompt → render without human steps</span>
+<span><b>Medium</b>: agent does most; human approves plan, supplies inputs or reviews</span>
+<span><b>Low</b>: substantial human prep, selection or editing</span>
+</div>
+
+<div class="callout key"><span class="title">The headline finding</span>
+<p>Coding-agent video production that you can inspect today is overwhelmingly <b>programmatic video</b> (HTML/React/Manim/Blender-Python rendered to MP4) plus <b>orchestration of generation APIs</b>. It works well for motion graphics, explainers, product videos and edits of real footage. Evidence for fully autonomous <i>cinematic</i> generative films is research-grade (small human evaluations) or promotional. Almost every serious workflow keeps a human approval step. <span class="ev v">Verified</span> (sources below) / <span class="ev i">Inference</span> (synthesis)</p></div>
+
+<h2>Agent skills, frameworks and pipelines</h2>
+<div class="table-wrap"><table class="compact">
+<thead><tr><th>Name</th><th>What it does</th><th>Tools orchestrated</th><th>Evidence</th><th>Autonomy</th><th>Stars (2026-10-17)</th></tr></thead>
+<tbody>
+<tr><td><a href="https://www.remotion.dev/docs/ai/skills">Remotion Agent Skills</a></td><td>Official skills teaching Claude Code / Codex / Cursor to create, preview, caption and render Remotion videos</td><td>Remotion (React → MP4)</td><td><span class="cls vi">Verified</span></td><td>Medium (human previews in Studio and re-prompts)</td><td>~5.3k (skills); ~64.7k (Remotion)</td></tr>
+<tr><td><a href="https://github.com/heygen-com/hyperframes">HyperFrames</a> (HeyGen)</td><td>HTML-based video framework with 21 agent skills and a Claude Code plugin; lint → preview → deterministic render</td><td>Headless Chrome, FFmpeg</td><td><span class="cls vi">Verified</span></td><td>Medium</td><td>~65.7k</td></tr>
+<tr><td><a href="https://github.com/browser-use/video-use">video-use</a> (browser-use)</td><td>Edit real footage by conversation: word-level transcript, cut plan, grading, overlays by parallel sub-agents, subtitles; <b>self-evaluates each cut boundary</b> (filmstrip + waveform), max 3 self-eval passes</td><td>FFmpeg, ElevenLabs Scribe, HyperFrames/Remotion/Manim, PIL</td><td><span class="cls vi">Verified</span> (SKILL.md read)</td><td>Medium — "never touch the cut until the user has approved the plain-English plan"</td><td>~29.2k</td></tr>
+<tr><td><a href="https://github.com/EveryInc/product-launch-video">product-launch-video</a> (Every)</td><td>Brief + screen recording → storyboard → Remotion scenes → render → <b>4 parallel critic agents</b> read ~20 frames (design, readability, pacing, brand)</td><td>Remotion, FFmpeg</td><td><span class="cls vi">Verified</span></td><td>Medium (human supplies brief, brand, recording)</td><td>62</td></tr>
+<tr><td><a href="https://github.com/digitalsamba/claude-code-video-toolkit">claude-code-video-toolkit</a></td><td>Commands for script, voiceover, music, visuals, Remotion render</td><td>Remotion, Qwen3-TTS, FLUX.2, ACE-Step, LTX-2, serverless GPUs</td><td><span class="cls vi">Verified</span> tooling; <span class="cls pr">Promotional</span> cost claims (author-reported)</td><td>Medium</td><td>~2.3k</td></tr>
+<tr><td><a href="https://github.com/openfilm/openfilm">openfilm</a></td><td>Agent writes a film as one HTML file (frame(t) per shot) + human editor UI</td><td>Browser (WebGL/canvas/GSAP), FFmpeg</td><td><span class="cls vi">Verified</span> (README); quality not assessed</td><td>Medium</td><td>~0.8k (created 2026-10-04)</td></tr>
+<tr><td>Manim skills (several community repos)</td><td>Plan → code → render → iterate for math explainers</td><td>Manim, FFmpeg, TTS</td><td><span class="cls vi">Verified</span> existence; quality unverified</td><td>Medium</td><td>small</td></tr>
+<tr><td><a href="https://github.com/harry0703/MoneyPrinterTurbo">MoneyPrinterTurbo</a>, ShortGPT</td><td>Topic → script → stock footage + TTS + subtitles (assembly, not generative)</td><td>LLM, stock APIs, TTS</td><td><span class="cls vi">Verified</span></td><td>High for templated shorts</td><td>~132k / ~8k</td></tr>
+<tr><td><a href="https://github.com/HKUDS/ViMax">ViMax</a> (HKUDS)</td><td>Idea/script → characters → storyboard → keyframes (VLM picks between candidates) → generated video → assembly</td><td>LLM, Nano Banana / GPT Image, Veo, Seedance</td><td><span class="cls vi">Verified</span> code; "movie-grade" claims have demos but no benchmark</td><td>Medium (user supplies concept, style, keys)</td><td>~12.7k</td></tr>
+<tr><td>MCP servers (Blender, Resolve, ComfyUI, AE/Premiere, FFmpeg, vendor MCPs)</td><td>Expose app scripting or generation APIs as tools</td><td>Various</td><td><span class="cls vi">Verified</span> (READMEs)</td><td>Tool-level</td><td>Blender MCP ~31.3k; Resolve MCP ~3.6k</td></tr>
+</tbody></table></div>
+
+<h2>Research systems with measured results</h2>
+<div class="table-wrap"><table class="compact">
+<thead><tr><th>System</th><th>Approach</th><th>Key numbers</th><th>Caveats</th></tr></thead>
+<tbody>
+<tr><td><a href="https://arxiv.org/abs/2510.01174">Code2Video</a> (Show Lab)</td><td>Planner / coder / critic agents write Manim educational videos</td><td>Aesthetics / TeachQuiz: <b>87.9 / 86.0</b> with Claude Opus 4.1 vs <b>37.8 / 40.0</b> for direct code generation; human-made 3Blue1Brown videos 99.7 / 97.1; a Veo 3 baseline 9.0 / 2.5. ≈13.8 min and 43k tokens per topic. Removing the planner hurt most.</td><td>Gemini 2.5 Pro is both critic and judge; small human study (8 per group)</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2502.19400">TheoremExplainAgent</a></td><td>Planner + coding agent → Manim + TTS, 5+ minute videos, 240-theorem benchmark</td><td>Full-video success: o3-mini 93.8%, GPT-4o 55.0%, Gemini 2.0 Flash 14.6%, Claude 3.5 Sonnet 2.1%. Top failures: Manim API hallucination, LaTeX errors, overlaps</td><td>2025-era models; automatic metrics correlate weakly with humans on accuracy/flow (Spearman ≈ 0.14–0.17)</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2501.12909">FilmAgent</a></td><td>Director / screenwriter / actors / cinematographer agents in a virtual 3D set (not generative video)</td><td>Human score 3.98 (multi-agent) vs 3.04 (single agent)</td><td>15 story ideas; small evaluation</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2503.07314">MovieAgent</a></td><td>Hierarchical multi-agent planning for multi-shot long video from script + character bank</td><td>Claims state-of-the-art (not re-checked)</td><td>Needs script + character bank from user</td></tr>
+<tr><td>AutoMV (<a href="https://arxiv.org/abs/2512.12196">arXiv 2512.12196</a>)</td><td>Multi-agent music video from a song</td><td>Expert raters preferred it over commercial baselines in four categories; AI judges "trail humans"</td><td>Read via abstract only; code not checked</td></tr>
+<tr><td>Mora (<a href="https://arxiv.org/abs/2403.13248">arXiv 2403.13248</a>)</td><td>Multi-agent wrapper of open modules imitating Sora</td><td>Self-reported VBench comparable to Sora on one metric</td><td>2024; self-comparison</td></tr>
+</tbody></table></div>
+<p class="small muted">Numbers from the papers (accessed 2026-10-17). <span class="ev v">Verified</span> where the paper/repo was read; caveats are <span class="ev i">Inference</span>.</p>
+
+<h2>Popular demos, classified</h2>
+<div class="table-wrap"><table class="compact">
+<thead><tr><th>Demo type</th><th>Claim</th><th>What could be verified</th><th>Class</th></tr></thead>
+<tbody>
+<tr><td>"Claude Code + Remotion makes a video from a prompt" tutorials (2026)</td><td>Plain-English prompt → rendered MP4</td><td>The official skills and docs are inspectable; tutorials show iterative prompting with preview. No specific viral post or view count could be verified.</td><td><span class="cls vi">Verified</span> pipeline; viral claims unverified</td></tr>
+<tr><td>Coding agent + Blender MCP "cinematic film/flythrough in 45 minutes" posts</td><td>Prompts → 3D scene → cinematic clip</td><td>Single social posts; paid third-party plugins involved; model names unverifiable</td><td><span class="cls pr">Promotional</span></td></tr>
+<tr><td>"Fully autonomous AI film from one prompt by a coding agent"</td><td>No human in the loop</td><td>Nothing inspectable found</td><td><span class="cls pr">Promotional</span></td></tr>
+<tr><td>Commercial "AI video agent" products (in-app agents of video tools)</td><td>Plan, storyboard, generate, edit from a brief</td><td>Reviews and launch posts only</td><td><span class="cls pl">Plausible</span> / <span class="cls pr">Promotional</span></td></tr>
+<tr><td>Anthropic's official skills repository</td><td>—</td><td>Lists no video-production skill as of 2026-10-17 (closest: a GIF creator)</td><td><span class="cls vi">Verified</span> (negative finding)</td></tr>
+</tbody></table></div>
+
+<h2>What the documented workflows have in common</h2>
+<ol>
+<li><b>Code as the backbone</b>: the agent writes something deterministic (HTML, React, Manim, Blender Python, FFmpeg) rather than relying only on generation.</li>
+<li><b>Human approval of the plan before expensive work</b> (video-use's hard rule; product-launch-video's brief).</li>
+<li><b>Self-inspection of rendered output</b>, almost always as frames/filmstrips + waveforms + transcripts, not as video.</li>
+<li><b>Parallel specialists</b> (animation sub-agents, critic agents) under one coordinator.</li>
+<li><b>Hard-won rules written into skills</b> — e.g. video-use's "subtitles applied last", "never cut inside a word", "30 ms audio fades at every boundary". These are the kind of production-correctness knowledge that turns an agent into a competent editor. <span class="ev v">Verified</span></li>
+<li><b>State in files</b> (project notes, EDL/timeline JSON, cached transcripts, verify folders) so work can resume.</li>
+</ol>
+
+<p class="page-meta">Last reviewed 2026-10-17. Full research notes and sources: <a href="sources.html">sources</a>.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>
