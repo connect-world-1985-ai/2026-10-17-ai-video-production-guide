@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watch — How AI-assisted video is actually made</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+<style>
+  .player { background: #0b1020; border-radius: 12px; overflow: hidden; margin: 1rem 0 1.25rem; }
+  .player video { display: block; width: 100%; height: auto; background: #0b1020; }
+  .chapters button {
+    font: inherit; color: var(--link); background: none; border: 0; padding: 0;
+    cursor: pointer; text-align: left;
+  }
+  .chapters button:hover { text-decoration: underline; }
+  .chapters td:first-child { font-variant-numeric: tabular-nums; white-space: nowrap; }
+</style>
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">Tutorial · 22 minutes · October 2026</div>
+<h1>How AI-assisted video is actually made</h1>
+<p class="lead">A spoken field guide. After this, you should be able to take a finished video apart: where the pixels came from, where the motion came from, why the beautiful parts fail, and how a coding agent directs the work.</p>
+
+<div class="player">
+  <video id="lesson" controls preload="metadata" playsinline poster="assets/video/poster.jpg">
+    <source src="assets/video/ai-video-from-the-inside.mp4" type="video/mp4">
+  </video>
+</div>
+
+<p>Captions are burned in. Chapter markers are inside the file, and the list below jumps the player to the same places. The written guide is <a href="index.html">the page you came from</a>, when you want a source or a tool name.</p>
+
+<h2>Chapters</h2>
+<div class="table-wrap"><table class="chapters">
+<thead><tr><th>Time</th><th>Chapter</th></tr></thead>
+<tbody>
+<tr><td>0:00</td><td><button type="button" data-t="0">Opening</button></td></tr>
+<tr><td>0:24</td><td><button type="button" data-t="23.64">The one idea</button></td></tr>
+<tr><td>1:22</td><td><button type="button" data-t="82.39">Two questions</button></td></tr>
+<tr><td>2:03</td><td><button type="button" data-t="122.95">Neural synthesis</button></td></tr>
+<tr><td>5:05</td><td><button type="button" data-t="304.66">Rendered scenes</button></td></tr>
+<tr><td>7:16</td><td><button type="button" data-t="435.53">Assembly</button></td></tr>
+<tr><td>9:17</td><td><button type="button" data-t="557.18">Sound</button></td></tr>
+<tr><td>11:25</td><td><button type="button" data-t="684.60">The agent</button></td></tr>
+<tr><td>13:50</td><td><button type="button" data-t="829.56">One documentary</button></td></tr>
+<tr><td>16:45</td><td><button type="button" data-t="1004.71">Routing and reality</button></td></tr>
+<tr><td>19:33</td><td><button type="button" data-t="1173.46">Learn it</button></td></tr>
+</tbody></table></div>
+
+<h2>How this film was made</h2>
+<p>The same way the lesson recommends. The pictures are code, captured frame by frame (family B). The voice is neural speech, and those word timings are the captions. A quiet rendered tone sits under the words. FFmpeg assembles the timeline (family C). No text-to-video model emitted the film. The build lives in <code>tutorial/</code> in the repository.</p>
+
+<div class="callout">
+<span class="title">Dates</span>
+<p>Vendor facts in the narration — Sora’s discontinuation, the Wan 2.1 token arithmetic, the TOMATO scores, Article 50 — are the guide’s October 2026 figures. Re-check anything about a product before you build on it. The routing rules age more slowly than the brand names.</p>
+</div>
+
+<p class="page-meta">Film produced 2026-10-26. Guide last reviewed 2026-10-17.</p>
+</div></main>
+<script src="assets/js/site.js"></script>
+<script>
+(function () {
+  var video = document.getElementById("lesson");
+  document.querySelectorAll("[data-t]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      video.currentTime = parseFloat(btn.getAttribute("data-t"));
+      var play = video.play();
+      if (play && play.catch) play.catch(function () {});
+      video.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
+})();
+</script>
+</body>
+</html>
