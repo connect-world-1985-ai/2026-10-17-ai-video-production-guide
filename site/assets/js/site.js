@@ -6,6 +6,7 @@
 
   var PAGES = [
     { group: "Start here" },
+    { file: "watch.html", num: "▶", title: "Watch the 22-minute tutorial" },
     { file: "index.html", num: "0", title: "The big picture" },
     { file: "01-taxonomy.html", num: "1", title: "Taxonomy: how video gets made" },
     { group: "Foundations" },

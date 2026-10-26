@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AI video, from the inside</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: rgba(18, 26, 46, 0.92);
+    --line: rgba(255,255,255,.10);
+    --text: #e8eef9;
+    --muted: #a9b6ce;
+    --dim: #7e8daa;
+    --a: #ff6b5a;
+    --b: #2ec4b6;
+    --c: #f0b429;
+    --d: #a99bff;
+    --blue: #8eb6ff;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; width: 1920px; height: 1080px; overflow: hidden;
+    background: var(--bg); color: var(--text);
+    font-family: Inter, "Noto Sans", sans-serif;
+  }
+  .slide {
+    display: none;
+    position: absolute; inset: 0;
+    padding: 36px 76px 150px;
+    flex-direction: column;
+    background:
+      radial-gradient(1000px 520px at 92% -10%, rgba(142,182,255,.16), transparent 60%),
+      radial-gradient(800px 480px at -10% 110%, rgba(46,196,182,.10), transparent 55%),
+      var(--bg);
+  }
+  .slide.on { display: flex; }
+  .top {
+    display: flex; align-items: center; gap: 22px;
+    font-size: 18px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--dim); font-weight: 600;
+  }
+  .top .chap { margin-left: auto; color: var(--blue); letter-spacing: .12em; }
+  h1 {
+    margin: 18px 0 0;
+    font-size: 64px; line-height: 1.05; letter-spacing: -0.03em; font-weight: 650;
+  }
+  .dense h1 { font-size: 52px; }
+  .lede { margin: 16px 0 0; font-size: 30px; line-height: 1.35; color: var(--muted); max-width: 1500px; }
+  .body { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+  .kicker { color: var(--blue); font-weight: 650; letter-spacing: .12em; text-transform: uppercase; font-size: 20px; }
+  .grid4, .grid3, .grid2 { display: grid; gap: 18px; }
+  .grid4 { grid-template-columns: repeat(4, 1fr); }
+  .grid3 { grid-template-columns: repeat(3, 1fr); }
+  .grid2 { grid-template-columns: 1fr 1fr; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px 24px 20px;
+  }
+  .card h3 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.02em; }
+  .card p { margin: 0; font-size: 22px; line-height: 1.35; color: var(--muted); }
+  .card .big {
+    font-size: 42px; font-weight: 700; letter-spacing: -0.03em; display: block; margin-bottom: 6px;
+  }
+  .card.a { box-shadow: inset 5px 0 0 var(--a); }
+  .card.b { box-shadow: inset 5px 0 0 var(--b); }
+  .card.c { box-shadow: inset 5px 0 0 var(--c); }
+  .card.d { box-shadow: inset 5px 0 0 var(--d); }
+  .tag {
+    display: inline-block; padding: 4px 10px; border-radius: 999px;
+    font-size: 16px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .tag.a { background: rgba(255,107,90,.16); color: var(--a); }
+  .tag.b { background: rgba(46,196,182,.16); color: var(--b); }
+  .tag.c { background: rgba(240,180,41,.16); color: var(--c); }
+  .tag.d { background: rgba(169,155,255,.16); color: var(--d); }
+  .note { margin-top: 16px; color: var(--dim); font-size: 18px; }
+  [data-on] { opacity: 0; }
+  [data-on].lit { opacity: 1; }
+  .ghost [data-on] { opacity: .28; }
+  .ghost [data-on].lit { opacity: 1; }
+
+  /* title */
+  .hero h1 { font-size: 84px; margin-top: 14px; }
+  .families { display: flex; gap: 14px; margin-top: 36px; }
+  .families span {
+    padding: 14px 22px; border-radius: 14px; font-size: 24px; font-weight: 700;
+    background: var(--card); border: 1px solid var(--line);
+  }
+  .families .a { color: var(--a); } .families .b { color: var(--b); }
+  .families .c { color: var(--c); } .families .d { color: var(--d); }
+
+  /* pipeline */
+  .pipe { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+  .pipe .card { padding: 18px 16px; }
+  .pipe .n { font-family: "JetBrains Mono", ui-monospace, monospace; color: var(--dim); font-size: 16px; }
+  .pipe h3 { font-size: 26px; }
+  .pipe p { font-size: 18px; }
+
+  /* questions */
+  .qbox h2 { margin: 0 0 12px; font-size: 36px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chips i {
+    font-style: normal; background: rgba(255,255,255,.04); border: 1px solid var(--line);
+    border-radius: 999px; padding: 10px 16px; font-size: 22px;
+  }
+
+  /* denoise */
+  .split { display: grid; grid-template-columns: 1.25fr .85fr; gap: 28px; align-items: center; }
+  .frame {
+    background: #070b14; border-radius: 18px; border: 1px solid var(--line);
+    overflow: hidden; position: relative;
+  }
+  canvas { display: block; width: 100%; height: auto; }
+  .stepchip {
+    position: absolute; left: 16px; bottom: 14px;
+    background: rgba(8,12,24,.72); color: white; border-radius: 999px;
+    padding: 6px 12px; font-size: 16px; letter-spacing: .08em; font-weight: 700;
+  }
+  .tricks { display: flex; flex-direction: column; gap: 14px; }
+  .tricks article h3 { font-size: 26px; margin: 0 0 6px; }
+  .punch {
+    margin-top: 8px; font-size: 26px; font-weight: 650; color: var(--text);
+  }
+
+  /* bars */
+  .bars { display: flex; flex-direction: column; gap: 22px; margin-top: 8px; }
+  .barrow { display: grid; grid-template-columns: 280px 1fr 140px; gap: 16px; align-items: center; }
+  .barrow b { font-size: 26px; font-weight: 650; }
+  .track { height: 46px; background: rgba(255,255,255,.05); border-radius: 10px; overflow: hidden; }
+  .track i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--a), #ffb4a2); border-radius: 10px; }
+  .barrow em { font-style: normal; font-size: 24px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* rockets */
+  .rkts { display: flex; gap: 28px; justify-content: center; }
+  .rktwrap { text-align: center; }
+  .rkt { position: relative; width: 120px; height: 250px; margin: 0 auto 12px; }
+  .rkt .nose {
+    position: absolute; left: 30px; top: 0; width: 0; height: 0;
+    border-left: 30px solid transparent; border-right: 30px solid transparent;
+    border-bottom: 52px solid #f4f7fb;
+  }
+  .rkt .body { position: absolute; left: 30px; top: 50px; width: 60px; height: 120px; background: #f4f7fb; border-radius: 4px; }
+  .rkt .win { position: absolute; left: 50px; top: 90px; width: 20px; height: 20px; border-radius: 50%; background: var(--blue); }
+  .rkt .fin {
+    position: absolute; top: 140px; width: 0; height: 0;
+    border-bottom: 48px solid #d5dbe6;
+  }
+  .rkt .fin.l { left: 4px; border-right: 28px solid transparent; }
+  .rkt .fin.r { right: 4px; border-left: 28px solid transparent; }
+  .rkt.alt .body, .rkt.alt .nose { border-bottom-color: #ff8b7a; }
+  .rkt.alt .body { background: #ff8b7a; }
+  .rkt.alt .fin { border-bottom-color: #c9a227; }
+  .rkt .flame {
+    position: absolute; left: 42px; top: 168px; width: 0; height: 0;
+    border-left: 18px solid transparent; border-right: 18px solid transparent;
+    border-top: 54px solid #f0b429;
+  }
+  .badword {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 54px; letter-spacing: .04em; font-weight: 700;
+  }
+  .badword u { text-decoration: none; color: var(--a); }
+
+  /* code */
+  .codewrap { display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: center; }
+  .code {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 34px; line-height: 1.45;
+    background: #080d18; border: 1px solid var(--line); border-radius: 18px;
+    padding: 28px 32px;
+  }
+  .code .k { color: var(--d); }
+  .code .ind { padding-left: 42px; }
+  .rule {
+    font-size: 34px; line-height: 1.3; font-weight: 650;
+  }
+  .rule span { display: block; margin-top: 12px; color: var(--b); font-size: 26px; font-weight: 600; }
+
+  /* tree */
+  .tree { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .node {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 14px 18px; font-size: 24px; font-weight: 650; text-align: center;
+  }
+    .node.root { background: #1a2748; color: var(--blue); }
+  .node.accent { border-left: 5px solid var(--blue); }
+  .node.ok { border-left: 5px solid var(--b); }
+  .node small { display: block; font-weight: 500; color: var(--muted); font-size: 18px; margin-top: 4px; }
+  .stem { width: 2px; height: 22px; background: rgba(255,255,255,.22); }
+  .kids { display: flex; gap: 16px; align-items: stretch; justify-content: center; }
+  .subs { display: flex; gap: 8px; margin-top: 10px; }
+  .subs span {
+    font-size: 16px; font-weight: 600; background: rgba(255,255,255,.05);
+    border-radius: 8px; padding: 6px 8px; color: var(--muted);
+  }
+
+  /* layers */
+  .layers { display: flex; gap: 16px; align-items: stretch; }
+  .layers .card { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 240px; }
+  .layers .op {
+    align-self: center; font-size: 40px; color: var(--dim); font-weight: 700; width: 36px; text-align: center;
+  }
+
+  /* timeline */
+  .tl { display: flex; flex-direction: column; gap: 10px; }
+  .ruler, .trow { display: grid; grid-template-columns: 150px 1fr; gap: 12px; align-items: center; }
+  .ruler { color: var(--dim); font-size: 16px; }
+  .ruler .scale { display: flex; justify-content: space-between; padding: 0 4px; }
+  .tname { font-size: 20px; font-weight: 700; color: var(--muted); }
+  .blocks { display: flex; gap: 8px; min-height: 48px; }
+  .blocks i {
+    font-style: normal; display: flex; align-items: center; padding: 0 12px;
+    border-radius: 8px; font-size: 18px; font-weight: 650; color: #0b1020; height: 48px;
+  }
+  .blocks i.a { background: var(--a); color: #2a0d0a; }
+  .blocks i.b { background: var(--b); color: #062421; }
+  .blocks i.c { background: var(--c); color: #2a2108; }
+  .blocks i.d { background: var(--d); color: #1a1433; }
+  .blocks i.v { background: var(--blue); color: #0c1730; }
+  .blocks i.wide { flex: 1; }
+
+  /* shots */
+  .shots { display: flex; flex-direction: column; gap: 8px; }
+  .shot {
+    display: grid; grid-template-columns: 110px 1fr 430px; gap: 16px; align-items: center;
+    background: rgba(255,255,255,.03); border-radius: 12px; padding: 9px 16px;
+  }
+  .shot .tm { font-family: "JetBrains Mono", ui-monospace, monospace; color: var(--dim); font-size: 20px; }
+  .shot .beat { font-size: 24px; font-weight: 600; }
+  .shot .pill { font-size: 18px; font-weight: 700; text-align: right; }
+
+  /* flow steps */
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .flow .card b { display: block; font-size: 18px; letter-spacing: .12em; color: var(--dim); }
+  .flow .card h3 { font-size: 32px; }
+  .return {
+    margin-top: 22px; font-size: 28px; font-weight: 650; color: var(--c);
+    border: 1px dashed rgba(240,180,41,.45); border-radius: 14px; padding: 16px 20px;
+  }
+
+  /* build graph */
+  .bgraph { display: flex; flex-direction: column; gap: 14px; }
+  .bgrow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .bgrow .node { font-size: 22px; }
+  .arrow { color: var(--dim); font-size: 26px; }
+
+  /* stairs */
+  .steps2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
+  .stepn {
+    display: grid; grid-template-columns: 72px 1fr; gap: 8px; align-items: center;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px;
+  }
+  .stepn b { font-size: 28px; color: var(--blue); font-variant-numeric: tabular-nums; }
+  .stepn span { font-size: 24px; font-weight: 650; line-height: 1.25; }
+
+  .callsheet { display: grid; grid-template-columns: 220px 1fr 180px; gap: 0; }
+  .callsheet div {
+    padding: 16px 18px; border-bottom: 1px solid var(--line); font-size: 26px;
+  }
+  .callsheet .h { color: var(--dim); font-size: 16px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; }
+  .src { color: var(--dim); font-size: 18px; margin-top: 14px; }
+</style>
+</head>
+<body>
+<section class="slide" id="s01">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Opening</span></div>
+  <div class="body hero">
+    <div class="kicker">A spoken field guide · October 2026</div>
+    <h1>How AI-assisted video<br>is actually made</h1>
+    <p class="lede">Pixels, motion, sound, and the coding agent that directs them. Watch the machine, then go build one.</p>
+    <div class="families">
+      <span class="a">A · Imagine</span>
+      <span class="b">B · Compute</span>
+      <span class="c">C · Arrange</span>
+      <span class="d">D · Combine</span>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s02">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">The one idea</span></div>
+  <div class="body">
+    <h1>A film is assembled,<br>not emitted.</h1>
+    <div class="grid4" style="margin-top:28px">
+      <div class="card a"><span class="tag a">A</span><h3>Imagined</h3><p>A neural network samples pixels. No objects inside. Beautiful, and a fresh roll of the dice every time.</p></div>
+      <div class="card b"><span class="tag b">B</span><h3>Computed</h3><p>Code describes a scene. A renderer calculates each frame. Same source, same picture.</p></div>
+      <div class="card c"><span class="tag c">C</span><h3>Arranged</h3><p>A timeline places footage, stills, voice, music, and captions. Quality is the parts, plus the timing.</p></div>
+      <div class="card d"><span class="tag d">D</span><h3>Combined</h3><p>Real films mix the three, often inside a single shot. Exact layer in code. Plausible layer from a model.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s03">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">The one idea</span></div>
+  <div class="body">
+    <h1>You already know this machine.</h1>
+    <p class="lede">Map the film pipeline onto a software pipeline, and the failure modes stop being mysterious.</p>
+    <div class="pipe" style="margin-top:28px">
+      <div class="card a"><div class="n">01</div><h3>Sample</h3><p>Neural shot. Like an LLM answer. Test it.</p></div>
+      <div class="card b"><div class="n">02</div><h3>Compile</h3><p>Rendered shot. Same source in, same frames out.</p></div>
+      <div class="card c"><div class="n">03</div><h3>Link</h3><p>Timeline assembly. The parts become one file.</p></div>
+      <div class="card d"><div class="n">04</div><h3>Build script</h3><p>The coding agent. Plan, call tools, resume from files.</p></div>
+      <div class="card"><div class="n">05</div><h3>Tests</h3><p>Probes. Loudness, captions, OCR, chosen frames.</p></div>
+      <div class="card"><div class="n">06</div><h3>Review</h3><p>Your taste. Three human gates, then publish.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s04">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Two questions</span></div>
+  <div class="body">
+    <h1>Ask both, of every shot.</h1>
+    <div class="grid2" style="margin-top:28px">
+      <div class="card qbox">
+        <h2>Where do the pixels come from?</h2>
+        <div class="chips">
+          <i>Synthesised</i><i>Rendered</i><i>Captured</i><i>Composited</i>
+        </div>
+      </div>
+      <div class="card qbox">
+        <h2>Where does the motion come from?</h2>
+        <div class="chips">
+          <i>Learned</i><i>Authored</i><i>Simulated</i><i>Captured</i><i>Edit-time pan</i>
+        </div>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:22px">A 3D-looking product spin can be either a guessed motion or a mesh on a camera path. The logo-colour change tells you which.</p>
+  </div>
+</section>
+
+<section class="slide" id="s05">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Neural synthesis</span></div>
+  <div class="body">
+    <div class="kicker">Family A</div>
+    <h1>The model imagines pixels.</h1>
+    <div class="grid2" style="margin-top:26px">
+      <div class="card a">
+        <h3>Its gift</h3>
+        <p>Atmosphere, weather, crowds, cinematic filler, cameras that could not physically fly. Fast to a gorgeous first look.</p>
+      </div>
+      <div class="card">
+        <h3>Hand it to another machine</h3>
+        <p>Exact words. Exact numbers. A mechanism you could check. A product that must match itself in shot twelve and shot forty.</p>
+      </div>
+    </div>
+    <p class="note">There is no object inside the model. There is a learned sense of how scenes like this tend to look and move.</p>
+  </div>
+</section>
+
+<section class="slide" id="s06" data-anim="denoise">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Neural synthesis</span></div>
+  <div class="body">
+    <h1 style="font-size:48px;margin-bottom:16px">Sculpting a clip out of noise</h1>
+    <div class="split">
+      <div class="frame">
+        <canvas id="noise" width="960" height="540"></canvas>
+        <div class="stepchip" id="stepchip">STEP 0 / 32</div>
+      </div>
+      <div class="tricks">
+        <article class="card" data-on="0.46"><h3>1 · Latent</h3><p>Denoise a compressed cube. A decoder restores the pixels.</p></article>
+        <article class="card" data-on="0.62"><h3>2 · Spacetime tokens</h3><p>A transformer attends across space and time together.</p></article>
+        <article class="card" data-on="0.76"><h3>3 · Flow matching</h3><p>A straighter path from noise to picture, in fewer steps.</p></article>
+        <p class="punch" data-on="0.88">Every frame of the clip is denoised together.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s07">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Neural synthesis</span></div>
+  <div class="body">
+    <h1>Attention is why clips are short.</h1>
+    <p class="lede">Wan 2.1, about 5 seconds at 720p → on the order of 75,600 tokens. Full attention, every step.</p>
+    <div class="bars">
+      <div class="barrow"><b>5 seconds</b><div class="track"><i data-fill="18"></i></div><em>× 1</em></div>
+      <div class="barrow"><b>10 seconds</b><div class="track"><i data-fill="48"></i></div><em>× 4</em></div>
+      <div class="barrow"><b>20 seconds</b><div class="track"><i data-fill="100"></i></div><em>× 16</em></div>
+    </div>
+    <p class="src">Relative attention cost: double the duration, about four times the bill. Wan 2.1 formula, field guide, October 2026. 4K is usually an upscaler.</p>
+  </div>
+</section>
+
+<section class="slide" id="s08">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Neural synthesis</span></div>
+  <div class="body">
+    <h1>Almost-right text. No identity.</h1>
+    <div class="grid2" style="margin-top:22px">
+      <div class="card a">
+        <div class="tag a">Text is a texture</div>
+        <div class="badword" style="margin:22px 0">LAND<u>1</u>NG BURN</div>
+        <p>The model never placed the letter. A glance accepts “almost.”</p>
+      </div>
+      <div class="card">
+        <div class="tag d">Same prompt, two samples</div>
+        <div class="rkts" style="margin-top:16px">
+          <div class="rktwrap"><div class="rkt"><i class="nose"></i><i class="body"></i><i class="win"></i><i class="fin l"></i><i class="fin r"></i><i class="flame"></i></div><p>Sample 1</p></div>
+          <div class="rktwrap"><div class="rkt alt"><i class="nose"></i><i class="body"></i><i class="win"></i><i class="fin l"></i><i class="fin r"></i><i class="flame"></i></div><p>Sample 2</p></div>
+        </div>
+        <p>No object to stay loyal to. When identity matters, promote it to an asset and render it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s09">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Rendered scenes</span></div>
+  <div class="body">
+    <div class="kicker">Family B</div>
+    <h1>Code computes the pixels.</h1>
+    <div class="grid3" style="margin-top:26px">
+      <div class="card b"><h3>You describe</h3><p>Shapes, text, meshes, lights, a camera, keyframes over time.</p></div>
+      <div class="card b"><h3>It calculates</h3><p>Each frame is a function of the scene at that time. Repeatable.</p></div>
+      <div class="card b"><h3>Agents thrive</h3><p>The scene is a program they can write, run, read, and patch.</p></div>
+    </div>
+    <p class="lede" style="margin-top:22px">You pay in build time. You get exact type, exact data, and a vehicle that cannot redesign itself between shots.</p>
+  </div>
+</section>
+
+<section class="slide" id="s10">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Rendered scenes</span></div>
+  <div class="body">
+    <h1>A video is a function of time.</h1>
+    <div class="codewrap" style="margin-top:22px">
+      <div class="code">
+        <div><span class="k">for</span> frame <span class="k">in</span> frames:</div>
+        <div class="ind">t = frame / fps</div>
+        <div class="ind">image = render(scene.at(t))</div>
+        <div class="ind">write(image)</div>
+        <div>encode(frames, audio)</div>
+      </div>
+      <div class="rule">
+        The picture at a frame depends only on that frame number, and on inputs you froze.
+        <span>Wall-clock timers flicker, because frames render out of order and in parallel.</span>
+      </div>
+    </div>
+    <p class="note">Remotion centres on the current frame. HyperFrames seeks the timeline to the frame it is about to capture.</p>
+  </div>
+</section>
+
+<section class="slide dense" id="s11">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Rendered scenes</span></div>
+  <div class="body">
+    <h1>A scene is a tree.</h1>
+    <div class="tree" style="margin-top:8px;width:100%">
+      <div class="node root">Scene</div>
+      <div class="stem"></div>
+      <div class="kids">
+        <div class="node">Camera<small>path, lens</small></div>
+        <div class="node">Sun and sky<small>light it once</small></div>
+        <div class="node" style="box-shadow: inset 0 -4px 0 var(--b)">Booster group
+          <div class="subs"><span>Body</span><span>Legs</span><span>Plume</span></div>
+        </div>
+        <div class="node" style="box-shadow: inset 0 -4px 0 var(--c)">2D overlay<small>altitude, labels</small></div>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:18px">Move the group, the children follow. Change the camera, the vehicle stays. Fix a label, the lighting render stays. One node, not a reshoot.</p>
+  </div>
+</section>
+
+<section class="slide" id="s12">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Assembly</span></div>
+  <div class="body">
+    <div class="kicker">Family C</div>
+    <h1>The timeline is a linker.</h1>
+    <div class="grid3" style="margin-top:26px">
+      <div class="card c"><h3>It does not invent</h3><p>Clips, stills, voice, music, captions. Real footage, stock, and screen capture enter here.</p></div>
+      <div class="card c"><h3>It places</h3><p>Which asset, when, what size, which transition, which audio underneath. The timeline is data.</p></div>
+      <div class="card c"><h3>An agent can drive it</h3><p>FFmpeg, a JSON timeline, a template API, or a scripted editor. Honesty is the inputs, plus the timing.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s13">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Assembly</span></div>
+  <div class="body">
+    <div class="kicker">Family D · one shot, three machines</div>
+    <h1 style="font-size:48px">Exact layer. Plausible layer.</h1>
+    <div class="layers" style="margin-top:26px">
+      <div class="card a" data-on="0.12"><span class="tag a">Imagine</span><h3>Sky plate</h3><p>Dusk only needs to be plausible.</p></div>
+      <div class="op" data-on="0.28">+</div>
+      <div class="card b" data-on="0.32"><span class="tag b">Compute</span><h3>Booster</h3><p>The same mesh, every shot.</p></div>
+      <div class="op" data-on="0.55">+</div>
+      <div class="card c" data-on="0.58"><span class="tag c">Compute</span><h3>Arrows, numbers</h3><p>Drawn in code, on top, exact.</p></div>
+      <div class="op" data-on="0.78">→</div>
+      <div class="card d" data-on="0.82"><span class="tag d">Combine</span><h3>One shot</h3><p>Join them in the edit.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide dense" id="s14">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Assembly</span></div>
+  <div class="body">
+    <h1>Tracks, not a single file.</h1>
+    <div class="tl ghost" style="margin-top:18px">
+      <div class="ruler"><span></span><div class="scale"><span>0:00</span><span>0:30</span><span>1:00</span><span>1:30</span><span>2:00</span></div></div>
+      <div class="trow"><div class="tname">Shots</div><div class="blocks">
+        <i class="a" data-on="0.12" style="flex:1.1">generated</i>
+        <i class="b" data-on="0.28" style="flex:1.5">3D render</i>
+        <i class="c" data-on="0.44" style="flex:.8">archive</i>
+        <i class="a" data-on="0.56" style="flex:1">generated</i>
+      </div></div>
+      <div class="trow"><div class="tname">Graphics</div><div class="blocks">
+        <i class="b" data-on="0.36" style="flex:.7;margin-left:18%">diagram</i>
+        <i class="b" data-on="0.62" style="flex:.45">lower third</i>
+      </div></div>
+      <div class="trow"><div class="tname">Captions</div><div class="blocks"><i class="wide v" data-on="0.48">word timings from the narration</i></div></div>
+      <div class="trow"><div class="tname">Voice</div><div class="blocks">
+        <i class="v" data-on="0.22" style="flex:1">narration, part 1</i>
+        <i class="v" data-on="0.5" style="flex:1">narration, part 2</i>
+      </div></div>
+      <div class="trow"><div class="tname">Music</div><div class="blocks"><i class="wide d" data-on="0.66">score, ducked under the voice</i></div></div>
+      <div class="trow"><div class="tname">Effects</div><div class="blocks">
+        <i class="c" data-on="0.72" style="width:90px">boom</i>
+        <i class="c" data-on="0.8" style="width:70px">hiss</i>
+        <i class="c" data-on="0.88" style="width:110px">landing</i>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s15">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Sound</span></div>
+  <div class="body">
+    <h1>The voice sets the clock.</h1>
+    <div class="grid4" style="margin-top:24px">
+      <div class="card"><h3>Narration</h3><p>Lock this first. Words, then timestamps.</p></div>
+      <div class="card"><h3>Music</h3><p>Ducked under the voice. Emotion and pace.</p></div>
+      <div class="card"><h3>Effects</h3><p>Short, specific, on the stressed beats.</p></div>
+      <div class="card"><h3>Ambience</h3><p>Room tone, so a cut feels continuous.</p></div>
+    </div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="card b"><h3>−14 LUFS</h3><p>A practical online loudness target. Measurable, so the build can fail when the mix misses it.</p></div>
+      <div class="card c"><h3>Lexicon, then a diff</h3><p>Acronyms and units break speech synthesis. Recognise the voice and diff it against the script.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s16">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Sound</span></div>
+  <div class="body">
+    <h1>Three early wrecks.</h1>
+    <div class="grid3" style="margin-top:24px">
+      <div class="card a"><span class="big">1</span><h3>One model, whole film</h3><p>Clips are short. Diagrams belong to the renderer. Neural shots are atmosphere.</p></div>
+      <div class="card"><span class="big">2</span><h3>It watches like you</h3><p>Often a few frames, plus text. Video models commonly sample about one frame a second.</p></div>
+      <div class="card c"><span class="big">3</span><h3>Audio as paint</h3><p>Audio is the clock. Pictures are cut to the words, not the other way around.</p></div>
+    </div>
+    <p class="src">TOMATO temporal-reasoning benchmark, as cited in the field guide: people about 95%, best model under 40%. Flicker and one-frame errors live in that gap.</p>
+  </div>
+</section>
+
+<section class="slide" id="s17">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">The agent</span></div>
+  <div class="body">
+    <h1>Four things the agent can do.</h1>
+    <div class="grid4" style="margin-top:26px">
+      <div class="card d"><span class="big">Write</span><p>Scene code, a timeline, a prompt, a test.</p></div>
+      <div class="card d"><span class="big">Call</span><p>CLI, SDK, HTTP API, MCP server.</p></div>
+      <div class="card d"><span class="big">Read</span><p>A frame, a transcript, a loudness number.</p></div>
+      <div class="card d"><span class="big">Remember</span><p>Brief, shot list, manifest, costs. In files.</p></div>
+    </div>
+    <p class="lede" style="margin-top:22px">If it is not in a file, the next session cannot resume it. That file tree is the production.</p>
+  </div>
+</section>
+
+<section class="slide" id="s18">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">The agent</span></div>
+  <div class="body">
+    <h1>The loop is the product.</h1>
+    <div class="flow ghost" style="margin-top:26px">
+      <div class="card" data-on="0.06"><b>01</b><h3>Plan</h3><p>Brief, script, shot list, tests.</p></div>
+      <div class="card" data-on="0.22"><b>02</b><h3>Make</h3><p>Generate, render, speak, licence.</p></div>
+      <div class="card" data-on="0.38"><b>03</b><h3>Assemble</h3><p>Timeline, sync, captions, mix.</p></div>
+      <div class="card" data-on="0.52"><b>04</b><h3>Inspect</h3><p>Probes, frames, a human gate.</p></div>
+      <div class="card" data-on="0.66"><b>05</b><h3>Deliver</h3><p>Masters, captions, provenance.</p></div>
+    </div>
+    <div class="return" data-on="0.78">Small miss → change one thing, rebuild that shot. &nbsp; Large miss → back to the plan.</div>
+  </div>
+</section>
+
+<section class="slide dense" id="s19">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">The agent</span></div>
+  <div class="body">
+    <h1>What the evidence supports.</h1>
+    <div class="grid2" style="margin-top:22px">
+      <div class="card d">
+        <h3>Decomposition beats a crowd</h3>
+        <p>Published evidence that many specialist agents beat one well-grounded agent is thin. A planner that turns the job into shots is the part that keeps showing up.</p>
+      </div>
+      <div class="card">
+        <h3>The critic is mostly probes</h3>
+        <p>Loudness. Speech-to-script diff. OCR on titles. Black frames and freezes. A vision model aimed at cuts and cue words. Taste stays at the human gate.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:20px">Everything you can turn into a number should be a number.</p>
+  </div>
+</section>
+
+<section class="slide" id="s20">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">One documentary</span></div>
+  <div class="body">
+    <div class="kicker">Worked example · 2 minutes</div>
+    <h1>How a booster comes home.</h1>
+    <p class="lede">Animated 3D, diagrams, cinematic scenes, effects, narration, music, accurate subtitles.</p>
+    <div class="grid3" style="margin-top:24px">
+      <div class="card b"><h3>Backbone</h3><p>Rendered. “Accurate” and “diagram” decided this before any pixel existed.</p></div>
+      <div class="card a"><h3>Atmosphere</h3><p>Generated only where a shot makes no technical claim. Cold open, ocean, wide sky.</p></div>
+      <div class="card c"><h3>Proof</h3><p>One licensed real landing, if the rights are clean. The voice sets every duration.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide dense" id="s21">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">One documentary</span></div>
+    <div class="body">
+    <h1 style="margin-bottom:14px">Route every shot.</h1>
+    <div class="shots">
+      <div class="shot" data-on="0.04"><span class="tm">0:00</span><span class="beat">Dusk descent. No claim to falsify.</span><span class="pill" style="color:var(--a)">Still, then image-to-video</span></div>
+      <div class="shot" data-on="0.18"><span class="tm">0:08</span><span class="beat">Title. “How does it stop?”</span><span class="pill" style="color:var(--b)">Type, in code</span></div>
+      <div class="shot" data-on="0.28"><span class="tm">0:16</span><span class="beat">Why throwing a stage away costs.</span><span class="pill" style="color:var(--b)">Chart, sourced numbers</span></div>
+      <div class="shot" data-on="0.40"><span class="tm">0:28</span><span class="beat">The vehicle, many times.</span><span class="pill" style="color:var(--b)">One 3D model</span></div>
+      <div class="shot" data-on="0.52"><span class="tm">0:38</span><span class="beat">The trajectory.</span><span class="pill" style="color:var(--b)">Plotted from a physics model</span></div>
+      <div class="shot" data-on="0.64"><span class="tm">1:10</span><span class="beat">Forces over a sky.</span><span class="pill" style="color:var(--d)">Generated plate + exact arrows</span></div>
+      <div class="shot" data-on="0.74"><span class="tm">1:32</span><span class="beat">Hero touchdown.</span><span class="pill" style="color:var(--b)">Same mesh, optional restyle</span></div>
+      <div class="shot" data-on="0.84"><span class="tm">1:42</span><span class="beat">The real landing.</span><span class="pill" style="color:var(--c)">Licensed archive</span></div>
+      <div class="shot" data-on="0.92"><span class="tm">1:50</span><span class="beat">End card.</span><span class="pill" style="color:var(--b)">Type, plus the sources</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide dense" id="s22">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">One documentary</span></div>
+  <div class="body">
+    <h1>A film compiles.</h1>
+    <div class="bgraph" style="margin-top:18px">
+      <div class="bgrow">
+        <div class="node root">brief</div><span class="arrow">→</span>
+        <div class="node">research</div><span class="arrow">→</span>
+        <div class="node">script</div>
+      </div>
+      <div class="bgrow">
+        <div class="node">narration</div><span class="arrow">→</span>
+        <div class="node">word timings</div><span class="arrow">→</span>
+        <div class="node">real durations</div>
+      </div>
+      <div class="bgrow">
+        <div class="node">keyframes</div>
+        <div class="node">Blender</div>
+        <div class="node">diagrams</div>
+        <div class="node">music</div>
+        <div class="node">effects</div>
+      </div>
+      <div class="bgrow">
+        <div class="node root">timeline</div><span class="arrow">→</span>
+        <div class="node">captions</div><span class="arrow">→</span>
+        <div class="node">QA report</div><span class="arrow">→</span>
+        <div class="node root">masters</div>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:18px">Change one narration line. Rebuild the shots and the mix that depend on it. Leave the ocean alone.</p>
+  </div>
+</section>
+
+<section class="slide" id="s23">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Routing and reality</span></div>
+  <div class="body">
+    <h1>Three routing rules.</h1>
+    <div class="grid3" style="margin-top:26px">
+      <div class="card b"><span class="big">Exact</span><p>Text, data, a mechanism, a logo. Render it.</p></div>
+      <div class="card a"><span class="big">Plausible</span><p>Beautiful is enough. Generate it.</p></div>
+      <div class="card d"><span class="big">Both</span><p>Render the exact layer. Generate the plate. Or restyle a render you control.</p></div>
+    </div>
+    <p class="lede" style="margin-top:22px">A recurring character is an asset, not a prompt. Narration is its own track when the words must be exact.</p>
+  </div>
+</section>
+
+<section class="slide dense" id="s24">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Routing and reality</span></div>
+  <div class="body">
+    <h1>October 2026, then re-check.</h1>
+    <div class="grid3" style="margin-top:22px">
+      <div class="card b"><h3>Automate</h3><p>Sourced scripts, code-driven 2D, headless renders, assembly, speech with timestamps, captions, loudness, objective QA.</p></div>
+      <div class="card c"><h3>Supervise</h3><p>Generative video, identity across a long film, music taste, any real person.</p></div>
+      <div class="card a"><h3>Confirm before you build</h3><p>Sora was discontinued in 2026. Leaderboards disagree. Prices are per second, and they move.</p></div>
+    </div>
+    <p class="src">Vendor facts from the written field guide, checked October 2026. The skill that lasts is the routing, not the brand on the key.</p>
+  </div>
+</section>
+
+<section class="slide" id="s25">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Routing and reality</span></div>
+  <div class="body">
+    <div class="kicker">A map, not legal advice</div>
+    <h1>Disclose it. Sign the final export.</h1>
+    <div class="grid2" style="margin-top:24px">
+      <div class="card"><h3>Article 50</h3><p>EU transparency duties for covered synthetic media have applied since 2 August 2026. Say what was generated. Have a person confirm the duty for your release.</p></div>
+      <div class="card c"><h3>Provenance</h3><p>If you sign a manifest, sign the final export. An FFmpeg re-encode strips it. A signature on an intermediate file signs the wrong artefact.</p></div>
+    </div>
+    <p class="lede" style="margin-top:20px">Keep a register beside the shot list: asset, licence, voice consent, likeness. The agent maintains it. You decide what goes in.</p>
+  </div>
+</section>
+
+<section class="slide dense" id="s26">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Learn it</span></div>
+  <div class="body">
+    <h1>Learn it in this order.</h1>
+    <div class="steps2" style="margin-top:22px">
+      <div class="stepn"><b>01</b><span>Take a file apart with ffprobe.</span></div>
+      <div class="stepn"><b>02</b><span>A 30-second explainer, written in code.</span></div>
+      <div class="stepn"><b>03</b><span>Voice, word timestamps, a loudness target.</span></div>
+      <div class="stepn"><b>04</b><span>The agent writes a QA report you can read.</span></div>
+      <div class="stepn"><b>05</b><span>Two or three generative inserts, from stills.</span></div>
+      <div class="stepn"><b>06</b><span>Shot list as data. Partial rebuilds. A cost ledger.</span></div>
+      <div class="stepn"><b>07</b><span>One headless Blender shot.</span></div>
+      <div class="stepn"><b>08</b><span>The two-minute film is the exam, not the first exercise.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s27">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Learn it</span></div>
+  <div class="body">
+    <h1>The inside view.</h1>
+    <div class="pipe" style="margin-top:28px">
+      <div class="card a"><div class="n">Pixels</div><h3>Four families</h3><p>Imagine, compute, arrange, combine.</p></div>
+      <div class="card a"><div class="n">Motion</div><h3>Its own source</h3><p>Learned, authored, simulated, captured.</p></div>
+      <div class="card"><div class="n">Model</div><h3>A short clip</h3><p>Sculpted from a cube of noise.</p></div>
+      <div class="card b"><div class="n">Code</div><h3>Source of truth</h3><p>Words, numbers, machines.</p></div>
+      <div class="card c"><div class="n">Clock</div><h3>The voice</h3><p>Pictures cut to the words.</p></div>
+      <div class="card d"><div class="n">Director</div><h3>The loop</h3><p>Files, tools, one change at a time.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s28">
+  <div class="top"><span>AI video · from the inside</span><span class="chap">Learn it</span></div>
+  <div class="body">
+    <div class="kicker">This film used the method</div>
+    <h1>Name the machine. Then run the loop.</h1>
+    <div class="card" style="margin-top:22px;padding:8px 8px 8px 22px">
+      <div class="callsheet">
+        <div class="h">Layer</div><div class="h">Machine</div><div class="h">Family</div>
+        <div>Pictures</div><div>Browser, drawn in code, captured per frame</div><div style="color:var(--b);font-weight:700">B</div>
+        <div>Voice</div><div>Neural speech, timestamps burned in as captions</div><div style="color:var(--blue);font-weight:700">Audio</div>
+        <div>Music</div><div>A rendered tone, kept under the words</div><div style="color:var(--d);font-weight:700">Audio</div>
+        <div>Timeline</div><div>FFmpeg assembly. No text-to-video model.</div><div style="color:var(--c);font-weight:700">C</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+function hash2(x, y) {
+  let n = (x * 374761393 + y * 668265263) | 0;
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
+}
+function drawScene(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, "#14203a");
+  g.addColorStop(0.45, "#c46a45");
+  g.addColorStop(0.72, "#1a2838");
+  g.addColorStop(1, "#0c1522");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(255, 206, 140, .95)";
+  ctx.beginPath();
+  ctx.arc(w * 0.74, h * 0.40, 46, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,.16)";
+  [[0.18, 0.28, 120, 42], [0.34, 0.22, 70, 28], [0.58, 0.18, 130, 40]].forEach(([cx, cy, rx, ry]) => {
+    ctx.beginPath();
+    ctx.ellipse(w * cx, h * cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.fillStyle = "#102433";
+  ctx.fillRect(0, h * 0.74, w, h);
+  ctx.fillStyle = "rgba(255,255,255,.25)";
+  ctx.fillRect(0, h * 0.74, w, 3);
+  ctx.save();
+  ctx.translate(w * 0.42, h * 0.30);
+  ctx.fillStyle = "#ffb703";
+  ctx.beginPath();
+  ctx.moveTo(-16, 168); ctx.lineTo(16, 168); ctx.lineTo(0, 250); ctx.fill();
+  ctx.fillStyle = "#f4f7fb";
+  ctx.fillRect(-26, 28, 52, 140);
+  ctx.beginPath();
+  ctx.moveTo(-26, 28); ctx.lineTo(26, 28); ctx.lineTo(0, -36); ctx.fill();
+  ctx.fillStyle = "#d5dbe6";
+  ctx.beginPath(); ctx.moveTo(-26, 130); ctx.lineTo(-62, 186); ctx.lineTo(-26, 168); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(26, 130); ctx.lineTo(62, 186); ctx.lineTo(26, 168); ctx.fill();
+  ctx.fillStyle = "#8eb6ff";
+  ctx.beginPath(); ctx.arc(0, 84, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+function drawDenoise(slide, p) {
+  const canvas = slide.querySelector("canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width, h = canvas.height;
+  drawScene(ctx, w, h);
+  const clear = Math.min(1, Math.max(0, (p - 0.06) / 0.46));
+  const cell = Math.max(3, Math.round(28 - 25 * clear));
+  const alpha = Math.pow(1 - clear, 0.9);
+  if (alpha > 0.02) {
+    ctx.globalAlpha = alpha;
+    for (let y = 0; y < h; y += cell) {
+      for (let x = 0; x < w; x += cell) {
+        const n = Math.floor(hash2(x, y) * 255);
+        ctx.fillStyle = "rgb(" + n + "," + n + "," + n + ")";
+        ctx.fillRect(x, y, cell, cell);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  const chip = slide.querySelector("#stepchip");
+  if (chip) chip.textContent = "STEP " + Math.round(clear * 32) + " / 32";
+}
+window.Anims = { denoise: drawDenoise };
+window.setTutorialFrame = function (id, localP, globalP) {
+  document.querySelectorAll(".slide").forEach(s => s.classList.toggle("on", s.id === id));
+  const slide = document.getElementById(id);
+  if (!slide) return;
+  slide.querySelectorAll("[data-on]").forEach(el => {
+    el.classList.toggle("lit", localP + 1e-6 >= parseFloat(el.dataset.on));
+  });
+  slide.querySelectorAll("[data-fill]").forEach(el => {
+    const target = parseFloat(el.dataset.fill);
+    const shown = Math.min(target, Math.max(0, (localP - 0.08) / 0.75) * target);
+    el.style.width = (localP >= 0.999 ? target : shown) + "%";
+  });
+  const name = slide.dataset.anim;
+  if (name && window.Anims[name]) window.Anims[name](slide, localP);
+};
+document.addEventListener("DOMContentLoaded", () => {
+  const q = new URLSearchParams(location.search);
+  window.setTutorialFrame(q.get("s") || "s01", parseFloat(q.get("p") || "1"), 0);
+});
+</script>
+</body>
+</html>

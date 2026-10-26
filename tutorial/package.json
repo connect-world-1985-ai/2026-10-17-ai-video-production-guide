@@ -1,0 +1,9 @@
+{
+  "name": "ai-video-tutorial",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Narrated tutorial: how AI-assisted video is actually made.",
+  "dependencies": {
+    "puppeteer-core": "^24.15.0"
+  }
+}
