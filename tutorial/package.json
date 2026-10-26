@@ -1,14 +1,8 @@
 {
-  "name": "tutorial",
+  "name": "ai-video-tutorial",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "description": "Narrated tutorial: how AI-assisted video is actually made.",
   "dependencies": {
     "puppeteer-core": "^24.15.0"
   }
