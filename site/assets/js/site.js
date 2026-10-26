@@ -4,7 +4,7 @@
 (function () {
   "use strict";
 
-  var PAGES = [
+  var PAGES_EN = [
     { group: "Start here" },
     { file: "watch.html", num: "▶", title: "Watch the 22-minute tutorial" },
     { file: "index.html", num: "0", title: "The big picture" },
@@ -31,6 +31,34 @@
     { file: "glossary.html", num: "G", title: "Glossary" },
     { file: "sources.html", num: "S", title: "Sources & method" }
   ];
+  var PAGES_ZH = [
+    { group: "从这里开始" },
+    { file: "watch.html", num: "▶", title: "看 24 分钟教程" },
+    { file: "index.html", num: "0", title: "总览" },
+    { file: "01-taxonomy.html", num: "1", title: "分类：视频是怎么做出来的" },
+    { group: "基础" },
+    { file: "02-neural-video.html", num: "2", title: "神经视频生成" },
+    { file: "03-programmatic-graphics.html", num: "3", title: "程序化图形与渲染" },
+    { file: "04-audio.html", num: "4", title: "声音：语音、音乐、音效" },
+    { file: "05-editing-compositing.html", num: "5", title: "剪辑、合成、编码" },
+    { group: "版图" },
+    { file: "06-ecosystem.html", num: "6", title: "工具版图" },
+    { group: "代理当导演" },
+    { file: "07-agent-director.html", num: "7", title: "代理架构与质检循环" },
+    { file: "08-worked-example.html", num: "8", title: "实例：助推器纪录片" },
+    { file: "09-architectures.html", num: "9", title: "本地、云端、混合" },
+    { group: "策略" },
+    { file: "10-video-types.html", num: "10", title: "十二种视频，十二种做法" },
+    { file: "11-documented-workflows.html", num: "11", title: "已记录的代理工作流" },
+    { file: "12-engineering-legal.html", num: "12", title: "工程、成本、法律" },
+    { file: "13-decision-framework.html", num: "13", title: "决策框架与技术栈" },
+    { file: "14-maturity.html", num: "14", title: "今天什么可靠" },
+    { file: "15-roadmap.html", num: "15", title: "学习路线" },
+    { group: "参考" },
+    { file: "glossary.html", num: "G", title: "术语表" },
+    { file: "sources.html", num: "S", title: "资料与方法" }
+  ];
+  var PAGES = isZh() ? PAGES_ZH : PAGES_EN;
   window.SITE_PAGES = PAGES;
 
   var EV_TITLES = {
@@ -75,8 +103,23 @@
     if (!q) return file;
     return "https://htmlpreview.github.io/?" + q.slice(0, q.lastIndexOf("/") + 1) + file;
   }
+  function otherLangHref() {
+    var file = currentFile();
+    var q = previewQuery();
+    if (q) {
+      var swapped = isZh() ? q.replace("/zh/", "/") : q.replace(/\/site\//, "/site/zh/");
+      return "https://htmlpreview.github.io/?" + swapped;
+    }
+    return isZh() ? "../" + file : "zh/" + file;
+  }
   function slug(s) {
-    return s.toLowerCase().replace(/<[^>]+>/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+    return s.toLowerCase().replace(/<[^>]+>/g, "").replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+  }
+
+  function isZh() {
+    if (location.pathname.indexOf("/zh/") >= 0) return true;
+    var q = previewQuery();
+    return q.indexOf("/zh/") >= 0;
   }
 
   /* ---------- theme ---------- */
@@ -97,12 +140,18 @@
 
     // top bar
     var top = el("header", { "class": "topbar" });
+    var zh = isZh();
+    var other = otherLangHref();
     top.innerHTML =
-      '<button class="icon-btn" id="menu-btn" aria-label="Open navigation">☰</button>' +
-      '<a class="brand" href="' + pageHref("index.html") + '">AI Video Production <small>a field guide for engineers · Oct 2026</small></a>' +
+      '<button class="icon-btn" id="menu-btn" aria-label="' + (zh ? "打开导航" : "Open navigation") + '">☰</button>' +
+      '<a class="brand" href="' + pageHref("index.html") + '">' +
+        (zh ? "人工智能视频制作 <small>给工程师的实地指南 · 2026年10月</small>"
+            : "AI Video Production <small>a field guide for engineers · Oct 2026</small>") +
+      '</a>' +
       '<span class="spacer"></span>' +
-      '<button class="icon-btn" id="ev-btn" title="Evidence label legend">Labels</button>' +
-      '<button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode"></button>';
+      '<a class="icon-btn" id="lang-btn" href="' + other + '">' + (zh ? "English" : "中文") + '</a>' +
+      '<button class="icon-btn" id="ev-btn" title="' + (zh ? "证据标签" : "Evidence label legend") + '">' + (zh ? "标签" : "Labels") + '</button>' +
+      '<button class="icon-btn" id="theme-btn" aria-label="' + (zh ? "切换深色模式" : "Toggle dark mode") + '"></button>';
     body.insertBefore(top, body.firstChild);
 
     // layout wrapper
@@ -115,7 +164,7 @@
         '><span class="num">' + p.num + "</span><span>" + p.title + "</span></a>";
     });
     side.innerHTML = html;
-    var toc = el("aside", { "class": "toc", "aria-label": "On this page" });
+    var toc = el("aside", { "class": "toc", "aria-label": zh ? "本页目录" : "On this page" });
     main.parentNode.insertBefore(layout, main);
     layout.appendChild(side);
     layout.appendChild(main);
@@ -127,11 +176,11 @@
     list.forEach(function (p, i) { if (p.file === cur) idx = i; });
     var content = main.querySelector(".content") || main;
     if (idx >= 0) {
-      var pager = el("nav", { "class": "pager", "aria-label": "Previous and next page" });
+      var pager = el("nav", { "class": "pager", "aria-label": zh ? "上一页和下一页" : "Previous and next page" });
       var ph = "";
-      if (idx > 0) ph += '<a class="prev" href="' + pageHref(list[idx - 1].file) + '"><small>← Previous</small>' + list[idx - 1].title + "</a>";
+      if (idx > 0) ph += '<a class="prev" href="' + pageHref(list[idx - 1].file) + '"><small>' + (zh ? "← 上一页" : "← Previous") + "</small>" + list[idx - 1].title + "</a>";
       else ph += "<span></span>";
-      if (idx < list.length - 1) ph += '<a class="next" href="' + pageHref(list[idx + 1].file) + '"><small>Next →</small>' + list[idx + 1].title + "</a>";
+      if (idx < list.length - 1) ph += '<a class="next" href="' + pageHref(list[idx + 1].file) + '"><small>' + (zh ? "下一页 →" : "Next →") + "</small>" + list[idx + 1].title + "</a>";
       pager.innerHTML = ph;
       content.appendChild(pager);
     }
@@ -139,7 +188,7 @@
     // headings → ids + TOC
     var heads = content.querySelectorAll("h2, h3");
     var used = {};
-    var th = '<div class="label">On this page</div>';
+    var th = '<div class="label">' + (zh ? "本页目录" : "On this page") + "</div>";
     Array.prototype.forEach.call(heads, function (h) {
       if (h.closest && h.closest("details")) return;
       if (!h.id) {
@@ -172,7 +221,7 @@
 
     // theme button
     var tb = document.getElementById("theme-btn");
-    function paint() { tb.textContent = effectiveTheme() === "dark" ? "☀ Light" : "☾ Dark"; }
+    function paint() { tb.textContent = effectiveTheme() === "dark" ? (zh ? "☀ 浅色" : "☀ Light") : (zh ? "☾ 深色" : "☾ Dark"); }
     paint();
     tb.addEventListener("click", function () {
       var next = effectiveTheme() === "dark" ? "light" : "dark";
@@ -190,21 +239,35 @@
       var ex = document.getElementById("ev-legend");
       if (ex) { ex.remove(); return; }
       var box = el("div", { id: "ev-legend", "class": "callout", style: "position:fixed;right:16px;top:64px;z-index:40;max-width:420px;box-shadow:0 6px 24px rgba(0,0,0,.18)" });
-      box.innerHTML = '<span class="title">Evidence labels used on every page</span>' +
-        '<p><span class="ev v">Verified</span> ' + EV_TITLES.v + '</p>' +
-        '<p><span class="ev p">Practice</span> ' + EV_TITLES.p + '</p>' +
-        '<p><span class="ev i">Inference</span> ' + EV_TITLES.i + '</p>' +
-        '<p><span class="ev u">Unverified</span> ' + EV_TITLES.u + '</p>' +
-        '<p><span class="ev x">Experimental</span> ' + EV_TITLES.x + '</p>' +
-        '<p class="small muted">Click "Labels" again to close.</p>';
+      var titles = zh ? {
+        v: "已核对的事实——对照过原始来源（文档、仓库、论文、官方公告）。",
+        p: "有证据支持的做法——从业者广泛记录的工作方式。",
+        i: "技术分析或推断——作者根据证据做的推理，不是一条带来源的事实。",
+        u: "未核实的说法——有人报告或在营销，但没有独立确认。",
+        x: "新兴或实验——在演示或研究里能工作，生产上还不可靠。"
+      } : EV_TITLES;
+      box.innerHTML = '<span class="title">' + (zh ? "每页使用的证据标签" : "Evidence labels used on every page") + "</span>" +
+        '<p><span class="ev v">' + (zh ? "已核对" : "Verified") + "</span> " + titles.v + "</p>" +
+        '<p><span class="ev p">' + (zh ? "实践" : "Practice") + "</span> " + titles.p + "</p>" +
+        '<p><span class="ev i">' + (zh ? "推断" : "Inference") + "</span> " + titles.i + "</p>" +
+        '<p><span class="ev u">' + (zh ? "未核实" : "Unverified") + "</span> " + titles.u + "</p>" +
+        '<p><span class="ev x">' + (zh ? "实验" : "Experimental") + "</span> " + titles.x + "</p>" +
+        '<p class="small muted">' + (zh ? "再点一次“标签”关闭。" : 'Click "Labels" again to close.') + "</p>";
       body.appendChild(box);
     });
   }
 
   /* ---------- evidence badge tooltips ---------- */
   function decorateBadges() {
+    var titles = isZh() ? {
+      v: "已核对的事实——对照过原始来源（文档、仓库、论文、官方公告）。",
+      p: "有证据支持的做法——从业者广泛记录的工作方式。",
+      i: "技术分析或推断——作者根据证据做的推理，不是一条带来源的事实。",
+      u: "未核实的说法——有人报告或在营销，但没有独立确认。",
+      x: "新兴或实验——在演示或研究里能工作，生产上还不可靠。"
+    } : EV_TITLES;
     Array.prototype.forEach.call(document.querySelectorAll(".ev"), function (b) {
-      for (var k in EV_TITLES) if (b.classList.contains(k) && !b.title) b.title = EV_TITLES[k];
+      for (var k in titles) if (b.classList.contains(k) && !b.title) b.title = titles[k];
     });
   }
 
@@ -273,7 +336,7 @@
         var ds = c.querySelectorAll("details");
         var anyClosed = Array.prototype.some.call(ds, function (d) { return !d.open; });
         Array.prototype.forEach.call(ds, function (d) { d.open = anyClosed; });
-        b.textContent = anyClosed ? "Collapse all" : "Expand all";
+        b.textContent = anyClosed ? (isZh() ? "全部折叠" : "Collapse all") : (isZh() ? "全部展开" : "Expand all");
       });
     });
   }

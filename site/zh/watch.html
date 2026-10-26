@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>观看 — 人工智能协助的视频到底是怎么做出来的</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+<style>
+  .player { background: #0b1020; border-radius: 12px; overflow: hidden; margin: 1rem 0 1.25rem; }
+  .player video { display: block; width: 100%; height: auto; background: #0b1020; }
+  .chapters button {
+    font: inherit; color: var(--link); background: none; border: 0; padding: 0;
+    cursor: pointer; text-align: left;
+  }
+  .chapters button:hover { text-decoration: underline; }
+  .chapters td:first-child { font-variant-numeric: tabular-nums; white-space: nowrap; }
+</style>
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">教程 · 24 分钟 · 2026 年 10 月</div>
+<h1>人工智能协助的视频，到底是怎么做出来的</h1>
+<p class="lead">一份可以听的实地指南。看完以后，你应该能把一部成片拆开：像素从哪来，运动从哪来，为什么好看的部分会失败，以及编程代理是怎么把工作领下去的。</p>
+
+<div class="player">
+  <video id="lesson" controls preload="metadata" playsinline poster="../assets/video/poster-zh.jpg">
+    <source src="../assets/video/ai-video-from-the-inside-zh.mp4" type="video/mp4">
+  </video>
+</div>
+
+<p>字幕烧在画面里，口播是中文。章节标记写在文件里，下面的列表会把播放器跳到同样的位置。书面指南是<a href="index.html">你来的那一页</a>，想核对一个来源或一个工具名时用它。英文版在顶栏切换。</p>
+
+<h2>章节</h2>
+<div class="table-wrap"><table class="chapters">
+<thead><tr><th>时间</th><th>章节</th></tr></thead>
+<tbody>
+<tr><td>0:00</td><td><button type="button" data-t="0">开场</button></td></tr>
+<tr><td>0:23</td><td><button type="button" data-t="23.472">一个想法</button></td></tr>
+<tr><td>1:31</td><td><button type="button" data-t="90.864">两个问题</button></td></tr>
+<tr><td>2:18</td><td><button type="button" data-t="137.616">神经合成</button></td></tr>
+<tr><td>5:39</td><td><button type="button" data-t="339.408">渲染场景</button></td></tr>
+<tr><td>8:04</td><td><button type="button" data-t="483.672">组装</button></td></tr>
+<tr><td>10:23</td><td><button type="button" data-t="623.208">声音</button></td></tr>
+<tr><td>12:38</td><td><button type="button" data-t="757.656">代理</button></td></tr>
+<tr><td>15:14</td><td><button type="button" data-t="914.208">一部纪录片</button></td></tr>
+<tr><td>18:24</td><td><button type="button" data-t="1103.640">路由与现实</button></td></tr>
+<tr><td>21:18</td><td><button type="button" data-t="1278.288">学会它</button></td></tr>
+</tbody></table></div>
+
+<h2>这部片子是怎么做的</h2>
+<p>和课程建议的做法一样。画面是代码，一帧一帧拍下来的（B 族）。声音是神经语音，词的时间就是字幕。一条渲染出来的轻柔音调铺在话下面。FFmpeg 把时间线组装起来（C 族）。没有文生视频模型吐出这部片子。构建在仓库的 <code>tutorial/</code> 里，命令是 <code>python3 build.py --lang zh</code>。</p>
+
+<div class="callout">
+<span class="title">日期</span>
+<p>口播里的厂商事实——Sora 停服、Wan 2.1 的词元算术、TOMATO 的分数、第五十条——都是这份指南 2026 年 10 月的数字。拿一个产品来做之前，再核对一次。路由规则比品牌名老得慢。</p>
+</div>
+
+<p class="page-meta">影片制作于 2026-10-26。指南最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+<script>
+(function () {
+  var video = document.getElementById("lesson");
+  document.querySelectorAll("[data-t]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      video.currentTime = parseFloat(btn.getAttribute("data-t"));
+      var play = video.play();
+      if (play && play.catch) play.catch(function () {});
+      video.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
+})();
+</script>
+</body>
+</html>

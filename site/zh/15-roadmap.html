@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>学习路线</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 15 页 · 交付物 I 与 J — 路线与待查问题</div>
+<h1>学习路线与下一步</h1>
+<p class="lead">从“我看懂了这张版图”走到“我能设计和监督一条代理视频流水线”，拆成很小的动手阶段。后面还列了值得一起查下去的开放问题。</p>
+
+<h2>学习路线（交付物 I）</h2>
+<p class="small muted">每个阶段只有一个具体结果。后面的阶段叠在前面之上；停在任何一阶段，你都已经多了一项能用的本事。<span class="ev i">推断</span></p>
+<ol class="stepper">
+<li><b>词汇和一段视频的解剖</b> — 帧、帧率、编解码器、时间线、轨道、LUFS、字幕。<i>结果</i>：用 ffprobe 和 FFmpeg 拆开一段视频（抽出帧、抽出声音、量响度）。见<a href="05-editing-compositing.html">第 5 页</a>、<a href="04-audio.html">第 4 页</a>。</li>
+<li><b>让代理用代码做视频</b> — 让编程代理用一个代码框架做一段 30 秒的动画讲解（网页技能用 Remotion 或 HyperFrames；数学用 Manim）。<i>结果</i>：你明白按帧渲染，以及代理怎样在代码上反复改。见<a href="03-programmatic-graphics.html">第 3 页</a>。</li>
+<li><b>用口播定时间</b> — 加上语音合成口播，抽出词的时间戳，用它们驱动提示点和字幕，再按响度目标铺一条音乐底。<i>结果</i>：一条“先有声音”的流水线。见<a href="04-audio.html">第 4 页</a>。</li>
+<li><b>自己检查的循环</b> — 让代理在提示点抽样帧，跑“转写对照剧本”和响度检查，写出质检报告并修问题。<i>结果</i>：你看见代理抓住什么、漏掉什么。见<a href="07-agent-director.html">第 7 页</a>。</li>
+<li><b>生成式插镜</b> — 用参考图生成关键帧，经一个接口把其中两三张做成图生视频，上面再合成精确的叠层，调色让它们接上。<i>结果</i>：你体会到生成镜头的成本和方差。见<a href="02-neural-video.html">第 2 页</a>。</li>
+<li><b>把项目当成一次构建</b> — 镜头表和时间线都是数据，输入做哈希，有任务表、成本账、局部重渲。<i>结果</i>：一条可恢复、可复现的流水线。见<a href="08-worked-example.html">第 8 页</a>、<a href="12-engineering-legal.html">第 12 页</a>。</li>
+<li><b>三维</b> — 让代理无界面地建好并渲染一个 Blender 镜头（简单模型、镜头运动、用 HDRI 打光）。<i>结果</i>：看清三维在哪里胜过生成，代理又在哪里吃力。</li>
+<li><b>完整实例</b> — 端到端做一部两分钟纪录片，中间设三个人类检查点。<i>结果</i>：你自己的参考流水线，以及诚实的成本数字。</li>
+<li><b>进阶选项</b> — ComfyUI 里的本地开源模型、LoRA、计算机图形再风格化成视频、批评子代理、来源签名、交给非线性剪辑软件。</li>
+</ol>
+
+<h2>重要的开放问题（交付物 J）</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>问题</th><th>为什么重要</th><th>怎么查</th></tr></thead>
+<tbody>
+<tr><td>按帧自检，对你的片子实际有多好？</td><td>决定你还需要多少人工复核</td><td>往渲染里埋已知缺陷，量每一层检查抓住了什么、花了多少词元</td></tr>
+<tr><td>哪种抽样策略，单位词元的命中率最高？</td><td>质检成本可以赶上生成成本</td><td>同一组缺陷上比较均匀抽样、切镜抽样、提示点抽样和胶片条抽样</td></tr>
+<tr><td>哪个生成模型适合你的风格和预算？</td><td>排行榜量的是一般偏好，不是你的用例</td><td>同一份十个镜头规格，经一个聚合器打到三四个模型上，盲评</td></tr>
+<tr><td>一致性手法在整部片子上有多稳？</td><td>反复出现的角色和产品是难点</td><td>参考图、LoRA、渲染资产对照；每个镜头算身份相似度</td></tr>
+<tr><td>导演加批评子代理，是否胜过单个代理？</td><td>视频上的公开证据很薄</td><td>同一份简报、同样的词元预算，做对照</td></tr>
+<tr><td>一分钟成片的真实成本是多少？</td><td>预算和商业判断</td><td>三到五部真实制作的成本账，包括你自己的复核时间</td></tr>
+<tr><td>哪些开源模型在欧盟对你是许可安全的？</td><td>有的许可排除欧盟，或限制营收</td><td>按模型版本审许可，记一本登记册</td></tr>
+<tr><td>流水线怎样满足人工智能法案第五十条和平台标注？</td><td>2026 年 8 月起适用</td><td>标清角色（提供者 / 部署者），加上披露和 C2PA 签名步骤，再做法律复核</td></tr>
+</tbody></table></div>
+
+<h2>建议接着讨论的方向</h2>
+<p>按这次研究露出的东西，这五个方向杠杆最大：</p>
+<div class="cards">
+<div class="card b"><h4>1 · 设计你的参考流水线</h4><p>为<i>你的</i>第一类视频、在 Windows 上，写出具体架构：工具选择、项目布局、构建图、适配器、预算——把入门到中级的技术栈落到你的项目上。</p></div>
+<div class="card d"><h4>2 · 深入代理自检</h4><p>做出并测量检查栈：抽什么、量什么、怎样把批评变成差异、何时停止。代理赢和输，大多在这里。</p></div>
+<div class="card b"><h4>3 · 亲手比较代码驱动的视频框架</h4><p>Remotion、HyperFrames、Manim 给代理用：许可、确定性、技能包、Windows 上的表现——每一种做一个很小的原型。</p></div>
+<div class="card a"><h4>4 · 生成镜头的手艺</h4><p>先关键帧、再参考、图生视频衔接、一致性，以及三四个当前模型上的成本控制。</p></div>
+<div class="card c"><h4>5 · 把权利、来源和合规设计进流水线</h4><p>资产清单、许可登记、同意记录、第五十条标注和 C2PA 签名，都做成自动步骤。</p></div>
+</div>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

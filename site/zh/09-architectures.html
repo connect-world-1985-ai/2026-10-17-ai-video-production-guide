@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>本地、云端与混合</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 9 页 · §9 — 制作架构</div>
+<h1>本地、云端与混合制作</h1>
+<p class="lead">每一步该在哪里跑？没有唯一答案：确定性的工作在本地又便宜又私密，而最前沿的生成模型大多只能通过云端接口碰到。实际能用的方案，多半是混合的。</p>
+
+<figure class="diagram">
+<svg viewBox="0 0 900 300" role="img" aria-label="三种制作架构对照">
+  <rect x="10" y="10" width="280" height="270" rx="12" class="box-b"/>
+  <text x="26" y="36" class="t-b">A · 本地</text>
+  <rect x="26" y="50" width="248" height="34" rx="6" class="box"/><text x="36" y="72">代理与编排器</text>
+  <rect x="26" y="92" width="248" height="34" rx="6" class="box"/><text x="36" y="114">开源视频/图像模型（显卡）</text>
+  <rect x="26" y="134" width="248" height="34" rx="6" class="box"/><text x="36" y="156">本地语音 · 识别 · 音乐</text>
+  <rect x="26" y="176" width="248" height="34" rx="6" class="box"/><text x="36" y="198">Blender · 代码渲染 · FFmpeg</text>
+  <text x="26" y="236" class="t-muted">+ 私密、无按次费、可复现</text>
+  <text x="26" y="254" class="t-muted">− 要大显卡、要维护、落后前沿</text>
+  <rect x="310" y="10" width="280" height="270" rx="12" class="box-a"/>
+  <text x="326" y="36" class="t-a">B · 云端</text>
+  <rect x="326" y="50" width="248" height="34" rx="6" class="box"/><text x="336" y="72">代理（笔记本或云沙箱）</text>
+  <rect x="326" y="92" width="248" height="34" rx="6" class="box"/><text x="336" y="114">视频/图像接口（异步任务）</text>
+  <rect x="326" y="134" width="248" height="34" rx="6" class="box"/><text x="336" y="156">语音 / 音乐 / 识别接口</text>
+  <rect x="326" y="176" width="248" height="34" rx="6" class="box"/><text x="336" y="198">渲染剪辑接口、云存储</text>
+  <text x="326" y="236" class="t-muted">+ 最好的模型、免硬件、能扩</text>
+  <text x="326" y="254" class="t-muted">− 按次计费、限额、锁定、数据外流</text>
+  <rect x="610" y="10" width="280" height="270" rx="12" class="box-d"/>
+  <text x="626" y="36" class="t-d">C · 混合（常见）</text>
+  <rect x="626" y="50" width="248" height="34" rx="6" class="box"/><text x="636" y="72">本地：代理、计划、项目状态</text>
+  <rect x="626" y="92" width="248" height="34" rx="6" class="box-a"/><text x="636" y="114">云端：生成镜头、人声</text>
+  <rect x="626" y="134" width="248" height="34" rx="6" class="box-b"/><text x="636" y="156">本地：二维/三维渲染、合成</text>
+  <rect x="626" y="176" width="248" height="34" rx="6" class="box"/><text x="636" y="198">本地质检 + 云端视频模型</text>
+  <text x="626" y="236" class="t-muted">+ 每步用对的工具，成本可控</text>
+  <text x="626" y="254" class="t-muted">− 要编排的活动部件更多</text>
+</svg>
+</figure>
+
+<h2>架构 A — 本地制作</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>关注点</th><th>你会碰到什么</th></tr></thead>
+<tbody>
+<tr><td>硬件</td><td>代码驱动的二维、FFmpeg、语音识别和很多语音合成模型，普通开发机就能跑。Blender 渲染从一块现代 NVIDIA 显卡上获益很大。开源<b>视频</b>模型才是重的部分：较轻的模型（例如 HunyuanVideo 1.5，83 亿参数，有报告约 14 GB 显存）能进消费级显卡；LTX-2.5 这类大约 190 亿参数的大模型，实际使用想要 24–32 GB 以上；330 亿的 MiniMax H3 示例用多块显卡。<span class="ev p">实践</span>（模型卡与二手报告，2026）</td></tr>
+<tr><td>Windows 上的具体情况</td><td>NVIDIA CUDA 是顺的路；ComfyUI 有 Windows 便携包；Blender、FFmpeg、基于 Node 的渲染器和 Python 库都能原生跑。有的研究仓库假设 Linux——WSL2 能帮忙。<span class="ev p">实践</span></td></tr>
+<tr><td>安装与维护</td><td>Python 环境、CUDA 版本、模型权重（每个几十 GB）、一更新就坏的自定义节点。这是本地人工智能最大的一笔隐性成本。<span class="ev p">实践</span></td></tr>
+<tr><td>性能</td><td>在单块消费级显卡上，几秒钟的开源模型视频，一条片段可能要几分钟；渲染和编码则是可预期的。</td></tr>
+<tr><td>隐私与控制</td><td>最好：什么都不离开这台机器；模型不会在你脚下悄悄换掉；种子能复现。</td></tr>
+<tr><td>质量</td><td>开源视频模型在排行榜上落后于封闭的领先者；差距按月变化。<span class="ev v">已核对</span>（Artificial Analysis 榜，2026-10-17：前列是封闭模型或许可受限的模型）</td></tr>
+<tr><td>许可</td><td>“开源权重”不等于可以免费商用：Wan 2.2 是 Apache-2.0，LTX-2.5 只在年营收低于 1000 万美元时免费，另一些限制地域（包括欧盟）或商用。<span class="ev v">已核对</span>（Wan / LTX）；见<a href="12-engineering-legal.html">第 12 页</a></td></tr>
+</tbody></table></div>
+
+<h2>架构 B — 云端制作</h2>
+<h3>通用的异步任务模式</h3>
+<figure class="diagram">
+<svg viewBox="0 0 860 170" role="img" aria-label="异步任务：提交、轮询、下载">
+  <defs><marker id="c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-accent"/></marker></defs>
+  <rect x="10" y="50" width="140" height="60" rx="8" class="box-accent"/><text x="22" y="76" class="t-title">1 上传参考</text><text x="22" y="94" class="t-muted">图像 / 音频</text>
+  <rect x="180" y="50" width="140" height="60" rx="8" class="box"/><text x="192" y="76" class="t-title">2 提交任务</text><text x="192" y="94" class="t-muted">→ 任务编号</text>
+  <rect x="350" y="50" width="160" height="60" rx="8" class="box"/><text x="362" y="76" class="t-title">3 等待</text><text x="362" y="94" class="t-muted">轮询状态或回调</text>
+  <rect x="540" y="50" width="140" height="60" rx="8" class="box"/><text x="552" y="76" class="t-title">4 下载</text><text x="552" y="94" class="t-muted">马上下载！</text>
+  <rect x="710" y="50" width="140" height="60" rx="8" class="box-ok"/><text x="722" y="76" class="t-title">5 记录</text><text x="722" y="94" class="t-muted">清单 + 成本</text>
+  <path d="M150,80 L177,80" class="line-accent" marker-end="url(#c1)"/><path d="M320,80 L347,80" class="line-accent" marker-end="url(#c1)"/>
+  <path d="M510,80 L537,80" class="line-accent" marker-end="url(#c1)"/><path d="M680,80 L707,80" class="line-accent" marker-end="url(#c1)"/>
+  <text x="250" y="138" class="t-muted">排队中 → 进行中 → 完成 / 失败；重试必须幂等</text>
+  <text x="500" y="30" class="t-muted">例如 Veo 的输出只保留两天</text>
+</svg>
+</figure>
+<p>主要的生成接口都是这个形状：fal 的队列接口（提交，然后轮询状态、流式，或一个回调，还可以取消）、Replicate 的预测（轮询或回调，可选同步等待）、Google 给 Veo 用的长时间操作（轮询直到完成；生成的视频只存两天）。<span class="ev v">已核对</span>（<a href="https://fal.ai/docs/model-endpoints/queue">fal 文档</a>、<a href="https://replicate.com/docs/topics/predictions/create-a-prediction">Replicate 文档</a>、<a href="https://ai.google.dev/gemini-api/docs/veo">Gemini Veo 文档</a>）</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>关注点</th><th>你会碰到什么</th></tr></thead>
+<tbody>
+<tr><td>接口与软件开发工具包</td><td>厂商接口（Google、Runway、MiniMax、Kling、ElevenLabs 等）、聚合器（fal、Replicate、作为转售方的 Runway、ComfyUI 合作节点），以及一些 MCP 服务器。</td></tr>
+<tr><td>可靠性</td><td>任务会失败、超时，或被内容过滤拦住（有的平台对被拦住的输出仍然计费）。按 Google 文档，Veo 的生成延迟从大约 11 秒到高峰时大约 6 分钟。<span class="ev v">已核对</span></td></tr>
+<tr><td>速率限制与配额</td><td>每个密钥的并发限制；分档配额；在你的编排器里规划一条队列。</td></tr>
+<tr><td>访问限制</td><td>地域：例如 Gemini Omni 对上传视频的编辑，在欧洲经济区、瑞士或英国不可用；Veo 的人物生成设置在欧盟、英国、瑞士和中东北非受限。<span class="ev v">已核对</span>（Gemini 文档，2026-10-17）。如果你在德国工作，这和你有关。</td></tr>
+<tr><td>变更风险</td><td>模型和端点淘汰得很快：Sora 在 2026 年关停；最初的 Nano Banana 图像模型计划于 2026-10-02 关停；聚合器端点带着弃用通知。<span class="ev v">已核对</span></td></tr>
+<tr><td>成本</td><td>生成视频按秒计：大约每秒 0.05 到 0.70 美元，视模型、档位和分辨率而定（2026 年 10 月）。语音：每分钟几美分。<span class="ev v">已核对</span>（厂商和聚合器价格页上的区间）</td></tr>
+<tr><td>质量与规模</td><td>能拿到的最好模型；任务可并行；不用管硬件。</td></tr>
+</tbody></table></div>
+
+<h2>架构 C — 混合制作</h2>
+<p>常见的分工，以及理由：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>步骤</th><th>放在哪里</th><th>为什么</th></tr></thead>
+<tbody>
+<tr><td>代理、规划、项目状态</td><td>本地（或你自己的云沙箱）</td><td>你的文件、你的仓库、可恢复</td></tr>
+<tr><td>生成视频和关键帧</td><td>云端接口</td><td>质量；不用显卡；只为采纳的条和重试付钱</td></tr>
+<tr><td>三维和二维渲染</td><td>本地（大任务用云渲染，例如 Remotion Lambda）</td><td>确定、私密、便宜</td></tr>
+<tr><td>口播</td><td>云端语音合成（质量）或本地语音合成（隐私/成本）</td><td>看声音的要求</td></tr>
+<tr><td>合成、混音、编码</td><td>本地 FFmpeg</td><td>快、免费、精确</td></tr>
+<tr><td>质检</td><td>本地探测、检测器、语音识别，加上云端视觉/视频模型</td><td>先做便宜的检查，昂贵的判断放最后</td></tr>
+<tr><td>租来的显卡（无服务器显卡平台）</td><td>中间地带</td><td>不买硬件也能跑开源模型——例如 claude-code-video-toolkit 用无服务器显卡平台跑开源模型 <span class="ev v">已核对</span>（README）</td></tr>
+</tbody></table></div>
+
+<h2>并排看取舍</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>维度</th><th>本地</th><th>云端</th><th>混合</th></tr></thead>
+<tbody>
+<tr><td>每次迭代的延迟</td><td>渲染和剪辑低；开源模型视频高</td><td>排队加生成要几分钟；还要传文件</td><td>本地循环快，慢循环只留给生成镜头</td></tr>
+<tr><td>确定性</td><td>高（钉住版本和种子）</td><td>低到中（模型会悄悄更新）</td><td>骨架部分高</td></tr>
+<tr><td>可复现</td><td>可以重建</td><td>留住输出文件；请求本身未必能复现</td><td>除钉住的生成片段外都可以重建</td></tr>
+<tr><td>厂商锁定</td><td>低</td><td>若用厂商专有功能（模板、数字人）则高</td><td>中；用适配器把厂商隔开</td></tr>
+<tr><td>数据隐私</td><td>最好</td><td>数据和肖像去了厂商；要查保留和训练条款</td><td>按资产选择</td></tr>
+<tr><td>创作控制</td><td>高（但模型较弱）</td><td>看模型</td><td>总体上最高</td></tr>
+<tr><td>前期成本</td><td>显卡加搭建时间</td><td>没有</td><td>低</td></tr>
+<tr><td>边际成本</td><td>电费</td><td>按秒 / 按字符</td><td>主要在生成镜头上</td></tr>
+</tbody></table></div>
+<p class="small muted"><span class="ev i">推断</span>，依据上面这些事实。</p>
+
+<div class="callout key"><span class="title">一层适配器是最便宜的保险</span>
+<p>把每一个外部生成器包在同一个内部接口后面（<code>generate_clip(spec) → 文件 + 元数据</code>）。当一家供应商改价、弃用模型或关停——Sora 就是这样——你改一个适配器，而不是改整条流水线。每次调用都在清单里记下供应商、模型、版本和成本。<span class="ev i">推断</span></p></div>
+
+<h2>制作总成本——诚实的版本</h2>
+<ol>
+<li><b>你的时间</b>，用来审和导演（对要质量的工作，这是最大的一项）。</li>
+<li><b>迭代倍数</b>：生成镜头通常要试几次；按最终秒数的 2 到 4 倍来做预算。<span class="ev p">实践</span></li>
+<li><b>代理词元</b>：规划、代码，尤其是视觉质检（图像很吃词元）。</li>
+<li><b>生成接口</b>：按秒、按字符、按张。</li>
+<li><b>许可</b>：素材镜头、音乐、字体、软件（例如 Remotion 的公司许可、Resolve Studio）。</li>
+<li><b>算力和维护</b>：本地显卡、云渲染、存储。</li>
+</ol>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>术语表</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">参考</div>
+<h1>术语表</h1>
+<p class="lead">视频制作、图形、音频和生成式人工智能里的词，用白话说明。中文名后面括号里是原文，方便你去查文档。</p>
+<div class="toolbar"><input type="search" data-filter-for="gl" placeholder="筛选术语…"></div>
+<div class="table-wrap"><table id="gl" class="compact">
+<thead><tr><th>术语</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td>透明通道（Alpha channel）</td><td>随图像或视频保存的逐像素透明度，让一层可以叠在另一层上。</td></tr>
+<tr><td>自动语音识别（ASR）</td><td>把语音变成文字，最好还带每个词的时间戳。</td></tr>
+<tr><td>宽高比（Aspect ratio）</td><td>画面的宽比高：16:9（YouTube）、9:16（Shorts、Reels、TikTok）、1:1。</td></tr>
+<tr><td>空镜（B-roll）</td><td>口播或采访声音继续时，切出来的辅助画面。</td></tr>
+<tr><td>码率（Bitrate）</td><td>编码后每秒的数据量；更高通常更清晰，文件也更大。</td></tr>
+<tr><td>C2PA / 内容凭证（Content Credentials）</td><td>一套开放标准，用签名过的来源元数据说明媒体是怎么做出来、怎么改过的。</td></tr>
+<tr><td>无分类器引导（Classifier-free guidance）</td><td>扩散模型的手法：把“有提示”和“没有提示”的预测对照，加强对提示的服从。</td></tr>
+<tr><td>编解码器（Codec）</td><td>视频或音频的压缩方法（H.264、H.265、AV1、ProRes、AAC、Opus）。</td></tr>
+<tr><td>调色 / 查找表（Colour grading / LUT）</td><td>给画面一种观感；查找表是一份可复用的色彩变换。</td></tr>
+<tr><td>合成（Compositing）</td><td>把多层（实拍、渲染、文字）合成每一帧上的一幅图。</td></tr>
+<tr><td>容器（Container）</td><td>装着多条流的文件格式（MP4、MOV、MKV、WebM）。</td></tr>
+<tr><td>ControlNet</td><td>用结构（姿态、深度、边缘）来约束图像或视频生成的方法。</td></tr>
+<tr><td>提示点（Cue point）</td><td>某件事必须发生的时刻（动画开始、音效响起），常常绑在口播的某个词上。</td></tr>
+<tr><td>扩散模型（Diffusion model）</td><td>通过一步步去掉噪声来生成数据的模型。</td></tr>
+<tr><td>扩散 Transformer（DiT）</td><td>在扩散里当去噪器的 Transformer；当前视频模型的主流骨架。</td></tr>
+<tr><td>压低（Ducking）</td><td>有人说话时自动把音乐压下去（侧链压缩）。</td></tr>
+<tr><td>EDL / FCPXML / OTIO</td><td>时间线交换格式：剪辑决策表、Final Cut 的 XML、OpenTimelineIO。</td></tr>
+<tr><td>缓动（Easing）</td><td>两个关键帧之间动画的速度曲线（线性、缓入缓出、弹簧）。</td></tr>
+<tr><td>函数曲线（F-curve）</td><td>Blender 对“某个属性随时间变化的动画曲线”的叫法。</td></tr>
+<tr><td>首帧 / 末帧条件（First/last-frame conditioning）</td><td>把确切的开始图（以及结束图）交给视频模型，让它生成中间的运动。</td></tr>
+<tr><td>流匹配 / 矫正流（Flow matching / rectified flow）</td><td>一种训练方法，学习把噪声沿直线挪向数据；采样步数比经典扩散少。</td></tr>
+<tr><td>拟音（Foley）</td><td>对上画面动作的日常音效（脚步、碰撞）。</td></tr>
+<tr><td>强制对齐（Forced alignment）</td><td>给定音频和它的确切文字，算出每个词或音素是何时说出来的。</td></tr>
+<tr><td>帧率（fps）</td><td>每秒帧数（电影 24，PAL 25，网页 30，顺滑界面 60）。</td></tr>
+<tr><td>帧插值（Frame interpolation）</td><td>合成中间帧，用来提高帧率或做慢动作。</td></tr>
+<tr><td>高斯泼溅 / NeRF</td><td>从照片重建真实三维场景、再渲染新视角的方法。</td></tr>
+<tr><td>无界面渲染（Headless rendering）</td><td>没有可见界面，从脚本或命令行渲染——代理需要的就是这个。</td></tr>
+<tr><td>图生视频 / 文生视频 / 视频生视频（I2V / T2V / V2V）</td><td>从图像、文字或另一段视频生成视频。</td></tr>
+<tr><td>关键帧（Keyframe）</td><td>动画里：某一时刻存下的值。生成里：用来锚定一个镜头的设计静帧。</td></tr>
+<tr><td>潜空间（Latent space）</td><td>生成模型工作的压缩表示，再解码回像素。</td></tr>
+<tr><td>LoRA</td><td>一小块微调适配器，教模型一个角色、一件产品或一种风格。</td></tr>
+<tr><td>下三分之一（Lower third）</td><td>画面下方的文字图形（姓名、头衔、标签）。</td></tr>
+<tr><td>LUFS / LKFS</td><td>响度单位（ITU-R BS.1770）；目标例如 −23（EBU R128）或大约 −14（网络）。</td></tr>
+<tr><td>遮罩（Matte / mask）</td><td>规定效果或图层作用在哪些像素上；人工智能分割可以自动做出遮罩。</td></tr>
+<tr><td>MCP</td><td>模型上下文协议（Model Context Protocol）——把工具暴露给人工智能代理的一种标准方式。</td></tr>
+<tr><td>动作捕捉（Mocap）</td><td>记录真实动作，用来驱动三维角色。</td></tr>
+<tr><td>非线性剪辑（NLE）</td><td>非线性剪辑软件（Premiere、Resolve、Final Cut、Kdenlive）。</td></tr>
+<tr><td>路径追踪（Path tracing）</td><td>通过模拟每个像素上大量光线路径来做的基于物理的渲染。</td></tr>
+<tr><td>基于物理的渲染（PBR）</td><td>用基础色、粗糙度、金属度等描述材质的渲染方式。</td></tr>
+<tr><td>光栅化（Rasterisation）</td><td>把三角形投影到屏幕上的快速图形处理器渲染。</td></tr>
+<tr><td>Rec.709</td><td>高清、标准动态范围视频的标准色彩空间。</td></tr>
+<tr><td>参考生视频（Reference-to-video）</td><td>用参考图（有时还有参考视频或音频）约束生成，以保住身份。</td></tr>
+<tr><td>场景图（Scene graph）</td><td>一棵带变换的物体树，用来描述二维或三维场景。</td></tr>
+<tr><td>种子（Seed）</td><td>固定一次生成初始噪声的数字；同样的种子加同样的模型，输出相近。</td></tr>
+<tr><td>镜头表（Shot list）</td><td>逐镜头的计划：内容、时长、摄像机、技术、资产、声音提示。</td></tr>
+<tr><td>时空块（Spacetime patches）</td><td>视频潜表示里的小三维块，当作 Transformer 的词元。</td></tr>
+<tr><td>SRT / VTT / ASS</td><td>字幕格式（简单、网页、带样式）。</td></tr>
+<tr><td>SSML</td><td>控制语音合成的标记（停顿、重音、读音）。</td></tr>
+<tr><td>分镜（Storyboard）</td><td>一串画面，展示每个镜头长什么样。</td></tr>
+<tr><td>SynthID</td><td>Google 给人工智能生成媒体加的不可见水印。</td></tr>
+<tr><td>时间线（Timeline）</td><td>按时间摆放的多条片段轨道；任何一次剪辑背后的数据结构。</td></tr>
+<tr><td>真峰值（True peak，dBTP）</td><td>包含采样间峰值的峰值电平；通常压在 −1 dBTP 及以下。</td></tr>
+<tr><td>语音合成（TTS）</td><td>文字转语音。</td></tr>
+<tr><td>变分自编码器（VAE）</td><td>把图像或视频压进潜空间、再解码回来的模型。</td></tr>
+<tr><td>视素（Viseme）</td><td>对应一个语音的嘴型；用于口型同步。</td></tr>
+<tr><td>视觉语言模型（VLM）</td><td>能读图像（有时也能读视频）的大语言模型。</td></tr>
+<tr><td>世界模型（World model）</td><td>一帧一帧生成可探索、会对动作作出反应的环境的模型。</td></tr>
+</tbody></table></div>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

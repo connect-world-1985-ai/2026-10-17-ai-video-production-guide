@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>程序化图形与渲染</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 3 页 · 交付物 D — 技术基础（二）</div>
+<h1>程序化的二维/三维动画与渲染</h1>
+<p class="lead">代码怎样变成会动的画面。这是视频制作里最像普通软件工程的部分，也是编程代理最强的地方。</p>
+
+<h2>核心想法：视频是时间的函数</h2>
+<p>每一种代码驱动的动画工具，从数学讲解库到电影渲染器，实现的都是同一个循环：</p>
+<pre><code>for frame in range(duration_seconds * fps):      # e.g. 120 s × 30 fps = 3,600 frames
+    t = frame / fps
+    scene_state = evaluate_scene(t)               # where is everything at time t?
+    image = render(scene_state, camera_at(t))     # turn the state into pixels
+    write(image)                                  # PNG sequence or straight to an encoder
+encode(frames, audio) -> video.mp4</code></pre>
+<p>这一页剩下的，都是 <code>evaluate_scene</code>（场景图、关键帧、模拟）和 <code>render</code>（二维绘制、光栅化、光线追踪）的细节。<span class="ev p">实践</span></p>
+
+<div class="callout key"><span class="title">代理写动画时，最重要的一条规则</span>
+<p>第 <i>n</i> 帧的画面必须<b>只</b>取决于 <i>n</i>（以及固定的输入），绝不能取决于墙上时钟、网络时序，或没有种子的随机数。按帧的渲染器会把帧打乱顺序、并行地画；任何靠真实时间或定时器的东西都会闪，或者对不齐。Remotion 的文档为此把一切都建在 <code>useCurrentFrame()</code> 上；HyperFrames 在抓取每一帧之前，先把时间线寻到该帧。<span class="ev v">已核对</span>（<a href="https://www.remotion.dev/docs/the-fundamentals">Remotion 基础</a>，<a href="https://github.com/heygen-com/hyperframes">HyperFrames README</a>）</p></div>
+
+<h2>场景图：场景是怎样表示的</h2>
+<p>场景图是一棵节点树。每个节点有相对父节点的变换（位置、旋转、缩放），再加上内容（一个形状、一块网格、文字、一盏灯、一台摄像机）。挪动父节点，子节点就跟着挪——和 DOM，或一棵 React 组件树，完全一样。</p>
+<figure class="diagram">
+<svg viewBox="0 0 860 250" role="img" aria-label="火箭着陆场景的场景图示例">
+  <defs><marker id="s1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+  <rect x="360" y="10" width="140" height="34" rx="6" class="box-accent"/><text x="400" y="32" class="t-title">场景</text>
+  <rect x="40" y="80" width="150" height="34" rx="6" class="box-b"/><text x="52" y="102">机位（路径、视场）</text>
+  <rect x="220" y="80" width="150" height="34" rx="6" class="box-b"/><text x="232" y="102">太阳光、天空</text>
+  <rect x="400" y="80" width="150" height="34" rx="6" class="box-b"/><text x="412" y="102">着陆台网格</text>
+  <rect x="610" y="80" width="200" height="34" rx="6" class="box-b"/><text x="622" y="102">助推器（组·关键帧）</text>
+  <rect x="470" y="160" width="110" height="34" rx="6" class="box"/><text x="482" y="182">箭体网格</text>
+  <rect x="590" y="160" width="110" height="34" rx="6" class="box"/><text x="602" y="182">腿（绑定）</text>
+  <rect x="710" y="160" width="140" height="34" rx="6" class="box"/><text x="722" y="182">发动机羽流</text>
+  <rect x="40" y="160" width="300" height="34" rx="6" class="box-c"/><text x="52" y="182">二维叠层：标签、高度读数</text>
+  <path d="M430,44 L115,78" class="line" marker-end="url(#s1)"/><path d="M430,44 L295,78" class="line" marker-end="url(#s1)"/>
+  <path d="M430,44 L475,78" class="line" marker-end="url(#s1)"/><path d="M430,44 L710,78" class="line" marker-end="url(#s1)"/>
+  <path d="M710,114 L525,158" class="line" marker-end="url(#s1)"/><path d="M710,114 L645,158" class="line" marker-end="url(#s1)"/><path d="M710,114 L780,158" class="line" marker-end="url(#s1)"/>
+  <path d="M430,44 C300,120 200,120 190,158" class="line" marker-end="url(#s1)"/>
+  <text x="40" y="232" class="t-muted">改 Booster.position.y 的关键帧，箭体、腿和羽流跟着动。改摄像机路径不必动别的。这种分开，才让修改变得便宜。</text>
+</svg>
+</figure>
+
+<h2>关键帧、插值与缓动</h2>
+<p>你很少去指定每一帧。你设置<b>关键帧</b>——某个属性在某些时刻的值——工具在它们之间<b>插值</b>。<b>缓动曲线</b>决定怎么变：线性运动看起来机械；缓入/缓出看起来自然；弹簧会冲过头，再落定。</p>
+<figure class="diagram">
+<svg viewBox="0 0 860 220" role="img" aria-label="带线性插值与缓动插值的关键帧">
+  <line x1="60" y1="180" x2="820" y2="180" class="line"/><line x1="60" y1="30" x2="60" y2="180" class="line"/>
+  <text x="66" y="200" class="t-muted">第 0 帧</text><text x="760" y="200" class="t-muted">第 90 帧</text>
+  <text x="8" y="40" class="t-muted">高度</text>
+  <path d="M60,40 L820,170" class="line" stroke-dasharray="4 4"/>
+  <path d="M60,40 C420,40 460,170 820,170" class="line-accent"/>
+  <circle cx="60" cy="40" r="6" class="box-b"/><circle cx="820" cy="170" r="6" class="box-b"/>
+  <text x="280" y="120" class="t-muted">线性（虚线）：匀速，看起来机械</text>
+  <text x="430" y="60" class="t-muted">缓入缓出（实线）：起步慢、中间快、轻轻停下</text>
+  <text x="70" y="28" class="t-b">关键帧 1</text><text x="740" y="160" class="t-b">关键帧 2</text>
+</svg>
+<figcaption>动画曲线（Blender 里的“函数曲线”，网页框架里的缓动函数）不过是时间的函数。代理要把“着陆更轻一点”，改的是一条曲线，不是 90 帧。</figcaption>
+</figure>
+<p>时间线把动画编成组：<i>这个序列在第 12 秒开始，持续 4 秒；在它里面，标签于 0.5 秒淡入</i>。网页框架用嵌套的组件或时间线来表达；Python 库用按顺序的 <code>play()</code> 调用；三维套件里则是轨道和条带。</p>
+
+<h2>摄像机：作为参数的摄影</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>电影术语</th><th>场景里什么在变</th><th>典型参数</th></tr></thead>
+<tbody>
+<tr><td>摇 / 俯仰</td><td>摄像机原地转动</td><td>旋转（偏航 / 俯仰）关键帧</td></tr>
+<tr><td>推轨 / 横移 / 升降</td><td>摄像机向前 / 向旁 / 向上移动</td><td>位置路径</td></tr>
+<tr><td>变焦</td><td>镜头焦距改变（透视不变，取景收紧）</td><td>焦距 / 视场角</td></tr>
+<tr><td>环绕</td><td>摄像机绕着目标转，始终看着它</td><td>“look-at”约束 + 圆弧路径</td></tr>
+<tr><td>移焦 / 浅景深</td><td>对焦距离和光圈</td><td>对焦距离、光圈挡</td></tr>
+<tr><td>运动模糊</td><td>每一帧的曝光时间</td><td>快门角（180° 是电影默认）</td></tr>
+<tr><td>手持感</td><td>给位置和旋转加一点噪声</td><td>带种子的噪声修改器</td></tr>
+</tbody></table></div>
+<p>知道这张表的代理，可以把“运镜太快，显得廉价”这样的意见，变成具体的修改：拉长关键帧间隔，加上缓入缓出，再加一点运动模糊。<span class="ev i">推断</span></p>
+
+<h2>几何、材质、光与着色器（三维）</h2>
+<ul>
+<li><b>几何</b>：三角形/多边形的网格、曲线、体积（烟）、点云或高斯泼溅。</li>
+<li><b>材质</b>：多数工具用基于物理的渲染（PBR）——基础色、粗糙度、金属度、法线贴图、自发光。“带着煤烟条痕的拉丝钢助推器”，就是一份材质加上纹理。</li>
+<li><b>灯光</b>：太阳光、面光源、点光源，以及从各个方向照亮场景的环境图（HDRI）。</li>
+<li><b>着色器</b>：算表面颜色的小程序（在二维网页工具里，还包括全屏效果）。常见界面是基于节点的着色器图；它们同样可以写脚本。</li>
+</ul>
+
+<h2>渲染：把场景变成像素</h2>
+<div class="cards">
+<div class="card b"><h4>光栅化（实时）</h4><p>把三角形投影到屏幕上，再给每个像素着色。在 GPU 上，一帧只要几毫秒。游戏引擎、浏览器 WebGL、Blender EEVEE。阴影、反射和全局光照是近似的。</p></div>
+<div class="card b"><h4>路径追踪（离线）</h4><p>模拟每个像素上的许多条光线在场景里反弹。光在物理上是准的；采样不多就有噪声；一帧要数秒到数分钟。Blender Cycles，以及电影渲染器。人工智能降噪器能减少所需的采样。</p></div>
+<div class="card b"><h4>二维矢量渲染</h4><p>画形状、文字、SVG 和图像，通常借无界面浏览器（网页框架）或 Cairo/OpenGL（Python 库）。快；文字绝对清晰。</p></div>
+</div>
+<p><b>成本直觉</b>：两分钟的视频、30 fps，是 3,600 帧。路径追踪若一帧 30 秒，一台机器就是 30 小时——所以制作才会并行渲染、降低采样，或改用实时引擎。二维渲染若一帧 50 毫秒，一共就是 3 分钟。<span class="ev i">推断</span>（算术）。</p>
+
+<h2>物理与程序化运动</h2>
+<p>有的运动不是编排出来的，而是<b>算</b>出来的：刚体下落、发动机冒出的烟、粒子、布料、流体，或由真实方程给出的轨迹。模拟通常只跑一次，然后<b>烘焙</b>（按帧缓存到磁盘），渲染就可以重复，也可以并行。种子让“随机”的粒子系统变成确定的。做工程讲解时，着陆助推器的轨迹可以来自 Python 里一份真正的物理模型，再作为关键帧送进三维场景——画面于是<i>按构造就是对的</i>，这是神经视频模型给不了的保证。<span class="ev i">推断</span></p>
+
+<h2>从图像到视频文件</h2>
+<ol class="stepper">
+<li><b>渲染帧</b>，成为图像序列（PNG；高动态范围用 EXR），或直接送进编码器。</li>
+<li><b>编码</b>，用某种编解码器（要兼容用 H.264，要效率用 H.265/AV1，剪辑母版用 ProRes），固定帧率，通常经过 FFmpeg。</li>
+<li><b>封装</b>音频轨道进容器（MP4/MOV/MKV）。</li>
+</ol>
+<p>图像序列对自动化更友好：在第 2,100 帧崩溃，就从第 2,100 帧接着来；代理可以修好一个镜头，只重渲它的帧范围。<span class="ev p">实践</span></p>
+
+<h2>三类代码驱动的工具，看一眼</h2>
+<div data-tabs>
+<div class="tabs"><button data-tab="web">网页（HTML/React）</button><button data-tab="py">Python 二维（数学/数据）</button><button data-tab="3d">三维套件与引擎</button></div>
+<div class="tab-panel" data-panel="web">
+<p>写一个外观取决于帧号的网页或 React 组件；无界面的 Chromium 寻到每一帧、截下来，再由 FFmpeg 编码。整个网页平台都在：CSS、SVG、字体、Canvas、WebGL（Three.js）、动画库、图表。</p>
+<p>代表工具（2026 年 10 月）：<b>Remotion</b>（React；GitHub 星标约 64.7k；源码可得的许可，个人以及不超过 3 人的公司免费，再往上要付费），HeyGen 的 <b>HyperFrames</b>（普通 HTML 加数据属性，Apache-2.0，2026 年 3 月以来星标约 65.7k，明确“为代理而建”，并附带代理技能），<b>Motion Canvas</b> / <b>Revideo</b>（TypeScript 生成器；Motion Canvas 自 2024 年 12 月起没有再发版）。星标数来自 2026-10-17 的 GitHub API。<span class="ev v">已核对</span></p>
+<pre><code>// Remotion-style idea (illustrative, not a full program)
+const frame = useCurrentFrame();                    // 0, 1, 2, …
+const y = interpolate(frame, [0, 90], [800, 0], {easing: Easing.inOut(Easing.cubic)});
+return &lt;Booster style={{transform: `translateY(${y}px)`}} /&gt;;</code></pre>
+</div>
+<div class="tab-panel" data-panel="py">
+<p>在这些 Python 库里，你用对象（文字、公式、图形、形状）搭起场景，再按顺序调用动画。这种风格因 3Blue1Brown 的数学频道而出名。</p>
+<p>代表：<b>Manim Community</b>（MIT，约 41.6k 星，2026-10-08 的 v0.22.0）以及 3Blue1Brown 的原版 <b>manimgl</b>（约 95k 星）。数据动画用 Matplotlib 和 Plotly。<span class="ev v">已核对</span></p>
+<pre><code># Manim-style idea (illustrative)
+class Landing(Scene):
+    def construct(self):
+        eq = MathTex(r"\Delta v = I_{sp} g_0 \ln\frac{m_0}{m_f}")
+        self.play(Write(eq))
+        self.play(eq.animate.to_edge(UP), run_time=1.5)</code></pre>
+</div>
+<div class="tab-panel" data-panel="3d">
+<p>带 Python 接口或命令行渲染的完整三维应用。<b>Blender</b>（免费，GPL；5.2.2 LTS 于 2026-09-15 发布）是代理的默认选择，因为它能无界面运行（<code>blender -b scene.blend -P script.py</code>），而且 Python 够得着一切。实时引擎（<b>Unreal</b>、<b>Unity</b>、<b>Godot</b>）渲染快，资产生态也大，但自动化起来更重。网页三维（<b>Three.js</b>，约 116k 星）可以借上面的网页框架来渲染。<span class="ev v">已核对</span></p>
+<pre><code># Blender-style idea (illustrative)
+import bpy
+booster = bpy.data.objects["Booster"]
+booster.location.z = 120; booster.keyframe_insert("location", frame=1)
+booster.location.z = 0;   booster.keyframe_insert("location", frame=240)
+bpy.context.scene.render.filepath = "//renders/shot07_"
+bpy.ops.render.render(animation=True)</code></pre>
+</div>
+</div>
+
+<h2>对编程代理来说的长处与限度</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>代理擅长</th><th>代理吃力</th></tr></thead>
+<tbody>
+<tr><td>编写和重构场景代码；把场景参数化（数据 → 动画）</td><td>口味：间距、节奏、色彩是否和谐、“这看起来够不够高级？”</td></tr>
+<tr><td>精确的版式、字体，以及卡上口播时间戳的时机</td><td>从零做出好的三维资产（建模、画纹理）</td></tr>
+<tr><td>在选定的帧上渲染静帧，用来检查自己的工作</td><td>灯光和材质要看得出照片级</td></tr>
+<tr><td>改完之后，对单个镜头做确定的重渲</td><td>没有视觉反馈时的三维空间推理（取景、遮挡）</td></tr>
+<tr><td>物理和数据的正确性（它们算得出来）</td><td>角色动画和表演</td></tr>
+</tbody></table></div>
+<p class="small muted"><span class="ev i">推断</span>，依据已记录的代理工作流（<a href="11-documented-workflows.html">第 11 页</a>）以及这些任务本身的性质。生成的三维资产，以及人工智能辅助的外观开发，把右边的一些缺口收窄了。</p>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。工具版本与星标：GitHub API 与各项目站点，2026-10-17。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>神经视频生成</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 2 页 · 交付物 D — 技术基础（一）</div>
+<h1>神经视频生成：模型内部发生了什么</h1>
+<p class="lead">一段文字提示或一张图怎样变成运动的像素，为什么它这么好看，又为什么会以这些特定的方式失败。数学只讲到够你判断控制和成本。</p>
+
+<h2>直觉：从噪声里雕出一段视频</h2>
+<p>想象一块电视雪花。它不是单独一帧，而是整整一<i>叠</i>帧——一块有宽、有高、还有时间的噪声立方。视频扩散模型在几百万段真实片段上训练过，只回答一个问题：<i>“给定这块带噪的立方和这段描述，噪声再少一点时，它该是什么样？”</i> 把这个问题连问 20–50 次，雪花就渐渐收成一段符合描述的连贯片段。<span class="ev v">已核对</span> — 这是标准的去噪扩散表述（<a href="https://arxiv.org/abs/2006.11239">Ho 等人，2020</a>）。</p>
+<p>三件工程上的做法，让这件事对视频变得可行：</p>
+<ol>
+<li><b>在压缩空间（“潜空间”）里工作</b>，而不是原始像素——视频自编码器（VAE）先把片段缩小，模型给这个小版本去噪，解码器再把它放大回去（<a href="https://arxiv.org/abs/2112.10752">潜扩散，Rombach 等人</a>）。</li>
+<li><b>用 Transformer 当去噪器</b>——潜变量立方被切成小的“时空块”，变成词元，就像大语言模型里的词（<a href="https://arxiv.org/abs/2212.09748">扩散 Transformer，Peebles 与 Xie</a>；OpenAI 的 <a href="https://openai.com/index/video-generation-models-as-world-simulators/">Sora 技术报告</a>让“时空块”这个说法流行开来）。</li>
+<li><b>用流匹配 / 矫正流来训练</b>——扩散的一种更干净的变体：模型学习一个速度场，把噪声沿直线送向数据，从而可以用更少的步（<a href="https://arxiv.org/abs/2210.02747">Lipman 等人</a>，<a href="https://arxiv.org/abs/2209.03003">Liu 等人</a>）。</li>
+</ol>
+
+<h2>流水线，一框一框地看</h2>
+<figure class="diagram">
+<svg viewBox="0 0 860 330" role="img" aria-label="视频扩散 Transformer 流水线">
+  <defs><marker id="n1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-accent"/></marker></defs>
+  <!-- inputs -->
+  <rect x="10" y="20" width="150" height="54" rx="8" class="box-accent"/><text x="20" y="42" class="t-title">文字提示</text><text x="20" y="60" class="t-muted">“航拍助推器…”</text>
+  <rect x="10" y="90" width="150" height="54" rx="8" class="box-accent"/><text x="20" y="112" class="t-title">可选图像</text><text x="20" y="130" class="t-muted">起始/结束/参考</text>
+  <rect x="10" y="160" width="150" height="54" rx="8" class="box-accent"/><text x="20" y="182" class="t-title">可选视频</text><text x="20" y="200" class="t-muted">供 V2V / 延长</text>
+  <rect x="10" y="230" width="150" height="54" rx="8" class="box"/><text x="20" y="252" class="t-title">随机噪声</text><text x="20" y="270" class="t-muted">由种子决定</text>
+  <!-- encoders -->
+  <rect x="200" y="20" width="150" height="54" rx="8" class="box"/><text x="210" y="42" class="t-title">文本编码器</text><text x="210" y="60" class="t-muted">T5 / LLM → 向量</text>
+  <rect x="200" y="125" width="150" height="54" rx="8" class="box"/><text x="210" y="147" class="t-title">VAE 编码器</text><text x="210" y="165" class="t-muted">像素 → 潜变量</text>
+  <!-- denoiser -->
+  <rect x="395" y="60" width="230" height="200" rx="10" class="box-a"/>
+  <text x="408" y="86" class="t-a">扩散 Transformer</text>
+  <text x="408" y="108" class="t-muted">潜变量立方 → 时空块</text>
+  <text x="408" y="126" class="t-muted">→ 数万个词元</text>
+  <text x="408" y="150" class="t-muted">空间与时间上的自注意力</text>
+  <text x="408" y="168" class="t-muted">对文本向量做交叉注意力</text>
+  <text x="408" y="186" class="t-muted">图像潜变量：拼接或作词元</text>
+  <text x="408" y="214" class="t-title">重复 N 步（约 4–50）</text>
+  <text x="408" y="234" class="t-muted">每步：预测噪声更少的潜变量</text>
+  <!-- decoder -->
+  <rect x="665" y="125" width="180" height="54" rx="8" class="box"/><text x="675" y="147" class="t-title">VAE 解码器</text><text x="675" y="165" class="t-muted">潜变量 → RGB 帧</text>
+  <rect x="665" y="210" width="180" height="54" rx="8" class="box-ok"/><text x="675" y="232" class="t-title">视频文件</text><text x="675" y="250" class="t-muted">（+ 超分，+ 音频支路）</text>
+  <path d="M160,47 L197,47" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M160,117 L197,145" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M160,187 L197,160" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M350,47 C380,47 380,100 392,100" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M350,152 L392,152" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M160,257 C300,257 300,230 392,230" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M625,152 L662,152" class="line-accent" marker-end="url(#n1)"/>
+  <path d="M755,179 L755,207" class="line-accent" marker-end="url(#n1)"/>
+  <text x="10" y="312" class="t-muted">根据已发表的开源模型报告简化（例如 Wan 2.1、HunyuanVideo、CogVideoX）。封闭模型公开的细节更少，但说的是同一族。</text>
+</svg>
+<figcaption>一个片段的所有帧是<i>一起</i>去噪的。所以短片段里的运动是连贯的——也所以片段的长度有限。</figcaption>
+</figure>
+
+<h3>一组具体的数字</h3>
+<p>开放的 Wan 2.1 报告（<a href="https://arxiv.org/abs/2503.20314">arXiv 2503.20314</a>）给了足够的细节，让这件事摸得着 <span class="ev v">已核对</span>：</p>
+<ul>
+<li>视频 VAE 在<b>时间上压缩 4×、空间上压缩 8×8</b>，得到 16 个潜通道。</li>
+<li>潜变量再在空间上按 2×2“切块”，于是一个片段变成 <code>(1 + T/4) × H/16 × W/16</code> 个词元。</li>
+<li>提示由 <b>umT5</b> 文本编码器编码，经<b>交叉注意力</b>注入；训练使用<b>矫正流</b>（流匹配）。</li>
+</ul>
+<p>所以一段 81 帧、1280×720 的片段（16 fps 下约 5 秒）变成 21 × 45 × 80 ≈ <b>75,600 个词元</b>，而全注意力在每一个去噪步上，把每个词元和其余每个词元比较。<span class="ev i">推断</span>（按给出的公式做的算术）。时长翻倍，词元大约翻倍，注意力成本大约变成<b>四倍</b>。这一件事就解释了为什么片段是短的、为什么长视频由拼接的段组成、为什么 1080p/4K 通常来自一次超分。</p>
+
+<h2>条件是怎样起作用的（你的输入怎样驾驭它）</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>输入</th><th>它怎样进入模型</th><th>你用它控制什么</th></tr></thead>
+<tbody>
+<tr><td>文字提示</td><td>由语言模型编成向量；去噪器去注意它们（交叉注意力，或在 “MM-DiT” 设计里作为文本+视频的联合词元）</td><td>主体、风格、动作、运镜语言——<i>是描述</i>，不是规格</td></tr>
+<tr><td>引导强度</td><td>无分类器引导：模型分别做有提示和无提示的预测，并夸大两者之差（<a href="https://arxiv.org/abs/2207.12598">Ho 与 Salimans</a>）</td><td>贴合提示，还是自然（太高 → 过饱和、发僵）</td></tr>
+<tr><td>起始 / 结束帧</td><td>该帧的潜变量与带噪潜变量一起送入（拼接，或作为固定词元）</td><td>边界处的构图是精确的；中间的运动由模型来填</td></tr>
+<tr><td>参考图</td><td>编成额外的词元，供去噪器注意</td><td>角色/产品/风格在各镜头之间的身份</td></tr>
+<tr><td>源视频</td><td>它的潜变量，或派生信号（深度、姿态、边缘、光流）引导生成</td><td>运动和结构被继承；外观被重新生成</td></tr>
+<tr><td>摄像机控制</td><td>从数据里学到的预设运动，或研究模型里显式的摄像机位姿嵌入</td><td>摇/俯仰/推/环绕——是大概，不是精确到厘米</td></tr>
+<tr><td>种子</td><td>选定初始噪声</td><td>在同一模型版本上可复现（前提是供应商把它暴露出来）</td></tr>
+<tr><td>提示改写</td><td>许多产品在生成前，用大语言模型悄悄扩写你的提示</td><td>帮新手；伤精确控制，也伤可复现</td></tr>
+</tbody></table></div>
+<p class="small muted">训练用的配文，决定了词对模型意味着什么。厂商用详细的机器配文重新标注训练数据，好让模型学会跟随又长又具体的提示——这个手法在 OpenAI 的 DALL·E 3 论文里针对图像写过（<a href="https://cdn.openai.com/papers/dall-e-3.pdf">PDF</a>），Sora 报告把它用到了视频上。<span class="ev v">已核对</span></p>
+
+<h2>运动是怎样生成、又怎样保持一致的</h2>
+<p>模型里面没有物理引擎，没有骨架，也没有物体清单。运动是潜变量立方<b>时间轴上的统计模式</b>，从真实视频里学来。两种架构对时间的处理不同：</p>
+<div class="cards">
+<div class="card a"><h4>联合（“双向”）生成</h4><p>片段的所有帧带着跨时间的注意力一起去噪，于是第 1 帧“知道”第 80 帧。短片段因此最连贯。当前多数高质量模型用的就是它。成本随长度涨得很快。</p></div>
+<div class="card a"><h4>自回归 / 流式生成</h4><p>帧（或一小段）按顺序生成，每一帧以前面的为条件，像大语言模型在生成词元。这能做长视频、实时视频和交互式“世界模型”，但误差会累积（漂移）。<a href="https://arxiv.org/abs/2506.08009">Self Forcing（2025）</a> 这类研究缩小了训练和测试的差距，并报告能在单块 GPU 上实时流式输出。<span class="ev x">实验</span></p></div>
+</div>
+<p>片段内部的时间一致性，来自跨帧的注意力。<i>跨</i>片段的一致性并不存在，除非你自己提供：下一次生成对上一次一无所知，除了你传进去的那些（参考图、最后一帧、同样的提示措辞）。这是代理必须绕着它来设计的核心约束。<span class="ev p">实践</span></p>
+
+<h2>典型伪影为什么会出现</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>伪影</th><th>可能的原因</th><th>怎样缓解</th></tr></thead>
+<tbody>
+<tr><td>文字、标志、数字乱掉或在变形</td><td>细节在压缩了 8× 的潜空间里丢掉了；文字在训练数据里又少又杂</td><td>绝不要靠生成的文字——把精确文字叠上去（B/C）</td></tr>
+<tr><td>手、手指、细小机械零件融化，或变出好多</td><td>高频结构 + 遮挡 + 压缩；没有显式的三维模型</td><td>避免细机械的特写；技术零件用三维渲染</td></tr>
+<tr><td>违反物理（东西飘着、火焰方向不对、火箭像羽毛一样落地）</td><td>模型学的是外观的统计，不是定律；罕见事件（助推器着陆）在数据里很少</td><td>科学上要紧的运动，用模拟或三维</td></tr>
+<tr><td>身份漂移（脸或产品在片段中途，或在镜头之间变了）</td><td>没有持久的物体身份；只有片段内部的注意力</td><td>参考图、起始帧、更短的镜头、角色 LoRA</td></tr>
+<tr><td>闪烁 / 纹理“沸腾”</td><td>按帧或按窗口处理（视频生视频里常见），或解码器噪声</td><td>有时间感知的模型、降低去噪强度、后期去闪</td></tr>
+<tr><td>物体恒存失败（东西转到遮挡物后面就消失）</td><td>时间上下文有限；没有东西强制物体还在</td><td>遮挡更简单些；切走</td></tr>
+<tr><td>慢动作感、摄像机“发飘”</td><td>训练数据偏向顺滑的电影画面；再加上帧插值</td><td>在提示里要求速度和劲头；剪辑时重定时</td></tr>
+<tr><td>提示里的某一个元素被忽略</td><td>注意力摊到许多概念上；文本编码器有上限</td><td>每个镜头的概念少一些；拆成更多镜头；用设计好的帧做图生视频</td></tr>
+</tbody></table></div>
+<p class="small muted">原因是<span class="ev i">推断</span>，依据已发表的架构；症状是<span class="ev p">实践</span>，用户和模型卡里广泛报告过。</p>
+
+<h2>延长、编辑与把片段接到一起</h2>
+<ul>
+<li><b>延长</b>：以上一段的最后几帧为条件，生成新的一段。每一跳都可能漂；长的“一镜到底”通常是好几次延长，靠摄像机运动或切点来避开看得见的接缝。</li>
+<li><b>首帧/末帧串接</b>：把关键帧设计成静帧（检查便宜），再生成它们之间的运动。用生成镜头讲故事时，这是最可控的办法。<span class="ev p">实践</span></li>
+<li><b>局部重绘 / 改物体</b>：只在时间上重画被遮住的区域（去掉一台吊车、换掉一个标志）。</li>
+<li><b>换风格 / 重新打光</b>：用新的提示或参考做视频生视频。</li>
+<li><b>超分与插帧</b>：另外的模型在生成之后提高分辨率和帧率（见<a href="05-editing-compositing.html">第 5 页</a>）。</li>
+<li><b>接到一起</b>：就是普通剪辑——切点比长镜头更能把不一致藏住。专业的人工智能影片通常是许多短镜头，而且挑得很狠。<span class="ev p">实践</span></li>
+</ul>
+
+<h2>原生音频：联合还是分开</h2>
+<p>较新的模型可以随画面生成声音：要么一个模型带一条去注意视频词元的音频分支，要么视频模型后面接一个视频生音频模型。联合生成让画内声对得很紧（脚步、撞击、短对白）。分开制作才有控制：前后一致的叙述者、有授权的音乐、可以混的分轨。对有口播、又要剪的视频，分开的流水线仍是常态；原生音频用来做环境声，或者直接丢掉。<span class="ev i">推断</span>（见<a href="04-audio.html">第 4 页</a>）。</p>
+
+<h2>控制的光谱</h2>
+<figure class="diagram">
+<svg viewBox="0 0 860 170" role="img" aria-label="神经视频输入的控制光谱">
+  <defs><linearGradient id="g2" x1="0" x2="1"><stop offset="0" stop-color="var(--c-a)"/><stop offset="1" stop-color="var(--c-b)"/></linearGradient></defs>
+  <rect x="20" y="70" width="820" height="12" rx="6" fill="url(#g2)" opacity=".75"/>
+  <text x="20" y="56" class="t-muted">控制最少</text><text x="760" y="56" class="t-muted">控制最多</text>
+  <g>
+  <circle cx="60" cy="76" r="7" class="box"/><text x="30" y="110">仅文字</text>
+  <circle cx="200" cy="76" r="7" class="box"/><text x="160" y="110">+ 运镜预设</text>
+  <circle cx="340" cy="76" r="7" class="box"/><text x="300" y="110">+ 参考图</text>
+  <circle cx="480" cy="76" r="7" class="box"/><text x="440" y="110">起始帧（I2V）</text>
+  <circle cx="610" cy="76" r="7" class="box"/><text x="568" y="110">首帧 + 末帧</text>
+  <circle cx="760" cy="76" r="7" class="box"/><text x="690" y="110">渲染运动做 V2V</text>
+  </g>
+  <text x="20" y="150" class="t-muted">每向右一步，就有更多“决定”从模型手里交到你（或你的代理）编排过、并能确定地检查的东西上。</text>
+</svg>
+</figure>
+
+<h2>这对代理意味着什么</h2>
+<ul>
+<li>把每一次生成都当成一次<b>抽样</b>：每个镜头按好几次尝试，再加一步挑选来做预算。<span class="ev p">实践</span></li>
+<li>把决定挪到<b>生成器之前</b>：先做出并检查关键帧、参考和运动引导；检查它们比检查视频便宜。</li>
+<li>凡是必须分毫不差的（标签、数据、标志、物理），都放在生成器<b>之外</b>，事后再叠上去。</li>
+<li>每一个片段都记下模型名、版本、种子、提示、参考和参数——供应商会更新模型，同一个请求以后未必还能复现。<span class="ev i">推断</span></li>
+<li>镜头要短，切点要多；长度会把成本和质量问题一起放大。</li>
+</ul>
+
+<details><summary>延伸阅读（原始论文）</summary><div class="body">
+<ul>
+<li>Ho、Jain、Abbeel — 去噪扩散概率模型（2020）：<a href="https://arxiv.org/abs/2006.11239">arXiv 2006.11239</a></li>
+<li>Rombach 等人 — 用潜扩散模型做高分辨率图像合成：<a href="https://arxiv.org/abs/2112.10752">arXiv 2112.10752</a></li>
+<li>Peebles 与 Xie — 用 Transformer 做可扩展的扩散模型（DiT）：<a href="https://arxiv.org/abs/2212.09748">arXiv 2212.09748</a></li>
+<li>Lipman 等人 — 面向生成建模的流匹配：<a href="https://arxiv.org/abs/2210.02747">arXiv 2210.02747</a>；Liu 等人 — 矫正流：<a href="https://arxiv.org/abs/2209.03003">arXiv 2209.03003</a></li>
+<li>Ho 与 Salimans — 无分类器扩散引导：<a href="https://arxiv.org/abs/2207.12598">arXiv 2207.12598</a></li>
+<li>OpenAI — 作为世界模拟器的视频生成模型（Sora 报告，2024）：<a href="https://openai.com/index/video-generation-models-as-world-simulators/">openai.com</a></li>
+<li>Wan 团队 — Wan：开放的先进大规模视频生成模型：<a href="https://arxiv.org/abs/2503.20314">arXiv 2503.20314</a></li>
+<li>Huang 等人 — Self Forcing：弥合自回归视频扩散里的训练-测试差距：<a href="https://arxiv.org/abs/2506.08009">arXiv 2506.08009</a></li>
+</ul>
+</div></details>
+
+<p>眼下有哪些模型、要多少钱、怎样调用：<a href="06-ecosystem.html">第 6 页 — 生态导览</a>。</p>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

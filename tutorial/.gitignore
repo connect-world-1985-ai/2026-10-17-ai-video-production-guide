@@ -1,5 +1,6 @@
 node_modules/
 build/
+build-zh/
 dist/
 __pycache__/
 *.pyc

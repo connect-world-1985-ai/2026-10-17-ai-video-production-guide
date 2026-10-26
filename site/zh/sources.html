@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>来源与方法</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">参考 · §14 — 研究方法与证据标准</div>
+<h1>来源与方法</h1>
+<p class="lead">这份指南是怎么研究的、说法怎么标注、每一条来源在哪里找。</p>
+
+<h2>方法</h2>
+<ol>
+<li><b>独立发现</b>（2026-10-17）：六路并行研究覆盖了神经视频；图像、数字人与增强；程序化图形与剪辑；音频；代理工作流与视频质检；法律与来源。每一路产出一份带来源的事实表，带查阅日期，并有明确的“分歧与不确定”一节。</li>
+<li><b>原始来源优先</b>：官方文档、价格页、仓库（星标和许可于 2026-10-17 从 GitHub API 读取）、论文、许可文件。二手来源（新闻、律所笔记、聚合器）用在没有原始页面可及的地方，并照此标注。</li>
+<li><b>作者本人核对</b>最要紧的说法，直接对照原始来源：Gemini API 视频价格；Artificial Analysis 文生视频排行榜；Wan 2.1 的架构数字；Sora 关停；DaVinci Resolve 21.1 的脚本改动；HunyuanVideo 的地域条款；代理工具的 GitHub 统计；video-use 的技能文件。</li>
+<li><b>不编造数字</b>：每一个价格、星标数和基准都有来源；来源冲突的地方，冲突被写出来。</li>
+</ol>
+
+<h2>证据标签</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>标签</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td><span class="ev v">已核对</span></td><td>对照过原始来源（文档、仓库、论文、许可、官方公告），或由若干独立的可靠出处确认。</td></tr>
+<tr><td><span class="ev p">实践</span></td><td>有证据支持的行业做法，或被广泛记录的行为。</td></tr>
+<tr><td><span class="ev i">推断</span></td><td>作者的技术分析或综合——经过推理，不是作为事实来源引用的。</td></tr>
+<tr><td><span class="ev u">未核实</span></td><td>有人报告或在营销，但没有独立确认；来源互相冲突。</td></tr>
+<tr><td><span class="ev x">实验</span></td><td>新兴能力：研究或演示级别。</td></tr>
+</tbody></table></div>
+
+<h2>这项研究已知的局限</h2>
+<ul>
+<li>排行榜没有快照日期，每周都变；名次读于 2026-10-17。</li>
+<li>若干价格来自聚合器或转售方（已标注）；厂商页面有时渲染失败。</li>
+<li>GitHub 星标衡量的是兴趣，不是生产使用；镜像仓库（Blender、FFmpeg）会低估流行程度。</li>
+<li>德国人格权法没有用原始来源研究过。</li>
+<li>视频产品内部的商业“代理模式”只根据二手材料评估。</li>
+<li>没有亲手跑基准；所有质量说法来自已发表的评测或文档。</li>
+</ul>
+
+<h2>完整研究笔记</h2>
+<p>完整的事实表（含每一个网址和查阅日期）放在项目记忆旁边。用任何文本或 Markdown 阅读器打开：</p>
+<ul>
+<li><a href="../../docs/memory/memory-20261017-ai-video-production-research/research-notes/r1-neural-video.md">R1 — 神经视频模型与服务</a></li>
+<li><a href="../../docs/memory/memory-20261017-ai-video-production-research/research-notes/r2-image-avatar-enhance.md">R2 — 图像模型、数字人与口型同步、增强与分割</a></li>
+<li><a href="../../docs/memory/memory-20261017-ai-video-production-research/research-notes/r3-programmatic-editing.md">R3 — 程序化图形、三维、剪辑与编码</a></li>
+<li><a href="../../docs/memory/memory-20261017-ai-video-production-research/research-notes/r4-audio.md">R4 — 音频：语音合成、音乐、音效、语音识别、混音</a></li>
+<li><a href="../../docs/memory/memory-20261017-ai-video-production-research/research-notes/r5-agent-workflows.md">R5 — 代理工作流、MCP、研究系统、视频质检</a></li>
+<li><a href="../../docs/memory/memory-20261017-ai-video-production-research/research-notes/r6-legal-provenance.md">R6 — 版权、许可、同意、来源</a></li>
+</ul>
+
+<h2>关键原始来源</h2>
+<details open><summary>神经视频与图像</summary><div class="body"><ul>
+<li><a href="https://artificialanalysis.ai/video/leaderboard/text-to-video">Artificial Analysis — 文生视频排行榜</a> · <a href="https://llm-stats.com/leaderboards/best-ai-for-video-creation">LLM-Stats 视频竞技场</a></li>
+<li><a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini API 价格</a> · <a href="https://ai.google.dev/gemini-api/docs/veo">Veo 文档</a> · <a href="https://ai.google.dev/gemini-api/docs/video-understanding">Gemini 视频理解</a></li>
+<li><a href="https://docs.dev.runwayml.com/guides/pricing/">Runway API 价格（含转售模型）</a></li>
+<li><a href="https://huggingface.co/MiniMaxAI/MiniMax-H3">MiniMax H3 模型卡</a> · <a href="https://huggingface.co/Lightricks/LTX-2.5-Diffusers">LTX-2.5 模型卡</a> · <a href="https://github.com/Wan-Video/Wan2.2">Wan 2.2</a> · <a href="https://github.com/Tencent-Hunyuan/HunyuanVideo">HunyuanVideo</a></li>
+<li><a href="https://engadget.com/ai/openai-is-shutting-down-its-sora-video-generation-app-211023358.html">Engadget — Sora 关停</a> · <a href="https://the-decoder.com/openai-sets-two-stage-sora-shutdown-with-app-closing-april-2026-and-api-following-in-september/">The Decoder — Sora 时间线</a></li>
+<li>论文：<a href="https://arxiv.org/abs/2006.11239">DDPM</a>、<a href="https://arxiv.org/abs/2112.10752">Latent Diffusion</a>、<a href="https://arxiv.org/abs/2212.09748">DiT</a>、<a href="https://arxiv.org/abs/2210.02747">Flow Matching</a>、<a href="https://arxiv.org/abs/2503.20314">Wan</a>、<a href="https://arxiv.org/abs/2412.03603">HunyuanVideo</a>、<a href="https://arxiv.org/abs/2410.13720">Movie Gen</a>、<a href="https://arxiv.org/abs/2506.08009">Self Forcing</a>、<a href="https://arxiv.org/abs/2505.13211">MAGI-1</a></li>
+</ul></div></details>
+<details><summary>程序化图形、剪辑、交付</summary><div class="body"><ul>
+<li><a href="https://www.remotion.dev/docs/license">Remotion 许可</a> · <a href="https://www.remotion.dev/docs/ai/skills">Remotion Agent Skills</a> · <a href="https://github.com/heygen-com/hyperframes">HyperFrames</a> · <a href="https://github.com/ManimCommunity/manim">Manim Community</a></li>
+<li><a href="https://www.blender.org/download/">Blender</a> · <a href="https://ffmpeg.org/download.html">FFmpeg</a> · <a href="https://github.com/AcademySoftwareFoundation/OpenTimelineIO">OpenTimelineIO</a></li>
+<li><a href="https://www.pugetsystems.com/blog/2026/09/10/how-davinci-resolve-free-v21-1-scripting-changes-affect-puget-bench/">Puget Systems — Resolve 21.1 脚本改到 Studio</a></li>
+<li><a href="https://support.google.com/youtube/answer/1722171">YouTube 推荐的上传编码设置</a></li>
+</ul></div></details>
+<details><summary>音频</summary><div class="body"><ul>
+<li><a href="https://elevenlabs.io/pricing/api">ElevenLabs API 价格</a> · <a href="https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps">ElevenLabs 时间戳接口</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-services/speech-service/how-to-speech-synthesis-viseme">Azure 视素文档</a> · <a href="https://aws.amazon.com/polly/pricing/">Amazon Polly 价格</a></li>
+<li><a href="https://suno.com/release-notes">Suno 发布说明</a> · <a href="https://www.the-decoder.com/stability-ai-launches-stable-audio-3-0-with-up-to-six-minute-tracks-and-open-weights/">Stable Audio 3.0</a></li>
+<li><a href="https://github.com/m-bain/whisperX">WhisperX</a> · <a href="https://github.com/SYSTRAN/faster-whisper">faster-whisper</a> · <a href="https://tech.ebu.ch/publications/r128">EBU R128</a></li>
+<li>论文：<a href="https://arxiv.org/abs/2107.03312">SoundStream</a>、<a href="https://arxiv.org/abs/2210.13438">EnCodec</a>、<a href="https://arxiv.org/abs/2301.02111">VALL-E</a>、<a href="https://arxiv.org/abs/2410.06885">F5-TTS</a>、<a href="https://arxiv.org/abs/2306.05284">MusicGen</a>、<a href="https://arxiv.org/abs/2402.04825">Stable Audio</a></li>
+</ul></div></details>
+<details><summary>代理工作流与质检</summary><div class="body"><ul>
+<li><a href="https://github.com/browser-use/video-use">video-use</a> · <a href="https://github.com/EveryInc/product-launch-video">product-launch-video</a> · <a href="https://github.com/digitalsamba/claude-code-video-toolkit">claude-code-video-toolkit</a> · <a href="https://github.com/HKUDS/ViMax">ViMax</a> · <a href="https://github.com/ahujasid/blender-mcp">Blender MCP</a> · <a href="https://github.com/samuelgursky/davinci-resolve-mcp">Resolve MCP</a></li>
+<li><a href="https://arxiv.org/abs/2510.01174">Code2Video</a> · <a href="https://arxiv.org/abs/2502.19400">TheoremExplainAgent</a> · <a href="https://arxiv.org/abs/2501.12909">FilmAgent</a> · <a href="https://arxiv.org/abs/2503.07314">MovieAgent</a></li>
+<li><a href="https://arxiv.org/abs/2410.23266">TOMATO</a> · <a href="https://arxiv.org/abs/2410.02763">Vinoground</a> · <a href="https://arxiv.org/abs/2406.15252">VideoScore</a> · <a href="https://arxiv.org/abs/2311.17982">VBench</a> · <a href="https://arxiv.org/abs/2602.10840">SimuScene</a></li>
+<li><a href="https://arxiv.org/abs/2512.08296">Kim 等 — 扩展代理系统</a> · <a href="https://arxiv.org/abs/2503.13657">Cemri 等 — 多智能体系统为何失败</a></li>
+<li><a href="https://platform.claude.com/docs/en/build-with-claude/vision">Claude 视觉文档</a></li>
+</ul></div></details>
+<details><summary>法律与来源</summary><div class="body"><ul>
+<li><a href="https://digital-strategy.ec.europa.eu/en/policies/code-practice-ai-generated-content">欧盟人工智能生成内容实践准则（Code of Practice）</a></li>
+<li><a href="https://copyright.gov/ai/">美国版权局 — 人工智能报告</a></li>
+<li><a href="https://spec.c2pa.org/">C2PA 规范</a> · <a href="https://blog.google/technology/ai/google-synthid-ai-content-detector/">SynthID 检测器</a></li>
+<li><a href="https://www.nasa.gov/multimedia/guidelines/index.html">NASA 媒体使用指南</a> · <a href="https://www.esa.int/ESA_Multimedia/Terms_and_Conditions">ESA 条款</a></li>
+<li><a href="https://stability.ai/community-license-agreement">Stability 社区许可（Stability Community Licence）</a></li>
+</ul></div></details>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

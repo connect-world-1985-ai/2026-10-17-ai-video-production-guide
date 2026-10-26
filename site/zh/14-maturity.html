@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>今天什么可靠</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+<style>
+  .mat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 1rem 0; }
+  @media (max-width: 760px) { .mat-grid { grid-template-columns: 1fr; } }
+  .mat-col { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-elev); padding: 12px 14px; }
+  .mat-col h3 { margin: 0 0 .5rem; font-size: 1.05rem; }
+  .mat-col.ok { border-top: 4px solid var(--ev-verified); }
+  .mat-col.mid { border-top: 4px solid var(--ev-inference); }
+  .mat-col.exp { border-top: 4px solid var(--ev-experimental); }
+  .mat-col ul { padding-left: 1.1em; font-size: 14.5px; }
+</style>
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 14 页 · 交付物 H — 当前行业成熟度</div>
+<h1>今天什么可靠，什么有限度，什么还在实验</h1>
+<p class="lead">2026 年 10 月的一张诚实地图，依据是已记录的工作流（<a href="11-documented-workflows.html">第 11 页</a>）、基准测试和厂商文档。动手之前用它来定预期。</p>
+
+<div class="mat-grid">
+<div class="mat-col ok"><h3>今天就可以放心自动化</h3>
+<ul>
+<li>根据有来源的研究起草剧本</li>
+<li>代码驱动的二维动画、图表、动态文字、数学</li>
+<li>无界面渲染（基于网页的框架、Manim、Blender）</li>
+<li>时间线组装、转场、叠层合成</li>
+<li>带词级时间戳的语音合成口播</li>
+<li>由时间戳生成字幕；用语音识别做字幕质检</li>
+<li>响度标准化、压低背景、按平台规格编码</li>
+<li>剪掉录音里的静音和口头禅</li>
+<li>脚本化的屏幕录制产品演示</li>
+<li>经平台接口做数字人出镜（须有同意）</li>
+<li>客观质检：探测、检测器、文字识别、时间检查</li>
+<li>用构建图做局部重渲</li>
+</ul></div>
+<div class="mat-col mid"><h3>能工作，但限度很大</h3>
+<ul>
+<li>生成式空镜和电影感插镜（要多条候选再挑选）</li>
+<li>从设计好的关键帧做图生视频</li>
+<li>跨镜头的角色和产品一致性（参考图、LoRA）</li>
+<li>代理根据抽样帧判断画面质量</li>
+<li>用能看视频的模型审整部片子（大约每秒一帧）</li>
+<li>用对话编辑实拍（计划要先批准）</li>
+<li>代理搭建三维场景（资产和灯光是弱项）</li>
+<li>权利清楚的音乐生成</li>
+<li>为本地化做的口型同步和配音</li>
+<li>多代理分工（规划者、写代码的、批评者）</li>
+</ul></div>
+<div class="mat-col exp"><h3>实验性，还不可靠</h3>
+<ul>
+<li>一条提示词就自动做出电影短片</li>
+<li>身份和物理都稳定的长连续镜头</li>
+<li>让人工智能判断时间顺序、细微运动、物理是否说得通</li>
+<li>没有人挑选，单靠代理的“口味”决定整部片子</li>
+<li>对等的多代理“剧组”胜过一个强代理</li>
+<li>把实时、可交互的世界模型当虚拟置景</li>
+<li>计算机图形再风格化成照片级，长镜头上不闪</li>
+<li>经得起每一次重编码的可靠来源信息</li>
+</ul></div>
+</div>
+<p class="small muted"><span class="ev i">推断</span> — 这是综合。支撑证据：TOMATO 和 Vinoground 的时间推理；Code2Video 和 TheoremExplainAgent 的成功率；FilmAgent 的小规模评测；video-use 和 product-launch-video 的工作流；C2PA 的存活测试。</p>
+
+<h2>几个大问题的答案</h2>
+<details open><summary>今天的编程代理，离自主的导演、剪辑和制作团队还有多远？</summary><div class="body">
+<p>对<b>代码驱动和组装驱动的视频</b>（讲解、产品演示、演示文稿、实拍剪辑），它们已经是合格的<b>带监督的剪辑和动态设计师</b>：会规划、搭建、渲染、检查和修改，而且有可查阅的工作流。对<b>电影感、靠角色推动的作品</b>，它们是<b>制作助理</b>：运转机器、预筛候选，但挑选、口味和连续性仍是人的事。<span class="ev i">推断</span></p>
+</div></details>
+<details><summary>什么挡住了完全自主的专业制作？</summary><div class="body">
+<ol>
+<li><b>感知</b>：代理看见的是视频的抽样，不是视频本身；当前模型的时间推理在基准上远低于人。</li>
+<li><b>生成控制</b>：视频模型不接受精确规格；一致性和物理都是近似的。</li>
+<li><b>口味和观众判断</b>：对特定观众来说，“好”没有可靠的自动度量。</li>
+<li><b>迭代成本</b>：每一次生成尝试都花钱；循环需要预算和停止规则。</li>
+<li><b>权利和责任</b>：许可、同意和披露需要一个负得起责的人。</li>
+<li><b>工具更迭</b>：模型和接口几个月内就会变或消失（例如 Sora 关停）。</li>
+</ol>
+</div></details>
+<details><summary>什么会改变这张图？</summary><div class="body">
+<ul>
+<li>编程代理原生具备高帧率的视频理解，时间推理更好。</li>
+<li>生成模型接受精确的三维、摄像机和版式规格（把 A 和 B 接上）。</li>
+<li>稳定、有版本的模型端点，种子可复现。</li>
+<li>绑在简报上的评测套件（不是泛泛的美学），供代理自检。</li>
+</ul>
+<p><span class="ev i">推断</span></p>
+</div></details>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

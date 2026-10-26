@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>剪辑、合成、精修与编码</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 5 页 · 交付物 D — 技术基础（第 4 部分）</div>
+<h1>剪辑、合成、精修与编码</h1>
+<p class="lead">后期是把分开做的镜头和声音变成一条视频的地方。对代理来说，它也是整条流水线里最确定、最好自动化的一段。</p>
+
+<h2>人们统称“剪辑”的四件事</h2>
+<div class="cards">
+<div class="card c"><h4>剪辑（切开）</h4><p>哪个镜头、什么顺序、多长、用什么转场。叙事和节奏。</p></div>
+<div class="card c"><h4>合成</h4><p>在一个镜头<i>内部</i>叠层：文字叠在影像上，示意图叠在渲染上，抠好的出镜人叠在背景上。</p></div>
+<div class="card c"><h4>精修</h4><p>调色、稳定、放大、帧率转换、降噪、字幕、终混。</p></div>
+<div class="card c"><h4>编码与交付</h4><p>按每个目标压进编解码器和容器（YouTube、社交 9:16、存档母版），带上字幕和元数据。</p></div>
+</div>
+
+<h2>时间线是一种数据结构</h2>
+<p>每一种剪辑器——Premiere、Resolve、Final Cut、一个 JSON 视频 API、一条 FFmpeg 命令——表示的都是同一件事：</p>
+<pre><code>timeline:
+  fps: 30, resolution: 1920x1080, duration: 120.0
+  video_tracks:
+    V1: [ {asset: shot01.mp4, in: 0.0, out: 6.5, at: 0.0, transition_in: none},
+          {asset: shot02_render.mov, in: 0.0, out: 9.0, at: 6.5, transition_in: {xfade, 0.5s}} … ]
+    V2: [ {asset: label_altitude.mov (alpha), at: 12.0, out: 4.0} … ]
+  audio_tracks:
+    A1 narration: [ {asset: vo_seg01.wav, at: 0.4}, … ]
+    A2 music:     [ {asset: score.wav, at: 0.0, gain_db: -18, duck_under: A1} ]
+    A3 sfx:       [ {asset: touchdown.wav, at: 104.2} ]
+  captions: captions.srt</code></pre>
+<p>这个结构就是普通数据，所以代理可以像对待任何配置文件一样生成它、做差异、校验它、给它做版本。<b>把时间线当成唯一的事实来源</b>，是代理驱动剪辑的主要架构决定。<span class="ev i">推断</span> 交换格式用来在工具之间搬时间线：EDL（老、简单）、FCPXML（Final Cut）、AAF/XML（Avid/Premiere），以及开放的 <a href="https://github.com/AcademySoftwareFoundation/OpenTimelineIO">OpenTimelineIO</a>（Academy Software Foundation，Apache-2.0）。<span class="ev v">已核对</span></p>
+
+<h2>合成：图层、透明通道和遮罩</h2>
+<figure class="diagram">
+<svg viewBox="0 0 860 210" role="img" aria-label="带透明通道的合成图层">
+  <rect x="20" y="30" width="200" height="120" rx="6" class="box-a"/><text x="30" y="52" class="t-a">第 1 层：背景</text><text x="30" y="72" class="t-muted">生成的天空与海</text>
+  <rect x="60" y="60" width="200" height="120" rx="6" class="box-b" opacity=".9"/><text x="70" y="82" class="t-b">第 2 层：渲染助推器</text><text x="70" y="102" class="t-muted">RGBA（四周透明）</text>
+  <rect x="100" y="90" width="200" height="100" rx="6" class="box-c" opacity=".9"/><text x="110" y="112" class="t-c">第 3 层：标注</text><text x="110" y="132" class="t-muted">“高度 40 m”</text>
+  <text x="330" y="110" class="t-title">= 合成后的一帧</text>
+  <rect x="520" y="30" width="320" height="160" rx="8" class="box"/>
+  <text x="536" y="56" class="t-title">要点</text>
+  <text x="536" y="80" class="t-muted">• 透明通道 = 逐像素透明度</text>
+  <text x="536" y="100" class="t-muted">• 遮罩 = 这一层管哪些像素</text>
+  <text x="536" y="120" class="t-muted">• 抠像 = 把某色（绿）变透明</text>
+  <text x="536" y="140" class="t-muted">• 转描/分割 = 逐帧人工智能遮罩</text>
+  <text x="536" y="160" class="t-muted">• 跟踪 = 标注跟着运动物体</text>
+  <text x="536" y="180" class="t-muted">• 混合：正常、相加（发光）、正片叠底</text>
+</svg>
+<figcaption>元素带着透明来渲染（ProRes 4444、PNG 序列、带透明通道的 WebM/VP9），代理就能只改一层——比如说标注里的一个错字——而不必重渲底下昂贵的三维层。</figcaption>
+</figure>
+<p>人工智能改变合成，主要靠<b>分割和抠像</b>：Meta 的 SAM 一族可以从一次点击或一句文字提示，给整段视频里的每个物体做出遮罩；去背景模型不用绿幕就能把人或产品抠出来。生成的影像没有透明通道，所以遮罩是 <span class="ap a">A</span> 类影像和 <span class="ap b">B</span> 类叠层之间的桥。<span class="ev p">实践</span></p>
+
+<h2>自动化剪辑手法</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>手法</th><th>怎么工作</th><th>常见工具</th><th>可靠程度</th></tr></thead>
+<tbody>
+<tr><td>镜头 / 场景检测</td><td>用帧差或内容直方图找出切口</td><td>PySceneDetect、FFmpeg <code>select='gt(scene,0.3)'</code></td><td>硬切高，叠化较低</td></tr>
+<tr><td>去掉静音 / 口头禅</td><td>音频低于阈值，或 ASR 找到“呃”的地方就切开</td><td>auto-editor、基于文本的剪辑器</td><td>高</td></tr>
+<tr><td>基于文本的剪辑</td><td>改转写稿，视频跟着词的时间戳走</td><td>Descript 式剪辑器、ASR + FFmpeg</td><td>机械上高；难的是叙事判断</td></tr>
+<tr><td>高光 / 片段提取</td><td>大语言模型读转写、挑片段；视觉模型检查构图</td><td>切片应用、自建流水线</td><td>中等——主观</td></tr>
+<tr><td>自动重构图（16:9 → 9:16）</td><td>跟踪脸或主体，裁切窗跟着走</td><td>非线性剪辑的功能、自建跟踪</td><td>中高</td></tr>
+<tr><td>卡点剪辑</td><td>检测音乐节拍，把切口放在拍上</td><td>音频分析库、带节拍数据的音乐 API</td><td>机械上高</td></tr>
+<tr><td>变速</td><td>速度坡、慢动作；用帧插值补帧</td><td>FFmpeg <code>setpts</code>、RIFE 式插值</td><td>高；插值可能把快运动涂糊</td></tr>
+<tr><td>转场</td><td>交叉淡化、叠化、划变、匹配剪辑</td><td>FFmpeg <code>xfade</code>、各种非线性剪辑</td><td>高（选<i>哪一种</i>是口味）</td></tr>
+</tbody></table></div>
+
+<h2>精修</h2>
+<h3>色彩</h3>
+<p><b>校色</b>让镜头在技术上一致（曝光、白平衡）；<b>调色</b>给它们一种观感。在混合流水线里这比平常更要紧，因为生成的、渲染的和素材库的镜头，各自带着不同的“样子”。所有镜头共用一份 LUT（查找表）或一套调色，再把曝光对齐，是让混合视频看起来像一部片子的最便宜办法。<span class="ev p">实践</span> 交给网页的成片几乎总是标准动态范围的 <b>Rec.709</b>。<span class="ev p">实践</span></p>
+<h3>稳定</h3>
+<p>分析帧与帧之间的运动，再反向平移/旋转（FFmpeg 的 <code>vidstab</code>、非线性剪辑里的稳定器）。主要对实拍有用；生成的镜头有时需要反过来（加上一点轻微的摄像机抖动，好接上）。</p>
+<h3>增强：放大、插值、修复</h3>
+<p>生成的视频经常是 720p 或 1080p，帧率 24 fps 或更低。神经<b>放大器</b>补上说得通的细节（Real-ESRGAN 一族、SeedVR、Topaz 这类商业工具）；<b>帧插值</b>（RIFE、FILM）合成中间帧，让运动更顺，或做慢动作。两者都是生成式的：它们会编造细节，或把文字涂糊。先做放大和插值，再合成精确叠层，不要反过来。<span class="ev p">实践</span></p>
+<h3>字幕</h3>
+<ul>
+<li><b>格式</b>：SRT（纯文本、通用）、WebVTT（网页）、ASS/SSA（带样式，用来烧录“卡拉 OK”式字幕）。</li>
+<li><b>烧录</b>（渲进像素；社交媒体的做法）相对<b>外挂</b>（单独文件；可访问、可搜索、可翻译）。即使也烧进画面，也要交付外挂字幕。<span class="ev p">实践</span></li>
+<li><b>时间</b>来自逐词时间戳（<a href="04-audio.html">第 4 页</a>）。好的字幕遵守行长和阅读速度：大约每行不超过 42 个字符、不超过 2 行，是常见的广播规范。<span class="ev p">实践</span></li>
+</ul>
+
+<h2>编码与交付</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>术语</th><th>白话</th><th>常见选择</th></tr></thead>
+<tbody>
+<tr><td>编解码器</td><td>帧怎么压缩</td><td>H.264（通用）、H.265/HEVC 或 AV1（文件更小）、ProRes / DNxHR（剪辑母版）</td></tr>
+<tr><td>容器</td><td>装着视频 + 音频 + 字幕流的文件</td><td>MP4（交付）、MOV（母版）、MKV/WebM</td></tr>
+<tr><td>帧率</td><td>每秒帧数；整条时间线必须一致</td><td>24/25/30（电影/PAL/网页），界面演示用 60</td></tr>
+<tr><td>码率 / 质量</td><td>每秒的数据量；恒定质量模式（CRF）最简单</td><td>看平台规范</td></tr>
+<tr><td>像素格式</td><td>色度抽样和位深</td><td>兼容用 8 位 <code>yuv420p</code></td></tr>
+<tr><td>硬件编码</td><td>图形处理器编码器（NVIDIA NVENC、Intel QSV、AMD AMF）</td><td>预览要快；按比特的最好质量用软件 x264/x265</td></tr>
+</tbody></table></div>
+<p><b>YouTube 自己推荐的上传设置</b>（帮助页，2026-10-17 查阅）：MP4 容器，H.264 High Profile、逐行扫描、4:2:0，音频 AAC-LC（或 Opus）、48 kHz，用素材原帧率；SDR 1080p 大约 8 Mbps（48–60 fps 时 12 Mbps），2160p 为 35–45 Mbps。<span class="ev v">已核对</span>（<a href="https://support.google.com/youtube/answer/1722171">support.google.com/youtube/answer/1722171</a>）</p>
+
+<h2>FFmpeg：通用的后端</h2>
+<p>几乎所有程序化视频工具最后都落到 <a href="https://ffmpeg.org/">FFmpeg</a>（截至 2026 年 9 月，当前主版本线是 9.x <span class="ev v">已核对</span>）。值得知道它能做什么，即使你从不手写滤镜图——你的代理会写。</p>
+<details><summary>FFmpeg 覆盖什么（附极短的示意命令）</summary><div class="body">
+<div class="table-wrap"><table class="compact">
+<thead><tr><th>工作</th><th>示意</th></tr></thead>
+<tbody>
+<tr><td>图像序列 → 视频</td><td><code>ffmpeg -framerate 30 -i f_%05d.png -c:v libx264 -pix_fmt yuv420p out.mp4</code></td></tr>
+<tr><td>拼接片段</td><td>用清单文件的 concat 解复用器，或 <code>concat</code> 滤镜</td></tr>
+<tr><td>两段交叉淡化</td><td><code>xfade=transition=fade:duration=0.5:offset=6</code></td></tr>
+<tr><td>叠一层透明</td><td><code>overlay=x=100:y=50:enable='between(t,12,16)'</code></td></tr>
+<tr><td>烧录字幕</td><td><code>subtitles=captions.srt</code> 或 <code>ass=styled.ass</code></td></tr>
+<tr><td>人声底下压低音乐</td><td><code>sidechaincompress</code>，用人声做侧链</td></tr>
+<tr><td>响度规范化</td><td><code>loudnorm=I=-14:TP=-1:LRA=11</code>（要准就跑两遍）</td></tr>
+<tr><td>抽出帧来检查</td><td><code>fps=1</code>，或用 <code>select='gt(scene,0.3)'</code> 抓场景切换</td></tr>
+<tr><td>测量</td><td><code>ffprobe</code>（时长、流）、<code>ebur128</code>（响度）、<code>blackdetect</code>、<code>silencedetect</code>、<code>freezedetect</code></td></tr>
+</tbody></table></div>
+<p class="small muted">只是示意，不是完整命令。FFmpeg 的滤镜语法很强，但也出了名地容易写错；代理如果每一步之后用 <code>ffprobe</code> 校验输出，就能用得很好。</p>
+</div></details>
+
+<h2>专业剪辑软件放在哪里</h2>
+<p>专业非线性剪辑（DaVinci Resolve、Premiere Pro、Final Cut Pro、Avid）适合<b>人工精修那一遍</b>：调色、精细混音、和客户一起看。对代理来说，它们有三种用处：</p>
+<ol>
+<li><b>当作目的地</b>：代理导出时间线（FCPXML、OTIO、EDL）和媒体，让人类剪辑打开再打磨。这是一种稳的交接方式。<span class="ev i">推断</span></li>
+<li><b>当作可脚本的引擎</b>：Resolve 有 Python/Lua 脚本——但自 <b>Resolve 21.1（2026）起，Python 脚本仅 Studio 版可用</b>（Puget Systems 引用的发行说明原文：“We have moved the ability to script in Python to the Studio version”，即把用 Python 写脚本的能力挪到了 Studio 版；Studio 售价 295 美元）。<span class="ev v">已核对</span>（<a href="https://www.pugetsystems.com/blog/2026/09/10/how-davinci-resolve-free-v21-1-scripting-changes-affect-puget-bench/">Puget Systems，2026-09-10</a>）。Adobe 正把 Premiere 的脚本从 ExtendScript 迁到 UXP；社区报告说新的时间线 API 仍有缺口。<span class="ev u">未核实</span>的细节。</li>
+<li><b>经 MCP 桥</b>：社区的 MCP 服务器包住非线性剪辑的脚本 API，代理就能调用“加片段”“渲染”等。有用，但底层脚本 API 的每个限制它都继承。<span class="ev p">实践</span></li>
+</ol>
+<p>没有 API 的消费级剪辑器（例如 CapCut，截至 2026 年 10 月没有官方剪辑 API）不适合自主代理；对它们做界面自动化很脆弱，也可能违反条款。<span class="ev p">实践</span></p>
+
+<h2>为什么这一层对代理最要紧</h2>
+<ul>
+<li>它是<b>确定的</b>：同一条时间线 + 同一批资产 = 同一条视频。</li>
+<li>它<b>便宜</b>：重新组装一条两分钟的视频只要几秒到几分钟；重新生成里面的镜头要花钱。</li>
+<li>它<b>可测量</b>：时长、响度、黑场、字幕时间都能用代码查。</li>
+<li>它<b>能吃掉不完美</b>：提前 0.5 秒切开，能藏住生成的瑕疵；一次叠化能藏住连续性的跳跃。好的剪辑是修补生成影像最便宜的办法。<span class="ev p">实践</span></li>
+</ul>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

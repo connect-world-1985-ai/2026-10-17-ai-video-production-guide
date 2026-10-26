@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>视频类型与做法</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 10 页 · §10 + 交付物 F — 按视频类型的制作策略</div>
+<h1>十二种视频类型，十二种做法</h1>
+<p class="lead">一套对数学讲解片完美的技术栈，对音乐视频毫无用处。这一页说明每一类在技术上差在哪里、用什么来做、编程代理今天能自动化到哪一步，以及质量怎么评判。</p>
+
+<h2>总览矩阵</h2>
+<p class="small muted">方法权重：●●● 主要方法 · ●● 常用 · ● 偶尔。自动化 = 今天一个编程代理在有人检查的前提下，能端到端做到多少。依据第 2–7 页和第 11 页的<span class="ev i">推断</span>。</p>
+<div class="table-wrap"><table class="compact" data-sortable>
+<thead><tr><th>类型</th><th>A 神经</th><th>B 渲染</th><th>C 组装</th><th>声音的角色</th><th>代理自动化</th><th>相对成本</th></tr></thead>
+<tbody>
+<tr><td>1 教育讲解</td><td>●</td><td>●●●</td><td>●●</td><td>口播驱动一切</td><td data-v="5">高</td><td data-v="1">低</td></tr>
+<tr><td>2 科学 / 工程可视化</td><td>●</td><td>●●●</td><td>●●</td><td>口播 + 轻微音效</td><td data-v="4">高（正确性需要专家审阅）</td><td data-v="2">低–中</td></tr>
+<tr><td>3 商务演示</td><td>●</td><td>●●●</td><td>●●●</td><td>口播或出镜者</td><td data-v="5">高</td><td data-v="1">低</td></tr>
+<tr><td>4 电影感 / 照片级</td><td>●●●</td><td>●</td><td>●●</td><td>配乐、声音设计、对白</td><td data-v="2">低–中（大量靠挑选）</td><td data-v="5">高</td></tr>
+<tr><td>5 营销 / 广告</td><td>●●</td><td>●●</td><td>●●●</td><td>音乐 + 画外音；品牌声音</td><td data-v="3">中</td><td data-v="4">中–高</td></tr>
+<tr><td>6 社交媒体短片</td><td>●●</td><td>●●</td><td>●●●</td><td>热门音频、字幕</td><td data-v="4">模板可以很高</td><td data-v="1">低</td></tr>
+<tr><td>7 纪录片风格</td><td>●●</td><td>●●</td><td>●●●</td><td>口播、资料声音、配乐</td><td data-v="3">中</td><td data-v="3">中</td></tr>
+<tr><td>8 动画叙事</td><td>●●●</td><td>●●</td><td>●●</td><td>对白、配乐、拟音</td><td data-v="2">低–中</td><td data-v="4">中–高</td></tr>
+<tr><td>9 数字出镜者 / 数字人</td><td>●●● (A4)</td><td>●</td><td>●●</td><td>语音是输入</td><td data-v="5">高</td><td data-v="2">低–中</td></tr>
+<tr><td>10 音乐视频</td><td>●●●</td><td>●●</td><td>●●●</td><td>音乐就是时间线</td><td data-v="3">中（卡点容易；画面靠挑选）</td><td data-v="4">中–高</td></tr>
+<tr><td>11 产品演示</td><td>●</td><td>●●</td><td>●●●（屏幕录制）</td><td>口播、界面音效</td><td data-v="5">软件演示可以很高</td><td data-v="1">低</td></tr>
+<tr><td>12 混合风格</td><td>●●</td><td>●●</td><td>●●●</td><td>把不同风格粘在一起</td><td data-v="3">中</td><td data-v="3">中</td></tr>
+</tbody></table></div>
+
+<h2>逐类说明</h2>
+<p><button class="chip" data-toggle-all="types">全部展开</button></p>
+<div id="types">
+
+<details><summary>1 · 教育与讲解动画</summary><div class="body">
+<dl class="kv">
+<dt>不同在哪</dt><dd>正确和清楚胜过真实感。观众必须一次跟上一个想法；文字、符号和示意图必须精确。</dd>
+<dt>方法</dt><dd>代码驱动的二维（数学和示意图动画），先有口播再定时间，偶尔用静帧或生成的空镜交代背景。</dd>
+<dt>工具（类别）</dt><dd>Manim 风格的 Python 库；React/HTML 视频框架；语音合成 + 强制对齐；FFmpeg。</dd>
+<dt>声音</dt><dd>口播是骨架；轻音乐底；音效很少。</dd>
+<dt>自动化</dt><dd>高——记录最充分的代理结果就在这里（Code2Video、TheoremExplainAgent、Remotion/HyperFrames 技能）。</dd>
+<dt>限度</dt><dd>在 TheoremExplainAgent 里，版面重叠和代码错误是最主要的失败；教学品质仍然需要老师的眼睛。</dd>
+<dt>怎么评判</dt><dd>准确性、可读性、节奏；Code2Video 的 “TeachQuiz” 想法——看完之后观众能不能回答问题？<span class="ev v">已核对</span> 的概念（<a href="https://arxiv.org/abs/2510.01174">arXiv 2510.01174</a>）</dd>
+</dl></div></details>
+
+<details><summary>2 · 科学与工程可视化</summary><div class="body">
+<dl class="kv">
+<dt>不同在哪</dt><dd>画面必须是真实数据或物理的函数。看起来像那么回事、但羽流或轨迹是错的，那是缺陷，不是风格。</dd>
+<dt>方法</dt><dd>模拟 → 三维渲染（Blender、ParaView）或二维图；注释叠层；生成式视频只用于非技术性的背景。</dd>
+<dt>自动化</dt><dd>搭建和渲染可以很高；正确性需要领域审阅。</dd>
+<dt>怎么评判</dt><dd>对每一条主张做专家审阅；数据出处；单位和比例。</dd>
+</dl></div></details>
+
+<details><summary>3 · 专业商务演示</summary><div class="body">
+<dl class="kv">
+<dt>不同在哪</dt><dd>品牌合规（字体、颜色、徽标）、数据图表、演讲者或口播，常常从已有幻灯片或文档生成。</dd>
+<dt>方法</dt><dd>模板驱动的二维（幻灯片 → 动画场景）、从数据做图表、语音合成或数字人出镜、字幕。</dd>
+<dt>自动化</dt><dd>高。主要风险是看起来很普通；用一套强的品牌套件来修。</dd>
+<dt>怎么评判</dt><dd>品牌清单、数据准确性、信息是否清楚、时长。</dd>
+</dl></div></details>
+
+<details><summary>4 · 电影感与照片级视频</summary><div class="body">
+<dl class="kv">
+<dt>不同在哪</dt><dd>灯光、镜头、表演、连续性和情绪。每一帧都被当成一幅画来看。</dd>
+<dt>方法</dt><dd>先关键帧：带参考的设计静帧 → 每个镜头图生视频 → 多条 → 人来挑选 → 剪辑、调色、声音设计。专业的人工智能影片大量靠挑选。</dd>
+<dt>自动化</dt><dd>低到中。代理可以跑流水线、生成候选并预筛；挑选和口味仍是人的。</dd>
+<dt>限度</dt><dd>跨镜头的角色一致性、手和物理、片段长度；多条的成本。</dd>
+<dt>怎么评判</dt><dd>人来审；连续性表；参考身份核对。</dd>
+</dl></div></details>
+
+<details><summary>5 · 营销与广告</summary><div class="body">
+<dl class="kv">
+<dt>不同在哪</dt><dd>产品外观必须精确、法律上的主张、品牌语气、很多变体（格式、语言、A/B 版本）。</dd>
+<dt>方法</dt><dd>产品渲染或照片（精确）+ 生成的环境；模板化的变体；数字人或画外音的本地化。</dd>
+<dt>自动化</dt><dd>中——变体生成非常容易自动化；主概念不是。</dd>
+<dt>限度</dt><dd>生成模型会改徽标和产品细节；每个工具的商用条款；披露规则。</dd>
+<dt>怎么评判</dt><dd>品牌与法律审阅、产品保真度核对、平台规格、上线后的效果指标。</dd>
+</dl></div></details>
+
+<details><summary>6 · 社交媒体内容</summary><div class="body">
+<dl class="kv">
+<dt>不同在哪</dt><dd>竖屏 9:16，头 1–2 秒决定留存，烧进画面的字幕，节奏快，追热点。</dd>
+<dt>方法</dt><dd>模板组装（素材库或生成的片段 + 语音合成 + 大字幕）、把长视频切成短片、带原生音频的短生成片段。</dd>
+<dt>自动化</dt><dd>模板化格式可以很高（例如 MoneyPrinterTurbo 风格的流水线）；原创性是瓶颈。</dd>
+<dt>怎么评判</dt><dd>开头钩子的力度、手机上字幕是否可读、安全区、平台对人工智能内容的标识规则。</dd>
+</dl></div></details>
+
+<details><summary>7 · 纪录片风格的制作</summary><div class="body">
+<dl class="kv">
+<dt>不同在哪</dt><dd>可信度：真实画面、有出处的事实、克制。看起来像证据的生成图像会误导。</dd>
+<dt>方法</dt><dd>资料影像和静帧（加上运动）、采访、渲染的重构、生成的气氛明确作为图示；口播和配乐。</dd>
+<dt>自动化</dt><dd>中：研究和组装可以；资料许可和编辑伦理需要人。</dd>
+<dt>怎么评判</dt><dd>事实审计、权利审计、对重构的披露。</dd>
+</dl></div></details>
+
+<details><summary>8 · 动画叙事</summary><div class="body">
+<dl class="kv">
+<dt>不同在哪</dt><dd>角色必须在几十个镜头里保持设定（on-model）、表演、对白、故事结构。</dd>
+<dt>方法</dt><dd>生成式：角色设定表 + 参考 / LoRA → 关键帧 → 图生视频；或带动作捕捉的三维角色；或二维绑定。多智能体研究系统（MovieAgent、ViMax、FilmAgent）瞄准的就是这个。</dd>
+<dt>自动化</dt><dd>低到中；研究级系统存在，但关于长片质量稳定的证据很薄。</dd>
+<dt>怎么评判</dt><dd>角色一致性核对、故事审阅、观众测试。</dd>
+</dl></div></details>
+
+<details><summary>9 · 数字出镜者与人工智能数字人</summary><div class="body">
+<dl class="kv">
+<dt>不同在哪</dt><dd>一个在说话的人；口型同步和自然的手势；多语言版本。</dd>
+<dt>方法</dt><dd>数字人平台（剧本 → 视频）或开源的音频驱动模型；幻灯片和空镜合成在出镜者周围。</dd>
+<dt>自动化</dt><dd>经平台接口可以很高。</dd>
+<dt>限度</dt><dd>长镜头里的怪异瞬间；同意和肖像规则（厂商要求个人分身有出镜同意）。</dd>
+<dt>怎么评判</dt><dd>口型质量（同步指标、人来看）、发音、观众信任。</dd>
+</dl></div></details>
+
+<details><summary>10 · 音乐视频</summary><div class="body">
+<dl class="kv">
+<dt>不同在哪</dt><dd>歌是固定的，歌就是时间线；画面跟着节拍、段落和歌词。</dd>
+<dt>方法</dt><dd>节拍 / 段落分析 → 镜头计划 → 生成或渲染的画面 → 卡点剪辑；研究系统 AutoMV 把这件事端到端自动化。</dd>
+<dt>自动化</dt><dd>中：同步是机械的；美学上的连贯靠挑选。</dd>
+<dt>怎么评判</dt><dd>同步是否准确、画面是否连贯、艺人是否认可。</dd>
+</dl></div></details>
+
+<details><summary>11 · 产品演示</summary><div class="body">
+<dl class="kv">
+<dt>不同在哪</dt><dd>必须如实展示真实产品；界面经常改。</dd>
+<dt>方法</dt><dd>脚本化的浏览器或应用自动化，无界面录制，缩放和光标高亮，口播，字幕；硬件则用渲染的产品镜头。</dd>
+<dt>自动化</dt><dd>软件可以很高：界面一改就自动重录。product-launch-video（EveryInc）是一套有记录的 Claude Code 工作流。<span class="ev v">已核对</span></dd>
+<dt>怎么评判</dt><dd>相对当前产品是否准确、界面文字是否可读、时长。</dd>
+</dl></div></details>
+
+<details><summary>12 · 混合多种风格的制作</summary><div class="body">
+<dl class="kv">
+<dt>不同在哪</dt><dd>根本不同的来源之间要一致。</dd>
+<dt>方法</dt><dd>强的风格圣经、一次调色、共用的字体、声音粘合；有意的风格转换。</dd>
+<dt>自动化</dt><dd>中：路由和组装可以自动化；凝聚需要口味。</dd>
+<dt>怎么评判</dt><dd>它像不像一部片子？人来审。</dd>
+</dl></div></details>
+</div>
+
+<h2>为什么一套技术栈换到另一类就会失败</h2>
+<ul>
+<li><b>Remotion/Manim 技术栈</b>适合讲解片和产品演示，但做不出可信的人或风景。</li>
+<li><b>生成式视频技术栈</b>能做出惊人的电影镜头，但对任何必须精确正确的东西（数据、界面、数学、物理、徽标）都是错的工具。</li>
+<li><b>数字人平台</b>做对着镜头说话的人无可替代，做别的则用不上。</li>
+<li><b>模板视频接口</b>能便宜地扩出社交变体，但讲故事会很普通。</li>
+<li><b>三维引擎</b>给你完全的控制，但每一个新物体都变成一次资产制作。</li>
+</ul>
+<p><span class="ev i">推断</span></p>
+
+<h2>端到端工作流（交付物 F）</h2>
+<div data-tabs>
+<div class="tabs"><button data-tab="w1">讲解片（代码优先）</button><button data-tab="w2">产品演示</button><button data-tab="w3">社交短片</button><button data-tab="w4">数字人培训视频</button><button data-tab="w5">电影感短片</button></div>
+<div class="tab-panel" data-panel="w1">
+<ol class="stepper">
+<li>代理根据来源起草大纲和剧本；你批准。</li>
+<li>按段落做语音合成 → 词的时间戳。</li>
+<li>代理用代码框架写场景（Manim 或 Remotion/HyperFrames），每个场景的时长来自它的段落。</li>
+<li>渲染预览；代理在提示点检查静帧，并修掉重叠。</li>
+<li>音乐底、压低、响度；字幕来自时间戳。</li>
+<li>最终渲染；语音识别核对；你审阅。</li>
+</ol>
+<p class="small muted">典型成本：几乎全是代理 token 加语音合成。所有类别里自动化最高。</p>
+</div>
+<div class="tab-panel" data-panel="w2">
+<ol class="stepper">
+<li>代理为演示路径写一段浏览器自动化脚本（确定的、可重跑）。</li>
+<li>高分辨率录制；记下每个动作的时间戳。</li>
+<li>口播按动作日志来写；语音合成；时间。</li>
+<li>代码框架在记下的时间戳上加缩放、高亮、标注。</li>
+<li>批评一轮，看帧里的界面是否可读；界面若改了就重录。</li>
+</ol>
+</div>
+<div class="tab-panel" data-panel="w3">
+<ol class="stepper">
+<li>钩子优先的剧本（≤ 60 秒），9:16。</li>
+<li>混合：生成片段（原生音频可以）、带运动的静帧、动态字幕。</li>
+<li>词级、烧进画面的字幕，落在平台安全区内。</li>
+<li>做 3–5 个钩子变体；人来挑。</li>
+<li>按平台规则给写实的人工智能生成内容加标识。</li>
+</ol>
+</div>
+<div class="tab-panel" data-panel="w4">
+<ol class="stepper">
+<li>每个模块一份剧本；发音词表。</li>
+<li>数字人平台接口（库存数字人，或已同意的个人分身）→ 出镜片段。</li>
+<li>幻灯片和示意图用代码渲染；把出镜者和幻灯片合成。</li>
+<li>翻译剧本 → 重新配音 → 每种语言做口型同步。</li>
+<li>每种语言一份字幕；用该语言的语音识别做质检。</li>
+</ol>
+</div>
+<div class="tab-panel" data-panel="w5">
+<ol class="stepper">
+<li>阐述 + 镜头表；角色和场景的参考表。</li>
+<li>用图像模型加参考，为每个镜头做关键帧；你批准分镜。</li>
+<li>每个镜头图生视频，3–4 条；代理用帧检查预筛；你来挑。</li>
+<li>剪辑、调色、声音设计、配乐；对白用语音合成或原生音频。</li>
+<li>连续性审阅；重生成弱的镜头。</li>
+</ol>
+<p class="small muted">自动化最低；生成花费最高；在这里代理是制作助理，不是导演。</p>
+</div>
+</div>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

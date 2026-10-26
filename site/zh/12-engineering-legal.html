@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工程、成本与法律</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 12 页 · §12 — 工程实践、权利与来源</div>
+<h1>工程、成本、法律与来源</h1>
+<p class="lead">自主视频制作看不见的那一半：让越堆越多的媒体、任务和决定保持可复现、付得起、查得到，并且在法律上能用。<b>不是法律意见</b>；这一页描述的是截至 2026 年 10 月、给在欧盟工作的读者看的版图。</p>
+
+<h2>第 1 部分 — 工程上的难题</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>难题</th><th>会出什么问题</th><th>工程上的回答</th></tr></thead>
+<tbody>
+<tr><td>大媒体资产</td><td>渲染、条和分轨有好几个 GB；Git 吃不消</td><td>按内容寻址的存储（文件以哈希命名）、Git LFS 或对象存储；Git 里只留清单；过了保留期就清掉被否的条</td></tr>
+<tr><td>可复现的渲染</td><td>同一个项目下个月渲染得不一样</td><td>钉死工具版本（锁文件、容器）；种子；渲染图像序列；动画里绝不依赖墙上的时钟</td></tr>
+<tr><td>给产物做版本</td><td>“批准的是哪一条？”</td><td>镜头表里记镜头状态 + 版本；批准的条是不可变文件，用哈希引用</td></tr>
+<tr><td>长时间任务</td><td>20 个任务还在跑，代理会话已经结束</td><td>磁盘上的任务表（编号、状态、提交时间、供应商任务编号）；可恢复的轮询器；回调进本地队列</td></tr>
+<tr><td>失败的接口调用与重试</td><td>重复扣费、下了一半的文件</td><td>幂等键；按请求编号去重；指数退避；标记完成之前先核对下载（大小、ffprobe）</td></tr>
+<tr><td>场景重生成</td><td>修一个镜头，全部重渲</td><td>按构建系统来想：依赖图 + 输入哈希；只重建失效的节点</td></tr>
+<tr><td>跨场景一致性</td><td>角色、产品和颜色漂移</td><td>风格圣经、每次调用都带参考图、一份查找表（LUT）、自动的身份相似度检查</td></tr>
+<tr><td>时间与同步</td><td>改完之后字幕或动画漂移</td><td>单一事实来源 = 口播时间戳；一切都从它们派生</td></tr>
+<tr><td>预算</td><td>一个循环为重生成一个镜头花掉 200 美元</td><td>每次调用的成本账；每镜头和每项目的上限；超出之前代理必须询问</td></tr>
+<tr><td>渲染性能</td><td>几小时的三维渲染</td><td>低分辨率 / 低采样预览；并行或云端渲染；草稿用实时引擎</td></tr>
+<tr><td>质量保证</td><td>视频是坏的，代理却宣布成功</td><td>构建里放自动质检关卡（见第 7 页）；“完成”意味着检查通过 + 人批准</td></tr>
+<tr><td>人的批准检查点</td><td>代理把预算花在错误的方向上</td><td>计划之后、粗剪之后、发布之前设关卡；用便宜的预览来审</td></tr>
+<tr><td>可观测性</td><td>没人知道代理为什么这么做</td><td>决定日志、分步日志、成本账、项目文件夹里的质检报告</td></tr>
+<tr><td>安全</td><td>代理带着你的凭证跑生成的代码；MCP 服务器执行任意代码（例如 Blender Python）</td><td>沙箱 / 容器、带花费上限的最小权限接口密钥、提示和网址里不放密钥、安装前审阅第三方技能和 MCP 服务器</td></tr>
+</tbody></table></div>
+<p class="small muted"><span class="ev p">实践</span>（标准的媒体流水线和软件工程做法）/ 代理这一侧的对应是<span class="ev i">推断</span>。</p>
+
+<h3>一份最小、可维护的项目布局</h3>
+<pre><code>project/
+  brief.md            research/            script.md        lexicon.yml
+  style/              （调色板、字体、查找表、参考图）
+  shotlist.json       timeline.json        decisions.log    costs.csv
+  src/                （场景代码：二维、三维脚本、物理模型）
+  jobs/               （外部任务表：供应商、编号、状态）
+  assets/manifest.json  → 对象存储中的媒体，按 sha256 命名
+  qa/                 （报告、抽样帧、帧缩略图）
+  out/                （预览、母版、字幕）
+  build.py            （依赖图：只重建变了的部分）</code></pre>
+<p class="small muted">示意。要点是：计划、代码和每一次决定都是文本文件，代理（或同事）能读，也能接着做。</p>
+
+<h2>第 2 部分 — 人工智能产出的版权</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>司法辖区</th><th>立场（2026 年 10 月）</th></tr></thead>
+<tbody>
+<tr><td>美国</td><td>要求人类作者身份。美国最高法院于 2026 年 3 月 2 日拒绝审理 <i>Thaler v. Perlmutter</i>，维持了“单靠人工智能不能成为作者”的裁定。美国版权局第二部分报告（2025 年 1 月 29 日）允许对人类对人工智能材料的选择、编排和修改给予保护，逐案判断。<span class="ev p">实践</span>（律所报告）</td></tr>
+<tr><td>欧盟</td><td>没有专门规则；“作者自己的智力创造”这一标准，使纯人工智能生成的产出不太可能受保护；人工智能协助作品的门槛尚未定论。一件待决的欧盟法院案件（CJEU，C-250/25）涉及训练与产出。<span class="ev p">实践</span></td></tr>
+<tr><td>德国</td><td>法院裁的是训练，不是产出的归属：LAION 案（汉堡高等法院 OLG Hamburg，2025 年 12 月）允许为构建数据集进行科研性的文本与数据挖掘；GEMA v OpenAI（慕尼黑第一地区法院 LG München I，2025 年 11 月 11 日）把模型里记住的歌词视为复制。<span class="ev p">实践</span>（二手来源）</td></tr>
+</tbody></table></div>
+<p><b>这意味着</b>：你的视频里可能受保护的部分，是人做的部分——剧本、选择、剪辑、合成、你自己的画面和声音。把它们记下来。谁可以<i>使用</i>产出，仍由合同决定。<span class="ev i">推断</span></p>
+
+<h2>第 3 部分 — 工具的商用条款</h2>
+<ul>
+<li><b>免费档最常禁止商用</b>：例如 Luma Free/Lite（有水印、非商用），ElevenLabs Free（没有商用许可；要求署名），Suno Free（非商用；以后订阅也不会给旧歌重新授权）。<span class="ev p">实践</span>（经搜索看到的厂商帮助页）</li>
+<li><b>赔偿保障是企业级功能</b>：Google 和 OpenAI 宣布对指名的服务和付费档提供生成式人工智能赔偿；Adobe 的 Firefly 赔偿看起来绑在企业协议上。视频模型（Veo，以及尚在时的 Sora）是否在覆盖范围内，无法确认。<span class="ev u">未核实</span> — 向对方索取书面条款。</li>
+<li><b>存一份带日期的条款副本</b>，就是你生成时适用的那份，并记下你的套餐档。条款经常改。</li>
+</ul>
+
+<h2>第 4 部分 — 开源模型的许可（按版本核对）</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>模型</th><th>许可</th><th>商用</th><th>要注意</th></tr></thead>
+<tbody>
+<tr><td>Wan 2.1 / 2.2</td><td>Apache-2.0</td><td>可以</td><td>— <span class="ev v">已核对</span>（LICENSE 文件）</td></tr>
+<tr><td>HunyuanVideo</td><td>Tencent Hunyuan Community Licence</td><td><b>不许可在欧盟、英国或韩国使用</b></td><td>许可文本写明，它“不适用于欧洲联盟、英国和韩国”；100M 月活条款 <span class="ev v">已核对</span>（LICENSE.txt，2026-10-17）</td></tr>
+<tr><td>LTX-2.x</td><td>LTX community licence</td><td>年营收约低于 1000 万美元时免费</td><td>按版本的文件 <span class="ev v">已核对</span>（模型卡）</td></tr>
+<tr><td>MiniMax H3</td><td>MiniMax H3 Community Licence</td><td>有条件</td><td>美国 / 欧盟 / 英国 / 韩国用户要填申请表 <span class="ev v">已核对</span>（HF 模型卡）；其余条款 <span class="ev u">未核实</span></td></tr>
+<tr><td>FLUX.1 [dev]</td><td>Non-commercial licence</td><td>权重：不行；按许可文本，<b>产出：可以</b></td><td>在商业服务里跑这些权重是灰色地带 <span class="ev v">已核对</span></td></tr>
+<tr><td>Stable Diffusion 家族</td><td>Stability Community Licence</td><td>营收不超过 100 万美元时免费</td><td>需要登记 <span class="ev v">已核对</span></td></tr>
+<tr><td>MusicGen 权重</td><td>CC-BY-NC 4.0</td><td>不行</td><td>代码是 MIT，权重不是 <span class="ev p">实践</span></td></tr>
+<tr><td>Coqui XTTS-v2</td><td>CPML</td><td>不行</td><td>公司已关闭——没有人能出售商用许可 <span class="ev p">实践</span></td></tr>
+</tbody></table></div>
+<p>经验法则：按<b>模型版本</b>、按<b>产物</b>（代码、权重、产出）和按<b>司法辖区</b>核对许可；把许可文件的哈希和权重哈希记在一起。<span class="ev i">推断</span></p>
+
+<h2>第 5 部分 — 声音与肖像</h2>
+<ul>
+<li><b>德国 / 欧盟</b>：对自己形象的权利以及一般人格权适用于深度伪造和声音模仿；通用数据保护条例（GDPR）覆盖生物识别数据。对任何真人取得已签署、范围明确的同意。<span class="ev u">未核实</span>（本研究里是一般知识）— 请用德国法律来源核对。</li>
+<li><b>厂商检查</b>：ElevenLabs 要求声音主人验证职业克隆；HeyGen 要求数字分身有一段出镜的同意声明；Synthesia 把同意义务放在客户身上。厂商检查只是一部分——自己留好授权书。<span class="ev p">实践</span></li>
+<li><b>其他地方</b>：田纳西州 ELVIS 法案（ELVIS Act，2024）和加利福尼亚州 AB 2602/1836（2025）已经生效；美国联邦 NO FAKES 法案（NO FAKES Act）在 2026 年 10 月据报停滞；丹麦于 2026 年 10 月 8 日提出一项法案，拟赋予人们对面孔和声音类似版权的保护，目标是 2027 年。<span class="ev p">实践</span>（二手来源）</li>
+</ul>
+
+<h2>第 6 部分 — 标识义务</h2>
+<div class="callout key"><span class="title">欧盟人工智能法案第五十条（Article 50）— 自 2026 年 8 月 2 日起适用</span>
+<p>生成式人工智能系统的<b>提供者（Providers）</b>必须以机器可读、可检测的方式标记产出。<b>部署者（Deployers）</b>必须披露深度伪造（描绘真实的人、地点或事件的写实内容）。一份关于标记与标识的实践准则（Code of Practice）于 2026 年 6 月 10 日公布，并得到欧盟委员会背书。如果你用厂商工具做视频，你通常是<i>部署者</i>；如果你托管或提供一个模型，你可能是<i>提供者</i>。<span class="ev v">已核对</span>（<a href="https://digital-strategy.ec.europa.eu/en/policies/code-practice-ai-generated-content">欧盟委员会</a>）；角色归类是法律问题。</p></div>
+<p><b>平台</b>：YouTube 要求创作者披露写实的、被改动或合成的内容（明显不写实的动画不需要）；TikTok 读取 C2PA 内容凭证（Content Credentials）来自动标识；Meta 显示 “AI info” 标签。核对当前的帮助页。<span class="ev p">实践</span></p>
+<p>对<a href="08-worked-example.html">火箭纪录片</a>：生成的真实型号载具镜头不是对人的深度伪造，但不要把真实、带品牌的载具的生成画面当成实拍来呈现；给重构加上标识。<span class="ev i">推断</span></p>
+
+<h2>第 7 部分 — 来源技术</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>技术</th><th>它是什么</th><th>实务说明</th></tr></thead>
+<tbody>
+<tr><td>C2PA / 内容凭证（Content Credentials）</td><td>文件里的签名清单，说明它是怎么做出来的（规范 2.3，2026 年 1 月）</td><td>2026 年的一项测试发现，用常见工具（包括 FFmpeg）重新编码会剥掉或弄坏清单 → <b>给最终导出签名</b>（例如用开源的 c2patool）<span class="ev p">实践</span></td></tr>
+<tr><td>SynthID（Google）</td><td>Google 生成媒体里的不可见水印；公开检测门户自 2026 年 10 月 7 日起</td><td>只检测 Google 及合作方的内容；没有水印什么也证明不了 <span class="ev p">实践</span></td></tr>
+<tr><td>Meta Video Seal</td><td>开源（MIT）的神经视频水印</td><td>给自己的产出做标记的一个选项</td></tr>
+<tr><td>可见水印</td><td>若干工具的免费档上有</td><td>不要做一步去剥掉它们（违反条款，也和第五十条（Art. 50）的用意冲突）</td></tr>
+</tbody></table></div>
+
+<h2>第 8 部分 — 音乐、素材库与资料影像</h2>
+<ul>
+<li><b>免版税不等于无版权</b>：它是一份有范围的许可。音乐的同步需要词曲权和母带权。核对在线和可变现使用。</li>
+<li><b>人工智能音乐与 Content ID</b>：付费档的许可证明不了版权或排他性；没有明确权利，不要把生成的曲目登记进 Content ID。</li>
+<li><b>NASA</b> 的媒体一般没有版权，但标志和徽标需要许可，也不得暗示背书。<b>ESA</b> 条款不一（有的是 CC BY-SA 3.0 IGO；除此之外的商用需要授权）。<b>公司媒体</b>（例如一家发射服务商的照片流）——逐条核对许可。<span class="ev p">实践</span>（经搜索看到的机构指南）</li>
+</ul>
+
+<h2>第 9 部分 — 流水线应为每份资产记下什么</h2>
+<details open><summary>来源清单核对表</summary><div class="body">
+<ol>
+<li>资产编号、SHA-256、创建时间、流水线运行编号、步骤。</li>
+<li>来源：生成 · 素材库 · 公共机构 · 自己拍摄 · 委托制作。</li>
+<li>工具：厂商、产品、模型及版本、API/界面、任务编号、种子。</li>
+<li>账户：套餐档和日期；条款网址 + 带日期的快照哈希。</li>
+<li>开源权重：许可编号 + 文件哈希、地域检查、营收门槛检查。</li>
+<li>输入：提示、参考（各自的许可）、LoRA / 声音编号。</li>
+<li>权利：商用 可以/不行/有条件（加原因）、署名字符串、赔偿、限制。</li>
+<li>人：是否描绘或配音了真人？同意记录的编号和范围。</li>
+<li>第三方标志 / 徽标 / 角色：清权备注。</li>
+<li>人类贡献记录（用来支持可版权性）。</li>
+<li>来源 / 标记：输入上有 C2PA 吗？有水印吗？最终签名步骤。</li>
+<li>披露：人工智能法案中的角色、是否需要标识、平台标记是否已设。</li>
+<li>审阅：审阅人、日期、复核日期。</li>
+</ol>
+<p>构建规则：最终时间线里任何资产缺了许可、套餐档或同意记录，就<b>让构建失败</b>。<span class="ev i">推断</span>（来自 R6 研究综合）</p>
+</div></details>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。不是法律意见。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

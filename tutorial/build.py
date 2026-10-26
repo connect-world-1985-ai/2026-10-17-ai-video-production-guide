@@ -23,7 +23,7 @@ from pathlib import Path
 
 import edge_tts
 
-from narration import SEGMENTS
+import narration as narration_en
 
 ROOT = Path(__file__).resolve().parent
 BUILD = ROOT / "build"
@@ -32,6 +32,35 @@ VOICE = "en-US-AndrewNeural"
 RATE = "-5%"
 NODE = "node"
 CHROME_CAPTURE = ROOT / "capture.js"
+SEGMENTS = narration_en.SEGMENTS
+LANG = "en"
+CAPTION_FONT = "Inter"
+FONTS_DIR = "/usr/share/fonts/truetype/macos"
+FINAL_NAME = "ai-video-from-the-inside.mp4"
+
+
+def configure(lang: str) -> None:
+    global BUILD, HTML, VOICE, RATE, SEGMENTS, LANG, CAPTION_FONT, FONTS_DIR, FINAL_NAME
+    LANG = lang
+    if lang == "zh":
+        import narration_zh
+        SEGMENTS = narration_zh.SEGMENTS
+        BUILD = ROOT / "build-zh"
+        HTML = ROOT / "slides-zh.html"
+        VOICE = "zh-CN-YunyangNeural"
+        RATE = "-5%"
+        CAPTION_FONT = "WenQuanYi Micro Hei"
+        FONTS_DIR = "/usr/share/fonts/truetype/wqy"
+        FINAL_NAME = "ai-video-from-the-inside-zh.mp4"
+    else:
+        SEGMENTS = narration_en.SEGMENTS
+        BUILD = ROOT / "build"
+        HTML = ROOT / "slides.html"
+        VOICE = "en-US-AndrewNeural"
+        RATE = "-5%"
+        CAPTION_FONT = "Inter"
+        FONTS_DIR = "/usr/share/fonts/truetype/macos"
+        FINAL_NAME = "ai-video-from-the-inside.mp4"
 
 
 def run(cmd: list[str]) -> None:
@@ -101,8 +130,34 @@ def ass_time(t: float) -> str:
     return f"{h}:{m:02d}:{s:02d}.{cs:02d}"
 
 
+def _cjk(text: str) -> bool:
+    return any("\u4e00" <= ch <= "\u9fff" for ch in text)
+
+
+def join_tokens(parts: list[str]) -> str:
+    if LANG != "zh":
+        return " ".join(parts)
+    out = ""
+    for part in parts:
+        if not part:
+            continue
+        if not out:
+            out = part
+            continue
+        left = _cjk(out[-1])
+        right = _cjk(part[0])
+        out += part if (left and right) else " " + part
+    return out
+
+
 def wrap_ass(text: str, limit: int = 46) -> str:
     text = text.replace("{", "(").replace("}", ")").replace("\\", "")
+    if LANG == "zh":
+        limit = 18
+        if len(text) <= limit:
+            return text
+        cut = len(text) // 2
+        return text[:cut] + r"\N" + text[cut:]
     words = text.split()
     if len(text) <= limit or len(words) < 2:
         return text
@@ -118,18 +173,20 @@ def wrap_ass(text: str, limit: int = 46) -> str:
 
 def sentence_breaks(words: list[dict]) -> list[dict]:
     """The speech service omits punctuation. Pauses of ~0.4s are the sentence boundaries."""
+    enders = ("。", "？", "！") if LANG == "zh" else (".", "?", "!")
+    mark = "。" if LANG == "zh" else "."
     out = []
     for i, w in enumerate(words):
         item = dict(w)
         text = item["text"]
         if i + 1 < len(words):
             gap = words[i + 1]["t"] - (w["t"] + w["d"])
-            if gap >= 0.38 and not text.endswith((".", "?", "!")):
-                text += "."
+            if gap >= 0.38 and not text.endswith(enders):
+                text += mark
         item["text"] = text
         out.append(item)
-    if out and not out[-1]["text"].endswith((".", "?", "!")):
-        out[-1]["text"] += "."
+    if out and not out[-1]["text"].endswith(enders):
+        out[-1]["text"] += mark
     return out
 
 
@@ -140,9 +197,12 @@ def write_ass(seg: dict, words: list[dict], dur: float, path: Path) -> None:
     buf: list[dict] = []
     for w in words:
         buf.append(w)
-        text = " ".join(x["text"] for x in buf)
-        endish = buf[-1]["text"].endswith((".", "?", "!"))
-        if endish or len(text) >= 48 or len(buf) >= 9:
+        text = join_tokens([x["text"] for x in buf])
+        enders = ("。", "？", "！") if LANG == "zh" else (".", "?", "!")
+        endish = buf[-1]["text"].endswith(enders)
+        limit = 20 if LANG == "zh" else 48
+        cap = 8 if LANG == "zh" else 9
+        if endish or len(text) >= limit or len(buf) >= cap:
             cues.append(buf)
             buf = []
     if buf:
@@ -157,11 +217,11 @@ def write_ass(seg: dict, words: list[dict], dur: float, path: Path) -> None:
         end = min(end, dur - 0.04)
         if end <= start + 0.05:
             continue
-        text = wrap_ass(" ".join(w["text"] for w in cue))
+        text = wrap_ass(join_tokens([w["text"] for w in cue]))
         lines.append(
             f"Dialogue: 0,{ass_time(start)},{ass_time(end)},Cap,,0,0,0,,{text}"
         )
-    header = """[Script Info]
+    header = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: 1920
 PlayResY: 1080
@@ -170,7 +230,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Cap,Inter,46,&H00F7F4FB,&H000000FF,&H00140E0C,&HB4141824,-1,0,0,0,100,100,0,0,3,14,0,2,90,90,54,1
+Style: Cap,{CAPTION_FONT},{42 if LANG == "zh" else 46},&H00F7F4FB,&H000000FF,&H00140E0C,&HB4141824,-1,0,0,0,100,100,0,0,3,14,0,2,90,90,54,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -224,7 +284,7 @@ def progress_filter(g0: float, g1: float, dur: float) -> str:
 def encode_segment(seg: dict, g0: float, g1: float, out: Path) -> None:
     dur = seg["dur"]
     ass = Path(seg["ass"])
-    fonts = "/usr/share/fonts/truetype/macos"
+    fonts = FONTS_DIR
     vf = (
         progress_filter(g0, g1, dur)
         + f",subtitles={ass}:fontsdir={fonts}"
@@ -375,7 +435,8 @@ def assemble() -> Path:
             f"title={ch['title']}",
         ]
     meta.write_text("\n".join(lines) + "\n")
-    final = BUILD / "ai-video-from-the-inside.mp4"
+    (BUILD / "chapters.json").write_text(json.dumps(chapters, ensure_ascii=False, indent=2))
+    final = BUILD / FINAL_NAME
     run([
         "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
         "-i", str(joined), "-i", str(bed), "-i", str(meta),
@@ -383,7 +444,7 @@ def assemble() -> Path:
         "[1:a]volume=0.9[b];[0:a][b]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[m];"
         "[m]loudnorm=I=-16:TP=-1.5:LRA=11[a]",
         "-map", "0:v", "-map", "[a]", "-map_metadata", "2",
-        "-c:v", "copy", "-c:a", "aac", "-b:a", "160k",
+        "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-ac", "2",
         "-movflags", "+faststart",
         str(final),
     ])
@@ -411,7 +472,9 @@ def main() -> None:
     parser.add_argument("--preview", action="store_true")
     parser.add_argument("--tts", action="store_true")
     parser.add_argument("--assemble-only", action="store_true")
+    parser.add_argument("--lang", choices=("en", "zh"), default="en")
     args = parser.parse_args()
+    configure(args.lang)
     BUILD.mkdir(parents=True, exist_ok=True)
     if args.preview:
         preview()

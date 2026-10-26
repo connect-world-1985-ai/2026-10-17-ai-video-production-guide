@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工具版图</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+<style>
+  .content { max-width: 1280px; }
+  .tool-table td:first-child { min-width: 180px; }
+  .tool-table td.desc { min-width: 280px; }
+  .fit { white-space: nowrap; }
+  .mat { font-size: 12px; font-weight: 700; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+  .mat.E { color: var(--ev-verified); background: var(--ev-verified-bg); }
+  .mat.M { color: var(--ev-practice); background: var(--ev-practice-bg); }
+  .mat.X { color: var(--ev-experimental); background: var(--ev-experimental-bg); }
+  .mat.R { color: var(--ev-unverified); background: var(--ev-unverified-bg); }
+  .cat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: .4rem 0 .8rem; }
+  .tool-name a { font-weight: 600; }
+</style>
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 6 页 · 交付物 C — 生态系统版图 · §4 与 §5</div>
+<h1>生态系统版图与工具浏览器</h1>
+<p class="lead">大约一百个重要的工具、模型和服务，按<b>功能</b>而不是按厂商分组，每一项都评了编程代理能把它驱动到什么程度。事实以 2026-10-17 所见为准；GitHub 星标是当天从 GitHub API 读到的。</p>
+
+<div class="callout warn"><span class="title">怎么读流行度数字</span>
+<p>GitHub 星标衡量的是开发者的<i>兴趣</i>，不是生产用量；排行榜 Elo 分数衡量的是<i>人对短提示的偏好</i>，不是在一条流水线里好不好用；而且当天两个主要的视频排行榜对第一名意见不一致（Artificial Analysis：Wan 3.0；LLM-Stats：Kling v3）。商业产品没有公布可比较的用量数据。所以这一页按证据把工具分组，而不是硬排一个总名次。<span class="ev i">推断</span></p></div>
+
+<h2>三个区分，免得选错工具</h2>
+<div class="cards">
+<div class="card"><h4>模型 ≠ 产品</h4><p>“Kling 3.0”是一个模型；Kling 应用、Kling API、Runway 的 API、fal 和 Adobe Firefly 是五个不同的<i>产品</i>，都在提供它——价格、限额和条款各不相同。</p></div>
+<div class="card"><h4>开发者工具 ≠ 终端用户应用</h4><p>一个很流行的消费级应用（CapCut、Midjourney、Suno）对代理可能完全没法用：没有官方 API，条款禁止自动化。</p></div>
+<div class="card"><h4>代理适配 ≠ 质量</h4><p>FFmpeg 的代理适配满分，自己却做不出好看的东西；Midjourney 能做出好看的图，却没有 API。两种你都需要。</p></div>
+</div>
+
+<h2>工具浏览器</h2>
+<p class="small muted">代理适配：<b>5</b> 代码/命令行，无界面，确定 · <b>4</b> 稳定的 API/SDK · <b>3</b> 有摩擦的 API，或本地搭建很重 · <b>2</b> 带部分脚本的图形界面应用 · <b>1</b> 只有图形界面 / 没有 API。成熟度：<span class="mat E">成熟</span> <span class="mat M">新兴</span> <span class="mat X">实验</span> <span class="mat R">退役或受限</span>。</p>
+<div class="cat-chips" id="cats"></div>
+<div class="toolbar">
+  <input type="search" id="q" placeholder="搜索工具、能力、备注……（例如口型同步、时间戳、Lambda）">
+  <select id="dep"><option value="">任何部署</option><option value="local">本地运行</option><option value="cloud">云端</option></select>
+  <select id="fit"><option value="0">任何代理适配</option><option value="4">代理适配 ≥ 4</option><option value="5">代理适配 = 5</option></select>
+  <select id="mat"><option value="">任何成熟度</option><option value="E">成熟</option><option value="M">新兴</option><option value="X">实验</option><option value="R">退役或受限</option></select>
+  <span class="count" id="count"></span>
+</div>
+<div class="table-wrap"><table class="tool-table compact" id="tools" data-sortable>
+<thead><tr><th>工具</th><th>类别</th><th>做什么</th><th>控制方式</th><th>部署</th><th>代理适配</th><th>成熟度</th><th>流行度证据</th><th>成本（截至日期）</th><th>局限</th></tr></thead>
+<tbody></tbody>
+</table></div>
+<p class="small muted">每个工具名都链到它的主要来源（官方文档、仓库或价格页；少数主要页面当时打不开，用了二手来源——那些行带<span class="ev u">未核实</span>徽章）。带全部来源的完整研究笔记：<a href="sources.html">资料页</a>。</p>
+
+<h2>流行度与采用，分开评估（§5）</h2>
+<p>任务书要求五项分开的评估。下面按主要类别给出，都是基于证据的分组。</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>类别</th><th>在视频制作里流行</th><th>在开发者里流行</th><th>最适合编程代理</th><th>在已记录的代理工作流里真正用过</th><th>成熟且可维护</th></tr></thead>
+<tbody>
+<tr><td><b>神经视频</b></td><td>Veo、Kling、Seedance、Runway、Wan（消费与片场都在用）</td><td>Wan 2.x、LTX、HunyuanVideo（开放权重）；fal/Replicate 托管</td><td>任何挂在稳定异步 API 后面的（经 Gemini API 的 Veo、聚合器上的模型）</td><td>ViMax 和 claude-code-video-toolkit 里经 API 用的 Veo、Seedance、LTX-2 和 FLUX</td><td>变动大：领先者每隔几个月就换；Sora 在上线后 18 个月内关停</td></tr>
+<tr><td><b>图像</b></td><td>Midjourney、GPT Image、Nano Banana、FLUX</td><td>FLUX、Stable Diffusion、ComfyUI、diffusers</td><td>GPT Image、Nano Banana、FLUX（API）；diffusers（本地）</td><td>Nano Banana、GPT Image 2、FLUX.2（ViMax、toolkit）</td><td>API 稳定；具体模型 ID 退役很快</td></tr>
+<tr><td><b>代码驱动的二维</b></td><td>After Effects（专业）、Manim（教育）</td><td>Remotion、HyperFrames、Manim、Motion Canvas</td><td>Remotion、HyperFrames、Manim（代码 + 无界面命令行）</td><td><b>所有类别里证据最强</b>：官方技能（Remotion、HyperFrames）、video-use、product-launch-video、Code2Video、TheoremExplainAgent</td><td>Remotion 和 Manim 成熟；HyperFrames 年轻但非常活跃</td></tr>
+<tr><td><b>三维</b></td><td>Blender、Unreal、Cinema 4D、Houdini、Maya</td><td>Blender、Three.js、Godot</td><td>Blender（Python + 无界面）、Three.js</td><td>Blender MCP 星标很多；端到端成片的说法是宣传</td><td>Blender 非常成熟；MCP 桥还年轻</td></tr>
+<tr><td><b>剪辑</b></td><td>Premiere、Resolve、Final Cut、CapCut</td><td>FFmpeg、MoviePy、OpenTimelineIO</td><td>FFmpeg（通用）、JSON 视频 API</td><td>几乎每条流水线都有 FFmpeg；Resolve MCP</td><td>FFmpeg 极其成熟；非线性剪辑的脚本 API 在变动</td></tr>
+<tr><td><b>语音</b></td><td>ElevenLabs 在人工智能语音上占主导</td><td>ElevenLabs、OpenAI、开源语音合成（VibeVoice、Chatterbox、Kokoro）</td><td>ElevenLabs、Azure（视素）、Polly（语音标记）</td><td>ElevenLabs（video-use、各种工具包）、本地的 Qwen3-TTS/Kokoro</td><td>云端语音合成成熟；PlayHT 在 2025 年关停，说明有厂商风险</td></tr>
+<tr><td><b>音乐</b></td><td>Suno（消费）、素材库（专业）</td><td>MusicGen、ACE-Step、Stable Audio</td><td>ElevenLabs Music、Lyria、Stable Audio（API/权重）</td><td>ACE-Step（toolkit）；模板化短视频里的素材库</td><td>法律环境未定；最出名的消费工具没有 API</td></tr>
+<tr><td><b>语音识别 / 字幕</b></td><td>做进剪辑软件里</td><td>Whisper 家族、WhisperX</td><td>WhisperX、faster-whisper、云端语音识别</td><td>ElevenLabs Scribe（video-use）、Whisper（许多仓库）</td><td>非常成熟</td></tr>
+</tbody></table></div>
+<p class="small muted">这些分组：<span class="ev i">推断</span>，依据本页的证据和研究笔记；单项事实在浏览器里各自带来源。</p>
+
+<h2>为什么有些工具变得流行</h2>
+<ul>
+<li><b>FFmpeg</b> — 它是唯一几乎什么格式都能读、都能写的工具，所以别的东西都包着它。代理继承了这种通用性。<span class="ev p">实践</span></li>
+<li><b>Remotion</b> — 它把视频变成一个 React 应用，于是网页开发者（以及因此在大量 React 上训练出来的大语言模型）可以用已有的本事做视频；确定性的逐帧渲染让结果可以复查。<span class="ev i">推断</span></li>
+<li><b>HyperFrames</b> — 2026 年上线时就明确说“给代理用”：用普通 HTML 而不是一套框架，打包好的技能，代理能调用的检查/预览/渲染命令。星标涨得非常快（七个月大约 65.7k），说明对代理原生视频工具的需求有多大。<span class="ev v">已核对</span>的数字 / <span class="ev i">推断</span>的解读</li>
+<li><b>Manim</b> — 一个著名 YouTube 频道的工具公开了；公式和几何看起来清晰、正确。<span class="ev p">实践</span></li>
+<li><b>ComfyUI</b> — 节点图让复杂的开源模型流水线可以当成 JSON 文件分享；后来又加了调用封闭模型的付费 API 节点，于是成了两边的枢纽。<span class="ev p">实践</span></li>
+<li><b>Blender</b> — 免费、完整，而且能用 Python 完全写脚本；唯一一套代理能装上、能驱动、又没有许可摩擦的专业级三维套件。<span class="ev p">实践</span></li>
+<li><b>ElevenLabs</b> — 语音质量加上对开发者友好的 API 来得早，后来又扩到配音、音乐、音效和转写。<span class="ev p">实践</span></li>
+<li><b>封闭视频模型</b> — 质量跳跃让头名每隔几个月就换；采用跟着排行榜和价格走，不跟着忠诚走。要预料到更替。<span class="ev i">推断</span></li>
+</ul>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script src="../assets/js/data-tools.js"></script>
+<script src="../assets/js/data-tools-zh.js"></script>
+<script>
+window.PAGE_INIT = function () {
+  var tools = window.TOOLS || [], cats = window.TOOL_CATS || {};
+  var catsZh = window.TOOL_CATS_ZH || {};
+  var zhMap = window.TOOL_ZH || {};
+  var state = { cat: "", q: "", dep: "", fit: 0, mat: "" };
+  var MAT = { E: "成熟", M: "新兴", X: "实验", R: "退役" };
+  var EVN = { v: "", p: "", u: ' <span class="ev u">未核实</span>' };
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function dots(n) { var s = ""; for (var i = 1; i <= 5; i++) s += i <= n ? "●" : '<span class="off">●</span>'; return '<span class="dots" title="' + n + '/5">' + s + "</span>"; }
+  function catLabel(k) { return catsZh[k] || cats[k] || ""; }
+  function field(zh, key, en) {
+    if (zh && typeof zh[key] === "string") return zh[key];
+    return en;
+  }
+  var chipBox = document.getElementById("cats");
+  var html = '<button class="chip" data-cat="" aria-pressed="true">全部 (' + tools.length + ")</button>";
+  Object.keys(cats).forEach(function (k) {
+    var n = tools.filter(function (t) { return t.c === k; }).length;
+    html += '<button class="chip" data-cat="' + k + '" aria-pressed="false">' + esc(catLabel(k)) + " (" + n + ")</button>";
+  });
+  chipBox.innerHTML = html;
+  chipBox.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    state.cat = b.getAttribute("data-cat");
+    Array.prototype.forEach.call(chipBox.children, function (c) { c.setAttribute("aria-pressed", c === b ? "true" : "false"); });
+    render();
+  });
+  document.getElementById("q").addEventListener("input", function (e) { state.q = e.target.value.toLowerCase(); render(); });
+  document.getElementById("dep").addEventListener("change", function (e) { state.dep = e.target.value; render(); });
+  document.getElementById("fit").addEventListener("change", function (e) { state.fit = +e.target.value; render(); });
+  document.getElementById("mat").addEventListener("change", function (e) { state.mat = e.target.value; render(); });
+  function render() {
+    var tb = document.querySelector("#tools tbody"), rows = "", n = 0;
+    tools.forEach(function (t) {
+      if (state.cat && t.c !== state.cat) return;
+      if (state.mat && t.m !== state.mat) return;
+      if (t.a < state.fit) return;
+      var zh = zhMap[t.n] || null;
+      if (state.dep) {
+        var depHay = (t.dep + " " + ((zh && zh.dep) || "")).toLowerCase();
+        if (state.dep === "local") {
+          if (depHay.indexOf("local") < 0 && depHay.indexOf("本地") < 0) return;
+        } else if (state.dep === "cloud") {
+          if (depHay.indexOf("cloud") < 0 && depHay.indexOf("云") < 0) return;
+        } else if (depHay.indexOf(state.dep) < 0) return;
+      }
+      var r = field(zh, "r", t.r), d = field(zh, "d", t.d), ctl = field(zh, "ctl", t.ctl);
+      var dep = field(zh, "dep", t.dep), p = field(zh, "p", t.p), l = field(zh, "l", t.l);
+      var hay = (t.n + " " + t.r + " " + t.d + " " + t.ctl + " " + t.dep + " " + t.l + " " + t.p + " " + (cats[t.c] || "") + " " +
+        r + " " + d + " " + ctl + " " + dep + " " + l + " " + p + " " + catLabel(t.c)).toLowerCase();
+      if (state.q && hay.indexOf(state.q) < 0) return;
+      n++;
+      rows += "<tr><td class=\"tool-name\"><a href=\"" + esc(t.s) + "\" target=\"_blank\" rel=\"noopener\">" + esc(t.n) + "</a>" + EVN[t.ev || "p"] + "<div class=\"small muted\">" + esc(r) + "</div></td>" +
+        "<td>" + esc(catLabel(t.c)) + "</td><td class=\"desc\">" + esc(d) + "</td><td>" + esc(ctl) + "</td><td>" + esc(dep) + "</td>" +
+        "<td class=\"fit\" data-v=\"" + t.a + "\">" + dots(t.a) + "</td><td data-v=\"" + t.m + "\"><span class=\"mat " + t.m + "\">" + MAT[t.m] + "</span></td>" +
+        "<td>" + esc(p) + "</td><td>" + esc(t.$) + "</td><td>" + esc(l) + "</td></tr>";
+    });
+    tb.innerHTML = rows || '<tr><td colspan="10" class="muted">没有工具符合这些筛选。</td></tr>';
+    document.getElementById("count").textContent = "显示 " + n + " / " + tools.length;
+  }
+  render();
+};
+</script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

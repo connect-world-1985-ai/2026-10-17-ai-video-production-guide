@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>决策框架</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+<style>
+  .q { margin: .5rem 0; }
+  .q label { display: block; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; margin: 4px 0; cursor: pointer; background: var(--bg-elev); }
+  .q label:hover { border-color: var(--accent); }
+  .q input { margin-right: 8px; }
+  #rec .card { box-shadow: none; }
+  .score { font-variant-numeric: tabular-nums; font-weight: 700; }
+</style>
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 13 页 · §13 + 交付物 G — 技术决策矩阵</div>
+<h1>决策框架：为每个镜头选择方法</h1>
+<p class="lead">人工智能视频导演——人或代理——的核心技能，是把每个镜头路由到对的机器。这一页给出规则、一张取舍矩阵、一个交互助手，以及三套参考技术栈。</p>
+
+<h2>试一试：这个镜头用哪种做法？</h2>
+<p class="small muted">勾选对<b>一个镜头</b>成立的项。这个助手用本页的路由规则。<span class="ev i">推断</span>——教学用具，不是神谕。</p>
+<div class="card" style="box-shadow:none">
+<div class="q" id="helper">
+<label><input type="checkbox" value="text"> 要显示精确的文字、数字、公式、图表或界面</label>
+<label><input type="checkbox" value="physics"> 运动必须在物理上或技术上正确</label>
+<label><input type="checkbox" value="photo"> 需要照片级或电影感的观感</label>
+<label><input type="checkbox" value="organic"> 有机主体：自然、人群、天气、正在活动的人</label>
+<label><input type="checkbox" value="real"> 必须如实呈现真实事件、真实产品或真实的人</label>
+<label><input type="checkbox" value="presenter"> 一个人对着镜头说话</label>
+<label><input type="checkbox" value="recurring"> 一个角色或物体会在很多镜头里反复出现，而且必须保持一致</label>
+<label><input type="checkbox" value="budget"> 预算非常紧 / 没有显卡</label>
+<label><input type="checkbox" value="fast"> 必须能快速、可重复地修改</label>
+<label><input type="checkbox" value="calm"> 这是口播下的平静镜头（没有具体动作）</label>
+</div>
+<div id="rec"></div>
+</div>
+
+<h2>背后的规则</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>问题</th><th>经验法则</th></tr></thead>
+<tbody>
+<tr><td>生成式视频，还是代码驱动的动画？</td><td>如果镜头里有任何东西必须<i>精确正确</i>（文字、数据、机制、品牌），用代码 / 渲染。如果它只需要<i>看起来合理、而且好看</i>，生成式视频更便宜。如果两者都要：精确的部分用渲染，其余用生成，再合成（D4），或者给一次渲染换风格（D2）。</td></tr>
+<tr><td>什么时候三维渲染更好？</td><td>物体必须在很多镜头里保持一致；摄像机必须精确移动；机制或物理必须正确；你需要同一场景的很多变体。</td></tr>
+<tr><td>什么时候先生成静帧？</td><td>几乎总是在图生视频之前：静帧便宜，生成和检查都便宜，能修构图和身份，并给图生视频一个精确的起点。</td></tr>
+<tr><td>外部接口，还是本地推理？</td><td>要最好的质量、又不想备硬件，用接口；要隐私、大批量时的成本、确定性的重跑，以及许可允许的开源模型，用本地。按你所在地区核对开源模型许可（有的排除欧盟）。</td></tr>
+<tr><td>声音分开生成吗？</td><td>有口播的多镜头视频要分开（声音一致、用词精确、分轨、字幕）。原生音频适合短的独立片段和环境声。</td></tr>
+<tr><td>用专业剪辑软件吗？</td><td>给人做收尾（调色、混音、客户审阅）——通过时间线交接（FCPXML/OTIO）。不要把它当代理的主引擎，除非它有稳定的脚本接口（Resolve Studio）。</td></tr>
+<tr><td>什么容易精确自动化？</td><td>渲染代码、组装、从时间戳来的时间、字幕、响度、编码、元数据检查、局部重建。</td></tr>
+<tr><td>什么仍然是概率的？</td><td>任何生成式产出（视频、图像、语音的韵律、音乐）、人工智能对质量的判断，以及代理自己的创作选择。</td></tr>
+<tr><td>怎样组合才能得到专业结果？</td><td>确定性的骨架（剧本、时间线、渲染、混音）+ 带参考的生成式插入 + 统一的观感（调色、字体、声音）+ 人的检查点。</td></tr>
+</tbody></table></div>
+
+<h2>取舍矩阵</h2>
+<p class="small muted">5 = 最好。针对一套典型的 2026 年配置的相对评分。依据第 2–12 页的<span class="ev i">推断</span>。</p>
+<div class="table-wrap"><table class="compact" data-sortable>
+<thead><tr><th>维度</th><th>A 生成式视频</th><th>B 二维代码</th><th>B 三维渲染</th><th>C 组装 / 素材库</th><th>A4 数字人</th></tr></thead>
+<tbody>
+<tr><td>视觉质量（照片级）</td><td>5</td><td>2</td><td>4</td><td>4</td><td>4</td></tr>
+<tr><td>创作控制（精确度）</td><td>2</td><td>5</td><td>5</td><td>3</td><td>3</td></tr>
+<tr><td>跨镜头一致性</td><td>2</td><td>5</td><td>5</td><td>3</td><td>5</td></tr>
+<tr><td>确定性 / 可复现性</td><td>1</td><td>5</td><td>5</td><td>5</td><td>3</td></tr>
+<tr><td>代理能自动化的程度</td><td>4</td><td>5</td><td>3</td><td>5</td><td>5</td></tr>
+<tr><td>到第一个结果的速度</td><td>5</td><td>3</td><td>2</td><td>4</td><td>5</td></tr>
+<tr><td>边际成本（5 = 最便宜）</td><td>2</td><td>5</td><td>4</td><td>4</td><td>3</td></tr>
+<tr><td>硬件需求（5 = 最少）</td><td>5（接口）/ 1（本地）</td><td>5</td><td>3</td><td>5</td><td>5</td></tr>
+<tr><td>长期可维护性</td><td>2（模型更迭快）</td><td>5</td><td>4</td><td>4</td><td>3</td></tr>
+<tr><td>与代理的契合</td><td>4</td><td>5</td><td>4</td><td>5</td><td>4</td></tr>
+</tbody></table></div>
+
+<h2>参考技术栈：入门 → 高级</h2>
+<p>给使用编程代理的 Windows 工程师的示意架构——不是万能方案。工具名是某一类的例子；替代品见<a href="06-ecosystem.html">工具图</a>。</p>
+<div data-tabs>
+<div class="tabs"><button data-tab="s1">入门</button><button data-tab="s2">进阶</button><button data-tab="s3">高级</button></div>
+<div class="tab-panel" data-panel="s1">
+<h4>目标：有口播的讲解片和产品视频，大多由代码驱动</h4>
+<ul>
+<li><b>代理</b>：Claude Code / Codex / Cursor，加上一套视频技能包（Remotion 技能或 HyperFrames 技能；或 Manim）。</li>
+<li><b>画面</b>：一个代码框架（基于 React/HTML，或 Manim）。少量生成的空镜，走单一接口（例如某个主要模型的 “Fast/Lite” 档）。</li>
+<li><b>声音</b>：一家云端语音合成（或许可合适时用本地开源模型）；词的时间来自厂商，或来自 faster-whisper。</li>
+<li><b>音乐</b>：已获许可的资料库曲目，或带商用条款的音乐接口。</li>
+<li><b>组装</b>：框架的渲染器 + FFmpeg；字幕来自时间戳；两遍响度。</li>
+<li><b>质检</b>：ffprobe、响度、语音识别对照剧本、代理在提示点检查静帧；你看结果。</li>
+<li><b>成本画像</b>：主要是代理 token + 几美分的语音合成 + 几美元的生成空镜。</li>
+</ul>
+</div>
+<div class="tab-panel" data-panel="s2">
+<h4>目标：纪录片风格和营销视频，技术混用</h4>
+<ul>
+<li>入门里的一切，再加上：</li>
+<li>用图像模型加参考图做<b>关键帧</b>；<b>图生视频</b>走聚合器（fal/Replicate/Runway API），外面套你自己的适配器。</li>
+<li><b>三维</b>：用 Python 无界面驱动 Blender（可选经 MCP 服务器）。</li>
+<li><b>把项目当成一次构建</b>：shotlist.json + timeline.json + 带输入哈希的依赖图；异步生成的任务表；成本账。</li>
+<li><b>质检栈</b>：检测器 + 文字识别 + 帧交给视觉模型 + 用能看视频的模型做一遍整片 + 人的关卡。</li>
+<li><b>来源</b>：带许可的资产清单；用 C2PA 给最终导出签名。</li>
+</ul>
+</div>
+<div class="tab-panel" data-panel="s3">
+<h4>目标：电影感、靠角色推动，或大批量制作</h4>
+<ul>
+<li>进阶里的一切，再加上：</li>
+<li><b>本地或租来的显卡</b>，在 ComfyUI 里跑许可兼容的开源模型（例如 Apache-2.0 的 Wan 2.2，营收门槛内的 LTX-2.5），用来便宜地迭代；用 LoRA 做角色和产品；用控制信号（深度 / 姿态）做 D2 再风格化。</li>
+<li><b>计算机图形加人工智能的混合</b>：精确摄像机的三维粗模 → 视频生视频再风格化；数字人 / 口型同步，并留同意记录。</li>
+<li><b>导演加子代理</b>：并行的镜头搭建者和专门的批评者（连续性、可读性、节奏、品牌），上面有一个协调者。</li>
+<li><b>收尾交接</b>给专业非线性剪辑软件（OTIO/FCPXML）做调色和混音；多格式交付；本地化。</li>
+<li><b>运维</b>：容器化的工具链、钉死的版本、每个密钥的花费上限、监视模型弃用。</li>
+</ul>
+</div>
+</div>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script>
+window.PAGE_INIT = function () {
+  var box = document.getElementById("helper"), out = document.getElementById("rec");
+  var R = {
+    A: { n: "A · 生成式视频（从设计好的静帧做图生视频）", c: "a" },
+    B2: { n: "B · 代码驱动的二维动画", c: "b" },
+    B3: { n: "B · 三维渲染（加模拟）", c: "b" },
+    C: { n: "C · 实拍 / 屏幕录制 / 已获许可的资料影像", c: "c" },
+    C1: { n: "C1 · 静帧加慢速运动（平移 / 缩放 / 视差）", c: "c" },
+    AV: { n: "A4 · 数字人或实拍出镜（须有同意）", c: "a" },
+    D: { n: "D · 混合：精确部分用渲染，观感用生成，再合成", c: "d" }
+  };
+  function decide(s) {
+    var sc = { A: 0, B2: 0, B3: 0, C: 0, C1: 0, AV: 0, D: 0 }, why = [];
+    if (s.text) { sc.B2 += 4; sc.D += 2; sc.A -= 3; why.push("精确的文字或数据 → 只有渲染能保证正确。"); }
+    if (s.physics) { sc.B3 += 4; sc.B2 += 1; sc.D += 1; sc.A -= 3; why.push("运动必须正确 → 用模拟或关键帧；生成模型只是在模仿看起来合理。"); }
+    if (s.photo) { sc.A += 3; sc.D += 2; sc.C += 1; sc.B2 -= 2; why.push("照片级观感 → 用生成式视频或实拍；三维做到照片级很贵。"); }
+    if (s.organic) { sc.A += 3; sc.C += 1; sc.B3 -= 1; why.push("有机主体正是生成模型擅长的地方，三维则很贵。"); }
+    if (s.real) { sc.C += 5; sc.A -= 2; why.push("如实呈现 → 用实拍或录制；任何重构都要标明。"); }
+    if (s.presenter) { sc.AV += 5; why.push("对着镜头说话的人 → 用数字人平台，或录一个真人。"); }
+    if (s.recurring) { sc.B3 += 2; sc.B2 += 1; sc.D += 1; sc.A -= 1; why.push("反复出现的身份 → 用渲染资产，或很强的参考图 / LoRA。"); }
+    if (s.budget) { sc.B2 += 2; sc.C1 += 3; sc.A -= 1; sc.B3 -= 1; why.push("预算很紧 → 代码和静帧几乎不花钱。"); }
+    if (s.fast) { sc.B2 += 2; sc.B3 += 1; sc.C1 += 1; sc.A -= 1; why.push("要能反复修改 → 用确定性方法。"); }
+    if (s.calm) { sc.C1 += 3; sc.A += 1; why.push("平静的口播底 → 一张选得好的静帧加慢速运动，往往就够了。"); }
+    if (s.text && (s.photo || s.organic)) { sc.D += 3; why.push("精确叠层加上写实底片 → 经典的混合合成（D4），或计算机图形到视频的再风格化（D2）。"); }
+    if (s.physics && s.photo) { sc.D += 3; }
+    return { sc: sc, why: why };
+  }
+  function render() {
+    var s = {};
+    Array.prototype.forEach.call(box.querySelectorAll("input"), function (i) { s[i.value] = i.checked; });
+    var any = Object.keys(s).some(function (k) { return s[k]; });
+    if (!any) { out.innerHTML = '<p class="muted">至少勾一项。</p>'; return; }
+    var r = decide(s), keys = Object.keys(r.sc).sort(function (a, b) { return r.sc[b] - r.sc[a]; });
+    var top = keys.filter(function (k) { return r.sc[k] > 0; }).slice(0, 3);
+    if (!top.length) top = ["B2"];
+    var h = '<div class="cards">';
+    top.forEach(function (k, i) {
+      h += '<div class="card ' + R[k].c + '"><h4>' + (i === 0 ? "最合适：" : "也可以考虑：") + R[k].n + '</h4><p class="score">分数 ' + r.sc[k] + "</p></div>";
+    });
+    h += "</div><ul>" + r.why.map(function (w) { return "<li>" + w + "</li>"; }).join("") + "</ul>";
+    out.innerHTML = h;
+  }
+  box.addEventListener("change", render); render();
+};
+</script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

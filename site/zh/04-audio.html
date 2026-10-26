@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>音频：语音、音乐、音效与混音</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 4 页 · 交付物 D — 技术基础（第 3 部分）</div>
+<h1>音频：语音、音乐、音效与混音</h1>
+<p class="lead">声音对一条视频观感的影响，比多数工程师以为的更大。在讲解片里，口播通常给其他一切定时间。这一页讲每种声音怎么生成，以及声音和画面怎么接在一起。</p>
+
+<h2>四层声音</h2>
+<div class="cards">
+<div class="card"><h4>对白 / 口播</h4><p>信息的载体。语音合成（TTS）、克隆或设计出来的声音，或真人录音。必须比其他一切都听得清。</p></div>
+<div class="card"><h4>音乐</h4><p>情绪和节奏。生成的、从素材库取得授权的，或专门写的。说话时通常要压低。</p></div>
+<div class="card"><h4>音效（SFX）与拟音</h4><p>具体事件：发动机点火、一声点击、转场时的嗖声。可以生成、来自素材库，或由视频模型直接带出来。</p></div>
+<div class="card"><h4>环境声 / 房间底噪</h4><p>连续的背景（风声、控制室的嗡声），让切换显得连贯，也让安静显得自然。</p></div>
+</div>
+
+<h2>语音合成怎么工作</h2>
+<figure class="diagram">
+<svg viewBox="0 0 860 220" role="img" aria-label="语音合成流水线">
+  <defs><marker id="au1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-accent"/></marker></defs>
+  <rect x="10" y="40" width="150" height="70" rx="8" class="box-accent"/><text x="22" y="66" class="t-title">文本</text><text x="22" y="86" class="t-muted">“Max-Q，T+62 秒”</text>
+  <rect x="195" y="40" width="160" height="70" rx="8" class="box"/><text x="207" y="66" class="t-title">文本前端</text><text x="207" y="86" class="t-muted">规范化、转音素</text><text x="207" y="100" class="t-muted">“T 加六十二秒”</text>
+  <rect x="390" y="40" width="200" height="70" rx="8" class="box-a"/><text x="402" y="66" class="t-a">声学模型</text><text x="402" y="86" class="t-muted">预测音频词元或频谱</text><text x="402" y="100" class="t-muted">条件是音色提示</text>
+  <rect x="625" y="40" width="220" height="70" rx="8" class="box"/><text x="637" y="66" class="t-title">解码器 / 声码器</text><text x="637" y="86" class="t-muted">词元或频谱 → 波形</text>
+  <rect x="390" y="140" width="200" height="54" rx="8" class="box-accent"/><text x="402" y="162" class="t-title">音色参考</text><text x="402" y="180" class="t-muted">几秒说话人音频</text>
+  <path d="M160,75 L192,75" class="line-accent" marker-end="url(#au1)"/>
+  <path d="M355,75 L387,75" class="line-accent" marker-end="url(#au1)"/>
+  <path d="M590,75 L622,75" class="line-accent" marker-end="url(#au1)"/>
+  <path d="M490,140 L490,113" class="line-accent" marker-end="url(#au1)"/>
+  <text x="625" y="150" class="t-muted">对成片有用的可选输出：</text>
+  <text x="625" y="168" class="t-muted">• 字或词的时间戳</text>
+  <text x="625" y="186" class="t-muted">• 视素（嘴型）事件</text>
+</svg>
+</figure>
+<p>现在的系统大体分两族<span class="ev v">已核对</span>（来自原始论文）：</p>
+<ul>
+<li><b>编解码器语言模型。</b>神经音频编解码器（<a href="https://arxiv.org/abs/2107.03312">SoundStream</a>、<a href="https://arxiv.org/abs/2210.13438">EnCodec</a>）把音频压成离散词元。一个 Transformer——本质上是大语言模型——根据文本再加一小段声音样本，预测这些词元。<a href="https://arxiv.org/abs/2301.02111">VALL-E</a>用这种方式，从 3 秒提示做到了零样本声音克隆。韵律很自然；偶尔会漏词或重复，和任何抽样的大语言模型输出一样。</li>
+<li><b>扩散 / 流匹配模型。</b>一次生成整句的频谱或潜特征（例如 <a href="https://arxiv.org/abs/2410.06885">F5-TTS</a>），再解码。思路和图像/视频扩散是同一族（<a href="02-neural-video.html">第 2 页</a>）。</li>
+</ul>
+<p>你能控制的：文本（标点就是韵律）、音色、语速，以及较新模型上的情绪/风格标签或自然语言指令（“平静，纪录片语气”）。大的云端语音服务支持 SSML 标记（停顿、重音、读音）。<span class="ev p">实践</span></p>
+
+<div class="callout warn"><span class="title">技术视频里，读音是 TTS 的经典故障</span>
+<p>缩写、件号、单位和名字（“Starship”、“LOX”、“T-minus”、“Δv”）是 TTS 容易读错的地方。代理应为项目留一份<b>读音词表</b>（按读音改写，或 SSML 音素），再用语音识别跑一遍输出，和剧本做差异来核对。<span class="ev i">推断</span></p></div>
+
+<h2>音乐和音效怎么生成</h2>
+<div class="cards">
+<div class="card"><h4>词元语言模型</h4><p>音乐是 Transformer 预测的编解码器词元，以文本为条件（可选旋律）。例子：Meta 的 <a href="https://arxiv.org/abs/2306.05284">MusicGen</a>。<span class="ev v">已核对</span></p></div>
+<div class="card"><h4>带时长的潜空间扩散</h4><p>在压缩音频潜表示上做扩散 Transformer，条件既有文本，也有开始时间和总时长，所以你可以要求“恰好 47 秒”。例子：<a href="https://arxiv.org/abs/2402.04825">Stable Audio</a>。Stable Audio 3.0（2026 年 5 月）发布了用已授权数据训练的开放权重小/中模型。<span class="ev v">已核对</span></p></div>
+<div class="card"><h4>带人声的歌曲生成器</h4><p>商业产品能生成带歌词的整首歌。领先消费产品的架构没有公开。<span class="ev u">未核实</span>的内部细节。法律地位要紧——见下文。</p></div>
+<div class="card"><h4>视频生音频（拟音）</h4><p>看着一段无声片段，生成同步的声音（撞击、发动机、脚步），例如开放的 MMAudio。适合没有声音的生成镜头或渲染镜头。<span class="ev p">实践</span></p></div>
+</div>
+<p>影响工具选择的现状（2026 年 10 月）：领先的消费级歌曲生成器 Suno <b>没有官方公开 API</b>——网上卖的“Suno API”是非官方封装；Udio 在 2025 年 10 月与唱片公司和解后关闭了下载；ElevenLabs 和 Google（Lyria）通过 API 提供音乐生成。细节和日期见<a href="06-ecosystem.html">第 6 页</a>和<a href="12-engineering-legal.html">第 12 页</a>。<span class="ev v">已核对</span>（厂商发行说明和行业报道，2026-10-17）</p>
+
+<h2>视频模型自带声音，还是单独做一条音频流水线</h2>
+<div class="table-wrap"><table>
+<thead><tr><th></th><th>视频模型原生带出的声音</th><th>单独的音频流水线</th></tr></thead>
+<tbody>
+<tr><td>例子（2026 年 10 月）</td><td>Google Veo 3.1、Kling 3.0、ByteDance Seedance 2.0、Alibaba Wan 2.6、Lightricks LTX-2（开放权重）都是声画一起生成。OpenAI 的 Sora 2 也曾如此，但 OpenAI 已关停 Sora（应用 2026-04-26 关闭，API 2026-09-24 停止）。</td><td>TTS + 音乐 + 音效 + ASR + 混音，每样一个工具</td></tr>
+<tr><td>画面事件的同步</td><td>一段之内很好（撞击、口型）</td><td>必须用时间戳或视频生音频模型来对齐</td></tr>
+<tr><td>两分钟里叙述者一致</td><td>差（每段各自生成）</td><td>好（同一音色、同一设置）</td></tr>
+<tr><td>用词是否精确</td><td>通常接近，不保证</td><td>精确（用 ASR 核对）</td></tr>
+<tr><td>混音控制</td><td>一条混好的轨，没有分轨</td><td>完整：分轨、压低、响度</td></tr>
+<tr><td>字幕</td><td>事后还要跑 ASR</td><td>剧本和时间戳已经有了</td></tr>
+<tr><td>最适合</td><td>短的电影感瞬间、社交短片、对白场面</td><td>有口播、要剪辑的多镜头视频</td></tr>
+</tbody></table></div>
+<p class="small muted">模型名单：厂商页面和报道，2026-10-17；其中几条经二手汇总<span class="ev p">实践</span>。Sora 的时间线由多家媒体确认，包括 <a href="https://engadget.com/ai/openai-is-shutting-down-its-sora-video-generation-app-211023358.html">Engadget</a> 和 <a href="https://the-decoder.com/openai-sets-two-stage-sora-shutdown-with-app-closing-april-2026-and-api-following-in-september/">The Decoder</a> <span class="ev v">已核对</span>。</p>
+
+<h2>时间：声音和画面怎么对齐</h2>
+<p>有口播的视频，业界习惯是<b>先定声音</b>：锁住口播，再把画面切到它上面。<span class="ev p">实践</span> 对代理来说，这变成一条具体的数据流：</p>
+<ol class="stepper">
+<li><b>剧本 → 分段。</b>把口播切成对应镜头或节拍的段（例如一个镜头一段）。</li>
+<li><b>逐段合成</b>（以后好重做某一句），或整篇一起合成（更顺）——然后量出每段的时长。</li>
+<li><b>取得逐词时间。</b>要么来自 TTS 厂商（ElevenLabs 返回字符级对齐；Azure 给出词边界和视素事件；Amazon Polly 返回 “speech marks”），要么对音频做强制对齐 / 带词时间戳的 ASR（WhisperX、faster-whisper）。<span class="ev v">已核对</span>（厂商文档，2026-10-17）</li>
+<li><b>从这些时间推出镜头时长和提示点</b>：镜头 4 等于第 4 段再加一次换气；“支腿展开”的动画从“支腿”这个词开始。</li>
+<li><b>按这些时长生成或渲染画面</b>，音乐裁到总长度，音效放在提示点上。</li>
+<li><b>用同一套词时间做字幕</b>（剧本已知时，不必再跑一遍 ASR）。</li>
+</ol>
+<figure class="diagram">
+<svg viewBox="0 0 860 170" role="img" aria-label="口播的词驱动动画提示点">
+  <line x1="20" y1="40" x2="840" y2="40" class="line"/>
+  <text x="20" y="28" class="t-muted">口播（逐词时间戳）</text>
+  <rect x="40" y="48" width="70" height="22" rx="4" class="box-accent"/><text x="46" y="64" class="t-muted">高度</text>
+  <rect x="114" y="48" width="90" height="22" rx="4" class="box-accent"/><text x="120" y="64" class="t-muted">四十</text>
+  <rect x="208" y="48" width="110" height="22" rx="4" class="box-accent"/><text x="214" y="64" class="t-muted">米时，</text>
+  <rect x="340" y="48" width="70" height="22" rx="4" class="box-accent"/><text x="346" y="64" class="t-muted">着陆</text>
+  <rect x="414" y="48" width="90" height="22" rx="4" class="box-accent"/><text x="420" y="64" class="t-muted">支腿</text>
+  <rect x="508" y="48" width="120" height="22" rx="4" class="box-accent"/><text x="514" y="64" class="t-muted">展开。</text>
+  <line x1="414" y1="70" x2="414" y2="130" class="line-loop"/>
+  <rect x="414" y="100" width="300" height="24" rx="4" class="box-b"/><text x="422" y="117" class="t-muted">动画：支腿展开（从该词开始）</text>
+  <rect x="508" y="132" width="60" height="22" rx="4" class="box-c"/><text x="512" y="148" class="t-muted">咔嗒</text>
+  <text x="20" y="117" class="t-muted">提示点 = 该词起点 →</text>
+</svg>
+<figcaption>时间戳驱动动画之后，重录口播（换声音、加快语速）会自动重排整条片子的时间。这是代码流水线好改的一个关键原因。</figcaption>
+</figure>
+
+<h3>试一试：这段口播要多长？</h3>
+<p>纪录片口播，英语大约每分钟 130–160 词。<span class="ev p">实践</span> 贴一段稿子估算时长。中文按字计，滑块范围是每分钟 180–320 字，所以一条两分钟的视频大约能放下 360–640 字。</p>
+<div class="card" style="box-shadow:none">
+<textarea id="nar" rows="5" style="width:100%;font:inherit;font-size:14px;padding:8px;border:1px solid var(--border-strong);border-radius:6px;background:var(--bg);color:var(--fg)">火箭曾经飞一次就被丢掉。今天，有些运载火箭的第一级会飞回来，用自己的发动机减速，再竖着落在发射台或海上的船上。一座从太空边缘掉下来的钢塔，怎么能在只剩几秒燃料的时候，恰好停在目标上？</textarea>
+<div class="toolbar"><label for="wpm">语速</label><input id="wpm" type="range" min="180" max="320" value="240"><span id="wpmv" class="count"></span></div>
+<p id="narout" style="margin:.2rem 0;font-weight:600"></p>
+</div>
+
+<h2>口型同步和视素</h2>
+<p>动画角色或数字人的嘴必须对上声音。两条路：（1）TTS 给出的<b>视素事件</b>——Azure AI Speech 发出 22 个带时间的视素编号，以及三维混合变形帧（60 fps 下 55 个值），可以驱动面部绑定<span class="ev v">已核对</span>（<a href="https://learn.microsoft.com/en-us/azure/ai-services/speech-service/how-to-speech-synthesis-viseme">Microsoft 文档</a>）；（2）<b>神经口型同步</b>模型，直接按音频改视频帧（数字人平台和开放模型，见<a href="06-ecosystem.html">第 6 页</a>）。路线 1 对渲染出来的角色精确且确定；照片级人脸只能走路线 2。</p>
+
+<h2>混音：让各层坐在一起</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>概念</th><th>意思</th><th>能自动化吗？</th></tr></thead>
+<tbody>
+<tr><td>增益结构</td><td>设定每条轨的电平，让语音清楚地在最上面</td><td>能（量出来的电平）</td></tr>
+<tr><td>压低（侧链压缩）</td><td>人声一出现，音乐自动掉几 dB</td><td>能（FFmpeg 的 <code>sidechaincompress</code>，或按词时间做音量关键帧）</td></tr>
+<tr><td>EQ</td><td>切掉音乐里和人声打架的频段（大约 1–4 kHz 的存在感区间）</td><td>部分能（预设）</td></tr>
+<tr><td>响度规范化</td><td>打到目标综合响度（LUFS），并设真峰值上限</td><td>能（两遍的 FFmpeg <code>loudnorm</code>、pyloudnorm、Auphonic API）</td></tr>
+<tr><td>淡化和交叉淡化</td><td>避免切口的咔哒声；让音乐过渡顺滑</td><td>能</td></tr>
+<tr><td>清理</td><td>降噪、去混响、把人声和音乐分开（分轨）</td><td>能（Demucs/UVR 式分离、降噪器）</td></tr>
+<tr><td>口味</td><td>音乐是不是太煽情？嗖声是不是显得廉价？</td><td>很弱（人工智能评判能评论；人来定）</td></tr>
+</tbody></table></div>
+<div class="callout key"><span class="title">你会遇到的响度目标</span>
+<p><b>EBU R128</b>（欧洲广播）：综合 −23 LUFS，真峰值最大 −1 dBTP。<b>ATSC A/85</b>（美国广播）：−24 LKFS。<span class="ev v">已核对</span>（<a href="https://tech.ebu.ch/publications/r128">EBU</a>）。网上平台大约 <b>−14 LUFS</b> 是 YouTube 和流媒体常用的参考，因为更响的上传会被压下去——但没有官方 YouTube 页面这么写。作为官方规范<span class="ev u">未核实</span>；广泛使用，属<span class="ev p">实践</span>。LUFS 和 LKFS 是同一种 ITU-R BS.1770 测量。</p></div>
+
+<h2>代理能在声音上客观检查什么</h2>
+<ul>
+<li><b>词</b>：对终混跑 ASR，和剧本做差异（词错误率）；能抓住 TTS 漏词、读错成另一个词，以及音乐盖住人声。<span class="ev p">实践</span></li>
+<li><b>电平</b>：综合响度、真峰值、响度范围；有人声处的人声对音乐之比。</li>
+<li><b>时间</b>：提示点对动画事件帧；段与段之间的空隙和重叠；总时长对目标。</li>
+<li><b>削波、静音、直流偏移、采样率不一致</b>：量起来很简单。</li>
+<li><b>很难自动检查的</b>：声音听起来是否自然、有没有把握，音乐是否合情绪，音效是否显得廉价。能听音频的多模态模型可以给意见，但只当弱信号。<span class="ev i">推断</span></li>
+</ul>
+
+<h2>权利、同意和声音</h2>
+<p>克隆真人的声音需要本人同意；主要厂商对专业克隆有核验（ElevenLabs 要求声音所有者核验）。生成音乐有进行中的诉讼，商用权利看套餐；很多免费档不能商用。开放 TTS 模型的许可混杂（有的是 MIT/Apache，有的是自定义或非商用）。全文见<a href="12-engineering-legal.html">第 12 页</a>。<span class="ev v">已核对</span>（厂商帮助页，2026-10-17）</p>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script>
+window.PAGE_INIT = function () {
+  var ta = document.getElementById("nar"), r = document.getElementById("wpm");
+  var v = document.getElementById("wpmv"), out = document.getElementById("narout");
+  function countUnits(s) {
+    var han = (s.match(/[\u4e00-\u9fff]/g) || []).length;
+    var latin = (s.match(/[A-Za-z]+/g) || []).length;
+    return han + latin;
+  }
+  function upd() {
+    var n = countUnits(ta.value);
+    var wpm = +r.value, sec = n / wpm * 60;
+    v.textContent = wpm + " 字/分钟";
+    out.textContent = n + " 字 ≈ " + Math.floor(sec / 60) + " 分 " + Math.round(sec % 60) +
+      " 秒口播。按这个语速，两分钟视频大约容纳 " + Math.round(wpm * 2) + " 字（还要减去音乐和画面的停顿）。";
+  }
+  ta.addEventListener("input", upd); r.addEventListener("input", upd); upd();
+};
+</script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

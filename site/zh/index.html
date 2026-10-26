@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>人工智能视频制作 — 总览</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 0 页 · 总览</div>
+<h1>人工智能协助的视频，到底是怎么做出来的</h1>
+<p class="lead">一份给软件工程师的实地指南。你想用编程代理来导演视频。不站任何厂商。主张都标了证据。写于 2026 年 10 月。</p>
+
+<div class="callout key">
+<span class="title">先看片子 — 中文口播，字幕烧在画面里</span>
+<p>同一片版图，用中文讲出来，画面是画给你的。<a href="watch.html">播放中文教程</a>。想核对一句主张、一个来源或一个工具名时，再回到这些页。</p>
+</div>
+
+<div class="callout key">
+<span class="title">一段话的答案</span>
+<p>并不存在一种叫做“人工智能视频”的单一技术。一部成片几乎总是在<b>时间线上组装</b>出来的。镜头和声音来自很不一样的机器：有的镜头是<b>神经网络一个像素一个像素想象</b>出来的，有的是<b>渲染器根据代码里的场景算</b>出来的，有的是实拍或静帧，而人声、音乐和音效来自各自的音频模型。编程代理变成“导演”，是在它把计划写成数据、为每个镜头选对机器、用代码和接口去调用那些机器、然后<b>看自己的输出</b>（帧、转写、响度数）并改计划，直到结果对上简报的时候。这个循环里可靠的部分，是确定性的那些（代码、渲染、组装、测量）。不可靠的部分，是生成式抽样，以及代理自己的口味。</p>
+</div>
+
+<h2>四张图里的心智模型</h2>
+
+<h3>1. 得到像素的四种办法</h3>
+<p>屏幕上的每一帧，都由四种机制之一产生。学会把它们分开，是这整个领域里最重要的技能，因为每一种的成本、可控性和失败方式都不一样。</p>
+
+<div class="cards">
+  <div class="card a"><h4><span class="ap a">A</span> 神经合成</h4><p>训练过的模型根据文字提示、一张图或另一段视频来<b>想象</b>像素。没有东西被“建模”：没有物体，只有世界看起来、动起来的统计。</p><p><b>感觉像：</b>从语言模型里抽样。好看，起步快，很难精确控制，两次不会完全一样。</p></div>
+  <div class="card b"><h4><span class="ap b">B</span> 渲染场景</h4><p>代码描述一个<b>场景</b>（形状、文字、三维网格、灯光、摄像机、随时间变化的关键帧）。渲染器确定地计算每一帧。</p><p><b>感觉像：</b>编译出来的软件。精确、可比较差异、可重复，但你展示的每一样都得自己建。</p></div>
+  <div class="card c"><h4><span class="ap c">C</span> 组装</h4><p>一条<b>时间线</b>把已有的媒体（片段、图像、人声、音乐、字幕）放到时间上，合成最终的视频。</p><p><b>感觉像：</b>链接器或构建步骤。大体确定；质量取决于零件。</p></div>
+  <div class="card d"><h4><span class="ap d">D</span> 混合</h4><p>真正的制作把三者混在一起：这里一张渲染的示意图，那里一个生成的电影镜头，上面铺一条口播的时间线，有时再用人工智能给一次渲染换风格。</p><p><b>感觉像：</b>一套带构建流水线的微服务。</p></div>
+</div>
+
+<p>实拍（自己拍的或素材库的）是从 <span class="ap c">C</span> 进来的第五个来源。人工智能也可以<i>编辑</i>实拍（切开、加字幕、重新打光、换风格）——见<a href="01-taxonomy.html">分类</a>。</p>
+
+<h3>2. 一部视频是时间线上的一叠层</h3>
+<figure class="diagram">
+<svg viewBox="0 0 820 300" role="img" aria-label="含视频、图形、字幕、人声、音乐和音效轨道的时间线">
+  <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+  <text x="10" y="22" class="t-title">一部两分钟的视频 = 许多轨道，每一轨由不同的“机器”填上</text>
+  <line x1="130" y1="44" x2="800" y2="44" class="line"/>
+  <text x="130" y="38" class="t-muted">0:00</text><text x="290" y="38" class="t-muted">0:30</text><text x="455" y="38" class="t-muted">1:00</text><text x="620" y="38" class="t-muted">1:30</text><text x="770" y="38" class="t-muted">2:00</text>
+  <text x="10" y="74">V1 镜头</text>
+  <rect x="130" y="58" width="150" height="26" rx="4" class="box-a"/><text x="138" y="76" class="t-muted">生成的电影感</text>
+  <rect x="282" y="58" width="190" height="26" rx="4" class="box-b"/><text x="290" y="76" class="t-muted">三维渲染（代码）</text>
+  <rect x="474" y="58" width="120" height="26" rx="4" class="box-c"/><text x="482" y="76" class="t-muted">资料影像</text>
+  <rect x="596" y="58" width="204" height="26" rx="4" class="box-a"/><text x="604" y="76" class="t-muted">生成后再编辑</text>
+  <text x="10" y="110">V2 图形</text>
+  <rect x="300" y="94" width="160" height="26" rx="4" class="box-b"/><text x="308" y="112" class="t-muted">示意图叠加</text>
+  <rect x="620" y="94" width="110" height="26" rx="4" class="box-b"/><text x="628" y="112" class="t-muted">下三分之一</text>
+  <text x="10" y="146">字幕</text>
+  <rect x="130" y="130" width="670" height="26" rx="4" class="box"/><text x="138" y="148" class="t-muted">来自语音识别逐词时间的字幕</text>
+  <text x="10" y="182">A1 人声</text>
+  <rect x="140" y="166" width="300" height="26" rx="4" class="box-accent"/><text x="148" y="184" class="t-muted">语音合成口播，前段</text>
+  <rect x="470" y="166" width="320" height="26" rx="4" class="box-accent"/><text x="478" y="184" class="t-muted">语音合成口播，后段</text>
+  <text x="10" y="218">A2 音乐</text>
+  <rect x="130" y="202" width="670" height="26" rx="4" class="box-d"/><text x="138" y="220" class="t-muted">生成或有授权的配乐，压在人声下</text>
+  <text x="10" y="254">A3 音效</text>
+  <rect x="200" y="238" width="60" height="26" rx="4" class="box-c"/><rect x="380" y="238" width="40" height="26" rx="4" class="box-c"/><rect x="640" y="238" width="90" height="26" rx="4" class="box-c"/>
+  <text x="208" y="256" class="t-muted">轰</text><text x="384" y="256" class="t-muted">嘶</text><text x="646" y="256" class="t-muted">着陆</text>
+  <text x="130" y="290" class="t-muted">红 = 神经（A） · 青 = 代码渲染（B） · 赭 = 拍摄/素材/音效（C） · 蓝 = 语音 · 紫 = 音乐</text>
+</svg>
+<figcaption>第一轨以下的一切，通常是分开制作的，再由剪辑（人或代理）在时间上对齐。所以实践里的“人工智能视频”，意思是“人工智能协助下的组装”。</figcaption>
+</figure>
+
+<h3>3. 制作周期是一条带回环的构建流水线</h3>
+<figure class="diagram">
+<svg viewBox="0 0 820 230" role="img" aria-label="计划、制作、组装、检查、修改的循环">
+  <defs>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-accent"/></marker>
+    <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-loop"/></marker>
+  </defs>
+  <rect x="10" y="60" width="130" height="70" rx="8" class="box-accent"/><text x="22" y="88" class="t-title">1 计划</text><text x="22" y="108" class="t-muted">简报 → 稿子 →</text><text x="22" y="122" class="t-muted">镜头表（数据）</text>
+  <rect x="175" y="60" width="140" height="70" rx="8" class="box"/><text x="187" y="88" class="t-title">2 做资产</text><text x="187" y="108" class="t-muted">生成 / 渲染 / 语音 /</text><text x="187" y="122" class="t-muted">音乐 / 素材</text>
+  <rect x="350" y="60" width="130" height="70" rx="8" class="box"/><text x="362" y="88" class="t-title">3 组装</text><text x="362" y="108" class="t-muted">时间线、对齐、</text><text x="362" y="122" class="t-muted">字幕、混音</text>
+  <rect x="515" y="60" width="130" height="70" rx="8" class="box-warn"/><text x="527" y="88" class="t-title">4 检查</text><text x="527" y="108" class="t-muted">帧、识别、LUFS、</text><text x="527" y="122" class="t-muted">视觉模型、人</text>
+  <rect x="680" y="60" width="130" height="70" rx="8" class="box-ok"/><text x="692" y="88" class="t-title">5 交付</text><text x="692" y="108" class="t-muted">编码、字幕、</text><text x="692" y="122" class="t-muted">来源</text>
+  <path d="M140,95 L172,95" class="line-accent" marker-end="url(#a2)"/>
+  <path d="M315,95 L347,95" class="line-accent" marker-end="url(#a2)"/>
+  <path d="M480,95 L512,95" class="line-accent" marker-end="url(#a2)"/>
+  <path d="M645,95 L677,95" class="line-accent" marker-end="url(#a2)"/>
+  <path d="M580,130 C580,200 250,200 245,134" class="line-loop" marker-end="url(#a3)"/>
+  <text x="250" y="196" class="t-muted">诊断 → 只改一件事（提示、关键帧、时间、音量）→ 只重做那个镜头</text>
+  <path d="M560,60 C560,10 80,10 76,56" class="line-loop" marker-end="url(#a3)"/>
+  <text x="160" y="24" class="t-muted">更大的问题 → 回去改计划（稿子、镜头类型、技术）</text>
+</svg>
+<figcaption>代理真正的本事是这个循环，不是某一个生成器。让循环变便宜（重渲一个镜头，而不是整部片子）是工程问题——见<a href="07-agent-director.html">第 7 页</a>和<a href="12-engineering-legal.html">第 12 页</a>。</figcaption>
+</figure>
+
+<h3>4. 代理坐在哪里</h3>
+<p>编程代理（Claude Code、Codex、Cursor、Gemini CLI……）自己并不会“看见”或“画出”视频。它是规划者和程序员，能够：</p>
+<ul>
+<li><b>写</b>场景代码（一段 React/Remotion 合成、一个 Manim 场景、一段 Blender Python、一张 FFmpeg 滤镜图）；</li>
+<li><b>调用</b>工具：命令行、软件开发包、云端模型接口、MCP 服务器；</li>
+<li><b>读回</b>它能推理的结果：静帧是图，转写是文字，测量是数字，或者通过能看视频的模型读整段片子；</li>
+<li><b>把状态留在文件里</b>：计划、镜头表、资产清单、决定、花费。</li>
+</ul>
+<p>代理视频演示里一切“魔法”，都收成这四种能力，加上好用的工具。<span class="ev i">推断</span></p>
+
+<h2>工程师一开始通常弄错的三件事</h2>
+<ol>
+<li><b>“最好的模型会做出我的整部视频。”</b>文生视频模型产出的是短片段（到 2026 年，一次生成通常是个位数秒到几十秒），对精确文字、数字、示意图和连续性的控制有限。讲解片和技术片大部分是 <span class="ap b">B</span> + <span class="ap c">C</span>，<span class="ap a">A</span> 用来做气氛。<span class="ev p">实践</span></li>
+<li><b>“代理能像我一样看视频。”</b>多数代理检查的是抽出来的帧，加上文字旁路。能接受真视频的模型存在，但它们帧率低，会漏掉快的或细的问题（闪烁、一帧的故障、口型漂移）。测量代码抓住代理的眼睛漏掉的东西。<span class="ev p">实践</span></li>
+<li><b>“声音是事后补上的。”</b>观众原谅不完美的画面，远胜过原谅难听的声音。口播通常驱动整次剪辑的时间：你先生成人声，读它的逐词时间戳，再把画面切到这些词上。<span class="ev p">实践</span></li>
+</ol>
+
+<h2>怎么读这份指南</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>如果你想……</th><th>去读</th></tr></thead>
+<tbody>
+<tr><td>一次坐下来看完这片版图</td><td><a href="watch.html">看中文教程</a></td></tr>
+<tr><td>认出一段视频是哪种机制做的</td><td><a href="01-taxonomy.html">1 分类</a></td></tr>
+<tr><td>弄清视频模型、渲染器、语音、剪辑器里面有什么</td><td><a href="02-neural-video.html">2</a> · <a href="03-programmatic-graphics.html">3</a> · <a href="04-audio.html">4</a> · <a href="05-editing-compositing.html">5</a></td></tr>
+<tr><td>知道有哪些工具，以及代理真正能驱动哪些</td><td><a href="06-ecosystem.html">6 工具版图</a></td></tr>
+<tr><td>看代理如何计划、编排、检查和修改</td><td><a href="07-agent-director.html">7 代理架构</a> · <a href="08-worked-example.html">8 实例</a></td></tr>
+<tr><td>在本地和云端之间选择，并估计成本</td><td><a href="09-architectures.html">9 架构</a> · <a href="12-engineering-legal.html">12 工程与法律</a></td></tr>
+<tr><td>为你的视频类型选一种做法</td><td><a href="10-video-types.html">10 视频类型</a> · <a href="13-decision-framework.html">13 决策框架</a></td></tr>
+<tr><td>把真实的代理工作流和营销分开</td><td><a href="11-documented-workflows.html">11 已记录的工作流</a> · <a href="14-maturity.html">14 成熟度</a></td></tr>
+<tr><td>安排学习和下一次实验</td><td><a href="15-roadmap.html">15 路线</a></td></tr>
+</tbody></table></div>
+
+<h3>证据标签</h3>
+<p>主张带五种标签之一（把指针放在标签上看意思，或按顶栏的<b>标签</b>）：</p>
+<div class="legend">
+<span><span class="ev v">已核对</span> 对照过原始来源</span>
+<span><span class="ev p">实践</span> 广泛记录的做法</span>
+<span><span class="ev i">推断</span> 我的分析</span>
+<span><span class="ev u">未核实</span> 有人声称，未确认</span>
+<span><span class="ev x">实验</span> 研究或演示级别</span>
+</div>
+<p class="small muted">价格、版本和星标每个月都在变。这份指南里的每个数字都带着核对日期；<a href="sources.html">资料页</a>列出链接。超过大约三个月的，当成需要再核对。</p>
+
+<p class="page-meta">上次审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

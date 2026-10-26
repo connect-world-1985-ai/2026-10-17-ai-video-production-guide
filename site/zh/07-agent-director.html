@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>代理当导演</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 7 页 · 交付物 E — 自主制作架构 · §7</div>
+<h1>编程代理怎样变成视频导演</h1>
+<p class="lead">看起来像“人工智能做了一整部片子”的演示，底下是一个规划者在写结构化文件，一个程序员在调用工具，一个批评者在读回帧、转写和数字。这一页把它拆开：规划、技术选择、编排、自检、修改，以及多代理——并写明证据实际支持什么。</p>
+
+<h2>一张图里的架构</h2>
+<figure class="diagram">
+<svg viewBox="0 0 900 640" role="img" aria-label="带反馈循环的自主视频制作架构">
+  <defs>
+    <marker id="d1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-accent"/></marker>
+    <marker id="d2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead-loop"/></marker>
+    <marker id="d3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker>
+  </defs>
+  <rect x="20" y="20" width="170" height="64" rx="10" class="box-accent"/><text x="34" y="46" class="t-title">用户</text><text x="34" y="66" class="t-muted">简报 · 批准 · 口味</text>
+  <rect x="250" y="14" width="400" height="80" rx="12" class="box-d"/>
+  <text x="266" y="40" class="t-d">中心代理（导演 / 制片）</text>
+  <text x="266" y="60" class="t-muted">编程代理：做计划、写代码、调用工具、</text>
+  <text x="266" y="76" class="t-muted">读结果、决定下一步改什么</text>
+  <rect x="700" y="14" width="180" height="200" rx="10" class="box"/>
+  <text x="712" y="38" class="t-title">项目状态（文件）</text>
+  <text x="712" y="60" class="t-muted">brief.md · research/</text>
+  <text x="712" y="78" class="t-muted">script.md · 读音表</text>
+  <text x="712" y="96" class="t-muted">shotlist.json</text>
+  <text x="712" y="114" class="t-muted">风格圣经 · refs/</text>
+  <text x="712" y="132" class="t-muted">timeline.json</text>
+  <text x="712" y="150" class="t-muted">assets/ + 清单</text>
+  <text x="712" y="168" class="t-muted">decisions.log · qa/</text>
+  <text x="712" y="186" class="t-muted">costs.csv</text>
+  <text x="712" y="204" class="t-muted">（git + 对象存储）</text>
+  <rect x="250" y="130" width="400" height="60" rx="10" class="box"/>
+  <text x="266" y="154" class="t-title">创作规划</text>
+  <text x="266" y="174" class="t-muted">调研 → 剧本 → 分镜 → 镜头表 → 验收标准</text>
+  <rect x="20" y="240" width="860" height="160" rx="12" class="box"/>
+  <text x="34" y="262" class="t-title">制作工具（经代码、命令行、软件开发工具包、HTTP、MCP 调用）</text>
+  <rect x="34" y="276" width="160" height="110" rx="8" class="box-a"/><text x="44" y="298" class="t-a">生成接口</text><text x="44" y="318" class="t-muted">视频 · 图像</text><text x="44" y="334" class="t-muted">数字人 · 放大</text><text x="44" y="350" class="t-muted">异步任务、成本</text><text x="44" y="366" class="t-muted">有概率</text>
+  <rect x="204" y="276" width="160" height="110" rx="8" class="box-b"/><text x="214" y="298" class="t-b">渲染器</text><text x="214" y="318" class="t-muted">二维代码</text><text x="214" y="334" class="t-muted">三维（Blender）</text><text x="214" y="350" class="t-muted">模拟</text><text x="214" y="366" class="t-muted">确定的</text>
+  <rect x="374" y="276" width="160" height="110" rx="8" class="box-accent"/><text x="384" y="298" class="t-title">声音</text><text x="384" y="318" class="t-muted">语音 · 音乐 · 音效</text><text x="384" y="334" class="t-muted">识别 / 对齐</text><text x="384" y="350" class="t-muted">混音 · 响度</text>
+  <rect x="544" y="276" width="160" height="110" rx="8" class="box-c"/><text x="554" y="298" class="t-c">剪辑 / 组装</text><text x="554" y="318" class="t-muted">时间线 → FFmpeg</text><text x="554" y="334" class="t-muted">或剪辑器 / JSON</text><text x="554" y="350" class="t-muted">字幕、编码</text>
+  <rect x="714" y="276" width="152" height="110" rx="8" class="box"/><text x="724" y="298" class="t-title">资产</text><text x="724" y="318" class="t-muted">素材 / 资料</text><text x="724" y="334" class="t-muted">许可</text><text x="724" y="350" class="t-muted">品牌套件</text>
+  <rect x="250" y="440" width="400" height="76" rx="10" class="box-warn"/>
+  <text x="266" y="464" class="t-title">质量检查</text>
+  <text x="266" y="484" class="t-muted">探测与检测 · 帧 → 视觉模型 · 整段 → 视频模型</text>
+  <text x="266" y="500" class="t-muted">识别对照剧本 · 响度 · 简报清单 ·（人来审）</text>
+  <rect x="700" y="440" width="180" height="76" rx="10" class="box-ok"/>
+  <text x="712" y="464" class="t-title">最终交付</text><text x="712" y="484" class="t-muted">母版、平台编码、</text><text x="712" y="500" class="t-muted">字幕、来源</text>
+  <rect x="20" y="440" width="190" height="76" rx="10" class="box-d"/>
+  <text x="34" y="464" class="t-d">诊断并修改</text><text x="34" y="484" class="t-muted">问题 → 最小改动</text><text x="34" y="500" class="t-muted">→ 只重建那一部分</text>
+  <path d="M190,52 L247,52" class="line-accent" marker-end="url(#d1)"/>
+  <path d="M650,52 L697,52" class="line" marker-end="url(#d3)"/>
+  <path d="M450,94 L450,127" class="line-accent" marker-end="url(#d1)"/>
+  <path d="M450,190 L450,237" class="line-accent" marker-end="url(#d1)"/>
+  <path d="M450,400 L450,437" class="line-accent" marker-end="url(#d1)"/>
+  <path d="M650,478 L697,478" class="line-accent" marker-end="url(#d1)"/>
+  <path d="M250,478 L213,478" class="line-loop" marker-end="url(#d2)"/>
+  <path d="M115,440 C115,420 115,410 115,403" class="line-loop" marker-end="url(#d2)"/>
+  <path d="M20,470 L8,470 L8,175 L247,175" class="line-loop" marker-end="url(#d2)"/>
+  <path d="M790,516 L790,560 L892,560 L892,228 L105,228 L105,87" class="line-loop" marker-end="url(#d2)"/>
+  <text x="560" y="576" class="t-muted">审阅 → 用户批准或要求修改</text>
+  <text x="250" y="590" class="t-muted">人的批准点：计划之后 · 粗剪之后 · 发布之前</text>
+  <text x="30" y="550" class="t-muted">小修 → 重渲一个镜头</text>
+  <text x="30" y="566" class="t-muted">大修 → 回到规划</text>
+  <text x="34" y="620" class="t-muted">红色虚线是反馈。代理知道的一切都在项目文件里，所以另一个代理（或你）可以在任何一点接着做。</text>
+</svg>
+<figcaption>交付物 E。循环才是产品：计划 → 生成 → 渲染 → 检查 → 诊断 → 修改 → 再渲染。<span class="ev i">推断</span>，综合自<a href="11-documented-workflows.html">第 11 页</a>上已记录的系统。</figcaption>
+</figure>
+
+<h2>1 · 创作规划：从一句话到一份制作计划</h2>
+<p>代理的第一件工作，是把一句含糊的请求变成<b>结构化、可检查的产物</b>。一份好计划大部分是数据：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>产物</th><th>内容</th><th>大语言模型做这个有多可靠？</th></tr></thead>
+<tbody>
+<tr><td>创作简报 / 目标</td><td>观众、语气、长度、平台、关键信息、必须有的东西</td><td>好，如果它会问或写出假设 <span class="ev p">实践</span></td></tr>
+<tr><td>研究笔记</td><td>带来源的事实</td><td><i>有网页搜索和引用时</i>好；凭记忆不可靠（编出来的数字）<span class="ev p">实践</span></td></tr>
+<tr><td>剧本 / 口播</td><td>词，大约每分钟 130–160 个英文词，或中文约 240 字</td><td>强——这是大语言模型的本行；仍要核对事实，还要人听一遍</td></tr>
+<tr><td>分镜</td><td>每个镜头一帧描述（或生成的静帧）</td><td>描述好；空间构图和视觉口味较弱</td></tr>
+<tr><td>镜头表</td><td>每个镜头：时长、类型、技术、摄像机、资产、声音提示</td><td>作为结构很强；时长以后必须从音频量出来</td></tr>
+<tr><td>风格圣经</td><td>调色板、字体、观感、参考、镜头语法、声音调色板</td><td>中；不给参考就容易泛</td></tr>
+<tr><td>验收标准</td><td>可测试的检查：“没有文字瑕疵”、“−14 LUFS ±1”、“所有事实有来源”</td><td>强——也是后来自检的关键</td></tr>
+<tr><td>日程和预算</td><td>任务顺序、并行、接口成本估计</td><td>结构好；成本估计需要真实价格表</td></tr>
+</tbody></table></div>
+<details><summary>一条机器可读的镜头长什么样</summary><div class="body">
+<pre><code>{
+  "id": "S07",
+  "beat": "再入点火让助推器减速",
+  "narration_ref": "seg_05",           // 时长来自量出来的音频
+  "tech": "B:3d",                      // 分给 Blender
+  "camera": "慢速环绕，35mm，助推器居中，地平线在下三分之一",
+  "assets": ["booster_v3.blend", "earth_hdri_2k.exr"],
+  "overlays": [{"text": "再入点火", "at_word": "点火", "style": "label"}],
+  "sfx": [{"id": "engine_roar", "at_word": "点燃", "gain_db": -12}],
+  "acceptance": ["发动机明显逆向喷火", "标签没有被裁切", "符合调色板 P2"],
+  "status": "rendered", "version": 3, "inputs_hash": "9f2c…"
+}</code></pre>
+<p class="small muted">示意结构，不是标准。每个镜头记下状态、版本和输入哈希，恢复和局部重渲才可能。<span class="ev i">推断</span></p>
+</div></details>
+
+<h2>2 · 每个镜头选技术</h2>
+<p>同一部片子里的不同镜头可以——而且通常应该——用不同的技术。代理可以应用的一张路由表：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>如果这个镜头需要…</th><th>分给</th><th>为什么</th></tr></thead>
+<tbody>
+<tr><td>精确的文字、数字、公式、图表、界面</td><td><span class="ap b">B</span> 二维代码</td><td>只有渲染能保证正确</td></tr>
+<tr><td>物理或技术上准确的运动（轨迹、机构）</td><td><span class="ap b">B</span> 三维加模拟</td><td>按构造就是对的</td></tr>
+<tr><td>照片级气氛、自然、人群、“电影感”空镜</td><td><span class="ap a">A</span> 生成视频（从检查过的关键帧做图生视频）</td><td>到写实最便宜的路</td></tr>
+<tr><td>真实事件、真实产品、真实的人</td><td><span class="ap c">C</span> 已获许可的素材或屏幕录制</td><td>真实性和权利</td></tr>
+<tr><td>一个出镜的人</td><td><span class="ap a">A4</span> 数字人（须有同意）或录的真人</td><td>—</td></tr>
+<tr><td>口播下面便宜、平静的东西</td><td><span class="ap c">C1</span> 静帧加慢速平移，或视差</td><td>成本低，控制全</td></tr>
+<tr><td>写实观感加精确运动</td><td><span class="ap d">D2</span> 三维块面 → 视频生视频</td><td>B 的控制加 A 的观感</td></tr>
+</tbody></table></div>
+<p><b>让混用的镜头保持一致</b>是设计任务：所有叠层用一套调色板和字体系统；每个镜头用同一套调色或查找表；参考图（角色设定、产品照片）传给每一次生成调用；三维里和提示里用同一套镜头语法；一条音乐底和房间底噪把切换粘在一起。<span class="ev p">实践</span></p>
+
+<h2>3 · 工具编排：代理实际怎样驱动软件</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>机制</th><th>例子</th><th>强项</th><th>弱项</th></tr></thead>
+<tbody>
+<tr><td>生成源代码，再跑它</td><td>写 Remotion 合成、Manim 场景或 Blender 脚本；用命令行渲染</td><td>确定、可做差异、可审阅</td><td>工具链要装好</td></tr>
+<tr><td>命令行工具</td><td>FFmpeg、ffprobe、Whisper、Blender <code>-b</code></td><td>通用、可脚本</td><td>语法错误；必须校验输出</td></tr>
+<tr><td>云接口 / 软件开发工具包</td><td>提交视频任务、轮询、下载</td><td>用得到最好的模型；不用显卡</td><td>成本、速率限制、模型变更、异步的复杂</td></tr>
+<tr><td>MCP 服务器</td><td>Blender MCP、Resolve MCP、厂商 MCP</td><td>工具像带类型的函数；好接</td><td>包装薄；质量不一；任意代码执行的安全问题</td></tr>
+<tr><td>代理技能</td><td>Remotion / HyperFrames / video-use 技能</td><td>写进专家经验和硬规则（例如“字幕放在滤镜链最后”）</td><td>好不好取决于作者的经验</td></tr>
+<tr><td>子代理</td><td>每个动画或每个批评方面一个子代理</td><td>并行、上下文集中</td><td>协调开销；约束不够时风格不一致</td></tr>
+<tr><td>图形界面自动化</td><td>在没有接口的应用里点击</td><td>封闭应用的最后办法</td><td>脆、慢，常常违反条款</td></tr>
+</tbody></table></div>
+
+<h3>三档自主程度</h3>
+<div class="cards">
+<div class="card"><h4>直接用工具</h4><p>代理在对话里一条条跑命令。起步快，难复现：“流水线”只存在于聊天记录里。</p></div>
+<div class="card"><h4>写成脚本的工作流</h4><p>代理把流水线写成代码（带缓存步骤的构建脚本或有向无环图）再跑。可复现、可恢复；改动是代码差异。</p></div>
+<div class="card"><h4>自主循环</h4><p>代理跑流水线、检查输出、不请示就改计划或代码——在预算之内，并有批准门。</p></div>
+</div>
+<p>稳的组合是<b>“写成脚本的工作流，外面再套自主循环”</b>：代理用判断去改计划和代码，但每一次制作运行都是一次可复现的构建。这和优秀软件团队用持续集成的方式一样。<span class="ev i">推断</span></p>
+
+<h2>4 · 自主质检：代理怎样“看”自己的视频</h2>
+<p>当前的编程代理大多不能像你那样看视频。Claude 文档里的接口输入是图像（没有视频），Gemini 的接口接受视频，但默认按<b>每秒 1 帧</b>抽样。所以检查是<b>一组合起来的、更便宜的局部视图</b>。<span class="ev v">已核对</span>（<a href="https://platform.claude.com/docs/en/build-with-claude/vision">Claude 视觉文档</a>，<a href="https://ai.google.dev/gemini-api/docs/video-understanding">Gemini 视频文档</a>）</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>方法</th><th>抓住什么</th><th>漏掉什么</th><th>成本</th><th>可靠程度</th></tr></thead>
+<tbody>
+<tr><td><b>元数据探测</b>（ffprobe）</td><td>时长、帧率、分辨率不对，缺音频流</td><td>任何视觉问题</td><td>约 0</td><td>精确</td></tr>
+<tr><td><b>信号检测</b>（黑场、冻结、静音、响度、削波）</td><td>黑帧、冻帧、静音空隙、响度偏离</td><td>内容错误</td><td>约 0</td><td>精确</td></tr>
+<tr><td><b>抽样帧 → 视觉模型</b></td><td>构图、可读性、错误物体、风格不符、文字瑕疵（加文字识别）</td><td>运动、闪烁、样本之间的单帧故障、时机</td><td>Claude：1080p 一帧约 1560 词元（标准档）→ 60 帧约 9.4 万词元</td><td>静帧好；取决于怎么抽</td></tr>
+<tr><td><b>聪明的抽样</b>（场景变化、切口前后、提示点帧、胶片条或接触印样）</td><td>坏的切口、转场、已知事件上的叠层时机</td><td>选定点之间的问题</td><td>同上，但更对准</td><td>比均匀抽样好得多 <span class="ev p">实践</span></td></tr>
+<tr><td><b>整段 → 视频模型</b>（Gemini）</td><td>叙事流动、粗的连续性、粗粒度的声画不符</td><td>亚秒事件、时间顺序的细微处</td><td>每秒视频约 100–300 词元</td><td>中等；时间推理弱（见下）</td></tr>
+<tr><td><b>对照参考</b>（嵌入、脸或身份相似度）</td><td>角色或产品相对参考图的漂移</td><td>为什么漂</td><td>低（本地模型）</td><td>当警报很好</td></tr>
+<tr><td><b>帧上的文字识别</b></td><td>屏幕上的错字或乱码</td><td>—</td><td>低</td><td>干净文字上高</td></tr>
+<tr><td><b>语音识别对照剧本</b></td><td>漏词、读错、音乐盖住人声、字幕错误</td><td>语气、情绪</td><td>低</td><td>高</td></tr>
+<tr><td><b>时间检查</b></td><td>提示点对事件帧、字幕同步、声画偏移</td><td>—</td><td>约 0</td><td>精确（如果事件有记录）</td></tr>
+<tr><td><b>简报清单审计</b></td><td>缺了必须的内容、长度、信息</td><td>质量</td><td>低</td><td>标准可测时好</td></tr>
+<tr><td><b>人来审</b></td><td>口味、情绪、隐蔽的不对、品牌契合</td><td>长审会疲劳</td><td>你的时间</td><td>仍是金标准</td></tr>
+</tbody></table></div>
+
+<div class="callout warn"><span class="title">当前的人工智能评判真正注意不到什么</span>
+<ul>
+<li><b>时间顺序和细微运动。</b>在 TOMATO 基准上，人得分 95.2%，最好的模型 37.9%；把帧打乱几乎不伤模型（37.8% → 28.5%），说明它们靠单帧。<span class="ev v">已核对</span>（<a href="https://arxiv.org/abs/2410.23266">arXiv 2410.23266</a>，2024 年前后的模型）。Vinoground 发现时间反事实上人约 90%，GPT-4o 约 50%（<a href="https://arxiv.org/abs/2410.02763">arXiv 2410.02763</a>）。</li>
+<li><b>样本之间的一切</b>：单帧故障、闪烁、短暂的变形。</li>
+<li><b>差几帧的口型漂移</b>、声画偏移、让人觉得“不对”的节奏。</li>
+<li>明显失败之外的<b>物理是否说得通</b>。</li>
+<li><b>它自己的盲点</b>：评判模型和产出时用的是同一族，会有偏差；Code2Video 用 Gemini 2.5 Pro 既当循环里的批评者，又当评测评判。<span class="ev i">推断</span></li>
+</ul>
+<p>令人鼓舞的是，看见渲染输出的评判比只读代码的好得多：一项研究报告，看渲染视频的视觉语言模型评判与人的一致率 87.8%，只看文字的评判是 69.1%（<a href="https://arxiv.org/abs/2602.10840">SimuScene，arXiv 2602.10840</a>，附录）。<span class="ev v">已核对</span></p></div>
+
+<p>一套实用的检查栈，从便宜的开始：<b>探测 → 检测器 → 语音识别和文字识别 → 对准的帧送给视觉模型 → 一次整片浏览 → 人</b>。上一层过了，下一层才跑。<span class="ev i">推断</span></p>
+
+<h2>5 · 迭代改进：从批评到具体改动</h2>
+<p>难的一步是把“这看起来不对”翻译成一次编辑。两种修法的行为完全不同：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>问题</th><th>具体修改</th><th>种类</th></tr></thead>
+<tbody>
+<tr><td>镜头运动太快</td><td>关键帧跨度从 2 秒拉到 3.5 秒；缓入缓出</td><td>确定的 <span class="ap b">B</span></td></tr>
+<tr><td>场景太暗</td><td>提高主光或曝光；或后期加 0.5 档</td><td>确定的</td></tr>
+<tr><td>标签压住助推器</td><td>移动叠层锚点；只重合成 V2 层</td><td>确定的</td></tr>
+<tr><td>口播比画面早</td><td>挪段的起点；或把动画重定到那个词的时间戳</td><td>确定的</td></tr>
+<tr><td>说话时音乐太响</td><td>说话区间压低 6 分贝；只重混音频</td><td>确定的</td></tr>
+<tr><td>转场弱</td><td>换切口类型（叠化 → 匹配剪辑）；调时长</td><td>确定的</td></tr>
+<tr><td>生成镜头有融化的手或错的标志</td><td>换种子、收紧提示重生成，或从改好的静帧做图生视频；或切短</td><td>有概率的 <span class="ap a">A</span></td></tr>
+<tr><td>角色和第 3 镜看起来不一样</td><td>带参考图或 LoRA 重生成；或换成渲染镜头</td><td>有概率</td></tr>
+<tr><td>生成镜头的构图弱</td><td>先把起始帧设计成静帧，再图生视频</td><td>部分确定</td></tr>
+<tr><td>镜头之间连续性断了</td><td>末帧接到首帧；插入切走的镜头；重排</td><td>混合</td></tr>
+</tbody></table></div>
+<p><b>只重渲改过的部分。</b>把制作当成构建系统：每个镜头的输出是它的输入的函数（代码、参数、资产、模型版本、种子）。给输入做哈希；哈希没变就复用缓存。口播一改 → 只重建受影响的镜头和混音。这和 <code>make</code> 或 Bazel 是同一个想法，用在媒体上。<span class="ev i">推断</span></p>
+
+<h3>知道何时停</h3>
+<ul>
+<li><b>所有验收标准都过了</b>（所以要事先写成可测的标准）。</li>
+<li><b>每个镜头的迭代上限</b>——video-use 把自检封在 3 遍；之后交给人。<span class="ev v">已核对</span>（<a href="https://github.com/browser-use/video-use">video-use SKILL.md</a>）</li>
+<li>金钱和时间上的<b>预算上限</b>，记在成本账里。</li>
+<li><b>收益递减</b>：批评者的问题已经是口味，或和先前的批评矛盾（来回振荡）。</li>
+<li><b>人的门</b>：代理交出成片，并列出已知的妥协。<span class="ev p">实践</span></li>
+</ul>
+
+<h2>6 · 多代理制作：证据怎么说</h2>
+<p>角色扮演剧组（编剧、导演、动画、剪辑、质检……）在研究和营销里很流行。实际有支持的是：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>证据</th><th>发现</th><th>强度</th></tr></thead>
+<tbody>
+<tr><td>FilmAgent（<a href="https://arxiv.org/abs/2501.12909">arXiv 2501.12909</a>）</td><td>虚拟三维里的多代理剧组，人评 3.98，单代理 3.04</td><td>弱到中：15 个故事点子，评分人少</td></tr>
+<tr><td>Code2Video（<a href="https://arxiv.org/abs/2510.01174">arXiv 2510.01174</a>）</td><td>规划者加写代码的加批评者：美学/测验 87.9/86.0，直接生成代码是 37.8/40.0（Claude Opus 4.1）。去掉<b>规划者</b>伤得最重；去掉批评者伤得较轻</td><td>中：说明<i>分解</i>要紧；评判是语言模型</td></tr>
+<tr><td>TheoremExplainAgent（<a href="https://arxiv.org/abs/2502.19400">arXiv 2502.19400</a>）</td><td>整片成功率因模型差很多（o3-mini 93.8%，Claude 3.5 Sonnet 2.1%）；主要失败是代码幻觉和版式重叠</td><td>中；2025 年前后的模型</td></tr>
+<tr><td>一般的代理研究（<a href="https://arxiv.org/abs/2512.08296">Kim 等</a>，<a href="https://arxiv.org/abs/2503.13657">Cemri 等</a>）</td><td>多代理帮助可并行的任务，伤害顺序任务；多代理框架因协调问题失败率高</td><td>强，但不是针对视频的</td></tr>
+</tbody></table></div>
+<div class="callout key"><span class="title">建议</span>
+<p>一个强的<b>导演代理</b>拥有计划和项目文件；它把<b>专家子代理</b>派去做并行、规格清楚的工作（渲染第 4 镜、写第 7 段动画、批评节奏、批评可读性），每个都有窄的简报和风格圣经。不要让对等的代理委员会辩论创作选择。从业者的仓库是这个模式（video-use：并行的动画子代理；product-launch-video：四个并行的批评者）。<span class="ev i">推断</span>，由上面的证据支持。</p></div>
+
+<h3>代理怎样共享状态</h3>
+<ul>
+<li><b>文件，不是聊天</b>：简报、剧本、镜头表、风格圣经、时间线、清单、决策日志——都在版本控制下的项目文件夹里。媒体二进制放在按内容寻址的存储或 Git LFS。<span class="ev p">实践</span>（video-use 保留 <code>project.md</code>、<code>edl.json</code>、缓存的转写、一个 <code>verify/</code> 文件夹）</li>
+<li><b>代理之间的契约</b>：子代理收到镜头规格加风格圣经，必须在已知路径交回一个文件，外加一份短报告。</li>
+<li><b>每个文件一个写者</b>：导演合并；子代理提议。</li>
+</ul>
+
+<h2>代理离自主导演还有多远？</h2>
+<div class="cards">
+<div class="card"><h4>今天，可靠</h4><p>规划文档、带来源事实的剧本、代码驱动的动画、组装、字幕、按规格混音、客观质检、局部重渲、保住一个可复现的项目。</p></div>
+<div class="card"><h4>今天，要有人看着</h4><p>挑选生成镜头、根据帧判断画面质量、迭代风格、跨技术给镜头路由、剪辑实拍（计划要先批准）。</p></div>
+<div class="card"><h4>还不行</h4><p>整部片子上一致的口味、可靠的时间判断、没有人挑选的长篇角色一致性、知道对<i>你的</i>观众来说什么叫够好。</p></div>
+</div>
+<p class="small muted"><span class="ev i">推断</span>，依据第 11 页和第 14 页。</p>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

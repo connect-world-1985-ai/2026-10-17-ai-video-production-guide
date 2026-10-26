@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>已记录的代理视频工作流</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3Cpath d=%22M6 4l6 4-6 4z%22 fill=%22white%22/%3E%3C/svg%3E">
+<style>
+  .cls { font-size: 11.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+  .cls.vi { color: var(--ev-verified); background: var(--ev-verified-bg); }
+  .cls.pl { color: var(--ev-inference); background: var(--ev-inference-bg); }
+  .cls.pr { color: var(--ev-unverified); background: var(--ev-unverified-bg); }
+</style>
+</head>
+<body>
+<main><div class="content">
+
+<div class="kicker">第 11 页 · §11 — 真实实现与说法</div>
+<h1>已记录的代理视频工作流</h1>
+<p class="lead">真正建出来过什么、代码在哪里读、人参与了多少。每一条都在 2026-10-17 通过阅读仓库、技能文件或论文做了分类。</p>
+
+<div class="legend">
+<span><span class="cls vi">已核对的实现</span> 代码或工作流可以公开查阅</span>
+<span><span class="cls pl">说得通</span> 技术做得到；具体工作流无法查阅</span>
+<span><span class="cls pr">宣传</span> 没有足够证据说明它是怎么做的</span>
+</div>
+<div class="legend">
+<span><b>自主程度 高</b>：从提示到渲染，中间没有人工步骤</span>
+<span><b>中</b>：大部分由代理做；人批准计划、提供输入或审阅</span>
+<span><b>低</b>：大量人工准备、挑选或剪辑</span>
+</div>
+
+<div class="callout key"><span class="title">头条发现</span>
+<p>今天你能查阅的、编程代理做视频的生产，压倒性地是<b>程序化视频</b>（HTML/React/Manim/Blender-Python 渲染成 MP4），加上<b>对生成接口的编排</b>。它对动态图形、讲解片、产品视频和实拍剪辑很有效。完全自主的<i>电影感</i>生成影片，证据停留在研究级（小规模人工评测）或宣传。几乎每一个认真的工作流都留一个人的批准步骤。<span class="ev v">已核对</span>（下面的来源）/ <span class="ev i">推断</span>（综合）</p></div>
+
+<h2>代理技能、框架和流水线</h2>
+<div class="table-wrap"><table class="compact">
+<thead><tr><th>名称</th><th>它做什么</th><th>编排的工具</th><th>证据</th><th>自主程度</th><th>星标（2026-10-17）</th></tr></thead>
+<tbody>
+<tr><td><a href="https://www.remotion.dev/docs/ai/skills">Remotion Agent Skills</a></td><td>官方技能，教 Claude Code / Codex / Cursor 创建、预览、加字幕并渲染 Remotion 视频</td><td>Remotion（React → MP4）</td><td><span class="cls vi">已核对</span></td><td>中（人在 Studio 里看预览并重新提示）</td><td>~5.3k（技能）；~64.7k（Remotion）</td></tr>
+<tr><td><a href="https://github.com/heygen-com/hyperframes">HyperFrames</a>（HeyGen）</td><td>基于 HTML 的视频框架，带 21 个代理技能和一个 Claude Code 插件；检查 → 预览 → 确定性渲染</td><td>无界面 Chrome、FFmpeg</td><td><span class="cls vi">已核对</span></td><td>中</td><td>~65.7k</td></tr>
+<tr><td><a href="https://github.com/browser-use/video-use">video-use</a>（browser-use）</td><td>用对话编辑实拍：词级转写、剪辑计划、调色、并行子代理做的叠层、字幕；<b>对每个切口边界做自我评估</b>（帧条 + 波形），最多 3 轮自我评估</td><td>FFmpeg、ElevenLabs Scribe、HyperFrames/Remotion/Manim、PIL</td><td><span class="cls vi">已核对</span>（读过 SKILL.md）</td><td>中 — “在用户批准这份白话计划之前，绝不去动剪辑”</td><td>~29.2k</td></tr>
+<tr><td><a href="https://github.com/EveryInc/product-launch-video">product-launch-video</a>（Every）</td><td>简报 + 屏幕录制 → 分镜 → Remotion 场景 → 渲染 → <b>4 个并行批评代理</b>读大约 20 帧（设计、可读性、节奏、品牌）</td><td>Remotion、FFmpeg</td><td><span class="cls vi">已核对</span></td><td>中（人提供简报、品牌和录屏）</td><td>62</td></tr>
+<tr><td><a href="https://github.com/digitalsamba/claude-code-video-toolkit">claude-code-video-toolkit</a></td><td>用于剧本、画外音、音乐、画面、Remotion 渲染的命令</td><td>Remotion、Qwen3-TTS、FLUX.2、ACE-Step、LTX-2、无服务器显卡</td><td>工具 <span class="cls vi">已核对</span>；成本说法 <span class="cls pr">宣传</span>（作者自述）</td><td>中</td><td>~2.3k</td></tr>
+<tr><td><a href="https://github.com/openfilm/openfilm">openfilm</a></td><td>代理把一部影片写成一个 HTML 文件（每个镜头一个 frame(t)）+ 人用的编辑器界面</td><td>浏览器（WebGL/canvas/GSAP）、FFmpeg</td><td><span class="cls vi">已核对</span>（README）；质量未评估</td><td>中</td><td>~0.8k（创建于 2026-10-04）</td></tr>
+<tr><td>Manim 技能（若干社区仓库）</td><td>计划 → 代码 → 渲染 → 迭代，做数学讲解</td><td>Manim、FFmpeg、语音合成</td><td>存在性 <span class="cls vi">已核对</span>；质量未核实</td><td>中</td><td>很少</td></tr>
+<tr><td><a href="https://github.com/harry0703/MoneyPrinterTurbo">MoneyPrinterTurbo</a>、ShortGPT</td><td>题目 → 剧本 → 素材库画面 + 语音合成 + 字幕（组装，不是生成）</td><td>大语言模型、素材库接口、语音合成</td><td><span class="cls vi">已核对</span></td><td>对模板化短片为高</td><td>~132k / ~8k</td></tr>
+<tr><td><a href="https://github.com/HKUDS/ViMax">ViMax</a>（HKUDS）</td><td>点子 / 剧本 → 角色 → 分镜 → 关键帧（视觉语言模型在候选之间挑）→ 生成的视频 → 组装</td><td>大语言模型、Nano Banana / GPT Image、Veo、Seedance</td><td>代码 <span class="cls vi">已核对</span>；“电影级”说法有演示，没有基准测试</td><td>中（用户提供概念、风格和关键帧）</td><td>~12.7k</td></tr>
+<tr><td>MCP 服务器（Blender、Resolve、ComfyUI、AE/Premiere、FFmpeg、厂商 MCP）</td><td>把应用脚本或生成接口暴露成工具</td><td>各不相同</td><td><span class="cls vi">已核对</span>（README）</td><td>工具级</td><td>Blender MCP ~31.3k；Resolve MCP ~3.6k</td></tr>
+</tbody></table></div>
+
+<h2>有测量结果的研究系统</h2>
+<div class="table-wrap"><table class="compact">
+<thead><tr><th>系统</th><th>做法</th><th>关键数字</th><th>保留意见</th></tr></thead>
+<tbody>
+<tr><td><a href="https://arxiv.org/abs/2510.01174">Code2Video</a>（Show Lab）</td><td>规划 / 编码 / 批评代理写 Manim 教学视频</td><td>美感 / TeachQuiz：用 Claude Opus 4.1 为 <b>87.9 / 86.0</b>，直接生成代码为 <b>37.8 / 40.0</b>；人做的 3Blue1Brown 视频为 99.7 / 97.1；Veo 3 基线为 9.0 / 2.5。每个题目 ≈13.8 分钟、43k token。去掉规划器伤害最大。</td><td>Gemini 2.5 Pro 既是批评者也是裁判；人工研究很小（每组 8 人）</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2502.19400">TheoremExplainAgent</a></td><td>规划器 + 编码代理 → Manim + 语音合成，5 分钟以上的视频，240 条定理的基准</td><td>整片成功率：o3-mini 93.8%，GPT-4o 55.0%，Gemini 2.0 Flash 14.6%，Claude 3.5 Sonnet 2.1%。最常见的失败：Manim API 幻觉、LaTeX 错误、重叠</td><td>2025 年前后的模型；自动指标与人对准确度、流畅度的判断相关很弱（Spearman ≈ 0.14–0.17）</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2501.12909">FilmAgent</a></td><td>导演 / 编剧 / 演员 / 摄影代理，在虚拟三维布景里（不是生成式视频）</td><td>人工评分：多智能体 3.98，单代理 3.04</td><td>15 个故事点子；评测规模小</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2503.07314">MovieAgent</a></td><td>分层多智能体规划，从剧本 + 角色库做多镜头长视频</td><td>声称达到当时最好（未复核）</td><td>需要用户提供剧本和角色库</td></tr>
+<tr><td>AutoMV（<a href="https://arxiv.org/abs/2512.12196">arXiv 2512.12196</a>）</td><td>从一首歌做多智能体音乐视频</td><td>专家评分者在四个类别里更喜欢它，胜过商业基线；人工智能评审“落后于人”</td><td>只读了摘要；代码未核对</td></tr>
+<tr><td>Mora（<a href="https://arxiv.org/abs/2403.13248">arXiv 2403.13248</a>）</td><td>用开源模块的多智能体封装来模仿 Sora</td><td>自报 VBench 在一项指标上与 Sora 相当</td><td>2024 年；自己跟自己比</td></tr>
+</tbody></table></div>
+<p class="small muted">数字来自论文（查阅于 2026-10-17）。读过论文或仓库的标为<span class="ev v">已核对</span>；保留意见是<span class="ev i">推断</span>。</p>
+
+<h2>流行演示，已分类</h2>
+<div class="table-wrap"><table class="compact">
+<thead><tr><th>演示类型</th><th>说法</th><th>能核对到什么</th><th>类别</th></tr></thead>
+<tbody>
+<tr><td>2026 年的教程：“Claude Code + Remotion 用一句提示做出视频”</td><td>白话提示 → 渲染出的 MP4</td><td>官方技能和文档可以查阅；教程展示的是带着预览的反复提示。没有任何一条具体的爆款帖或播放量能被核对。</td><td>流水线 <span class="cls vi">已核对</span>；传播说法未核实</td></tr>
+<tr><td>编程代理 + Blender MCP 的帖子：“45 分钟做出电影感影片 / 飞越”</td><td>提示 → 三维场景 → 电影感片段</td><td>单条社交帖；涉及付费的第三方插件；模型名称无法核对</td><td><span class="cls pr">宣传</span></td></tr>
+<tr><td>“编程代理用一句提示做出完全自主的人工智能影片”</td><td>回路里没有人</td><td>没有找到可以查阅的东西</td><td><span class="cls pr">宣传</span></td></tr>
+<tr><td>商业“人工智能视频代理”产品（视频工具里的应用内代理）</td><td>从简报做计划、分镜、生成、剪辑</td><td>只有评测和发布帖</td><td><span class="cls pl">说得通</span> / <span class="cls pr">宣传</span></td></tr>
+<tr><td>Anthropic 的官方技能仓库</td><td>—</td><td>截至 2026-10-17 没有列出视频制作技能（最接近的是一个 GIF 制作器）</td><td><span class="cls vi">已核对</span>（否定性发现）</td></tr>
+</tbody></table></div>
+
+<h2>已记录的工作流有什么共同点</h2>
+<ol>
+<li><b>代码是骨架</b>：代理写的是确定的东西（HTML、React、Manim、Blender Python、FFmpeg），而不是只靠生成。</li>
+<li><b>昂贵的工作之前，人先批准计划</b>（video-use 的硬规则；product-launch-video 的简报）。</li>
+<li><b>自己检查渲染结果</b>，几乎总是帧 / 帧条 + 波形 + 转写，而不是整段视频。</li>
+<li><b>并行的专员</b>（动画子代理、批评代理），上面有一个协调者。</li>
+<li><b>把辛苦换来的规则写进技能</b>——例如 video-use 的“字幕最后再上”、“绝不在一个词中间下刀”、“每个切口做 30 毫秒的音频淡化”。正是这类制作正确性的知识，把代理变成合格的剪辑。<span class="ev v">已核对</span></li>
+<li><b>状态放在文件里</b>（项目笔记、EDL/时间线 JSON、缓存的转写、核对文件夹），工作才能接着做。</li>
+</ol>
+
+<p class="page-meta">最近审阅 2026-10-17。中文版 2026-10-26。完整研究笔记与来源：<a href="sources.html">来源</a>。</p>
+</div></main>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

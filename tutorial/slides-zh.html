@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>从内部看人工智能视频</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: rgba(18, 26, 46, 0.92);
+    --line: rgba(255,255,255,.10);
+    --text: #e8eef9;
+    --muted: #a9b6ce;
+    --dim: #7e8daa;
+    --a: #ff6b5a;
+    --b: #2ec4b6;
+    --c: #f0b429;
+    --d: #a99bff;
+    --blue: #8eb6ff;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; width: 1920px; height: 1080px; overflow: hidden;
+    background: var(--bg); color: var(--text);
+    font-family: "WenQuanYi Micro Hei", "Noto Sans CJK SC", sans-serif;
+  }
+  .slide {
+    display: none;
+    position: absolute; inset: 0;
+    padding: 36px 76px 150px;
+    flex-direction: column;
+    background:
+      radial-gradient(1000px 520px at 92% -10%, rgba(142,182,255,.16), transparent 60%),
+      radial-gradient(800px 480px at -10% 110%, rgba(46,196,182,.10), transparent 55%),
+      var(--bg);
+  }
+  .slide.on { display: flex; }
+  .top {
+    display: flex; align-items: center; gap: 22px;
+    font-size: 18px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--dim); font-weight: 600;
+  }
+  .top .chap { margin-left: auto; color: var(--blue); letter-spacing: .12em; }
+  h1 {
+    margin: 18px 0 0;
+    font-size: 64px; line-height: 1.05; letter-spacing: -0.03em; font-weight: 650;
+  }
+  .dense h1 { font-size: 52px; }
+  .lede { margin: 16px 0 0; font-size: 30px; line-height: 1.35; color: var(--muted); max-width: 1500px; }
+  .body { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+  .kicker { color: var(--blue); font-weight: 650; letter-spacing: .12em; text-transform: uppercase; font-size: 20px; }
+  .grid4, .grid3, .grid2 { display: grid; gap: 18px; }
+  .grid4 { grid-template-columns: repeat(4, 1fr); }
+  .grid3 { grid-template-columns: repeat(3, 1fr); }
+  .grid2 { grid-template-columns: 1fr 1fr; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px 24px 20px;
+  }
+  .card h3 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.02em; }
+  .card p { margin: 0; font-size: 22px; line-height: 1.35; color: var(--muted); }
+  .card .big {
+    font-size: 42px; font-weight: 700; letter-spacing: -0.03em; display: block; margin-bottom: 6px;
+  }
+  .card.a { box-shadow: inset 5px 0 0 var(--a); }
+  .card.b { box-shadow: inset 5px 0 0 var(--b); }
+  .card.c { box-shadow: inset 5px 0 0 var(--c); }
+  .card.d { box-shadow: inset 5px 0 0 var(--d); }
+  .tag {
+    display: inline-block; padding: 4px 10px; border-radius: 999px;
+    font-size: 16px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .tag.a { background: rgba(255,107,90,.16); color: var(--a); }
+  .tag.b { background: rgba(46,196,182,.16); color: var(--b); }
+  .tag.c { background: rgba(240,180,41,.16); color: var(--c); }
+  .tag.d { background: rgba(169,155,255,.16); color: var(--d); }
+  .note { margin-top: 16px; color: var(--dim); font-size: 18px; }
+  [data-on] { opacity: 0; }
+  [data-on].lit { opacity: 1; }
+  .ghost [data-on] { opacity: .28; }
+  .ghost [data-on].lit { opacity: 1; }
+
+  /* title */
+  .hero h1 { font-size: 84px; margin-top: 14px; }
+  .families { display: flex; gap: 14px; margin-top: 36px; }
+  .families span {
+    padding: 14px 22px; border-radius: 14px; font-size: 24px; font-weight: 700;
+    background: var(--card); border: 1px solid var(--line);
+  }
+  .families .a { color: var(--a); } .families .b { color: var(--b); }
+  .families .c { color: var(--c); } .families .d { color: var(--d); }
+
+  /* pipeline */
+  .pipe { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+  .pipe .card { padding: 18px 16px; }
+  .pipe .n { font-family: "JetBrains Mono", ui-monospace, monospace; color: var(--dim); font-size: 16px; }
+  .pipe h3 { font-size: 26px; }
+  .pipe p { font-size: 18px; }
+
+  /* questions */
+  .qbox h2 { margin: 0 0 12px; font-size: 36px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chips i {
+    font-style: normal; background: rgba(255,255,255,.04); border: 1px solid var(--line);
+    border-radius: 999px; padding: 10px 16px; font-size: 22px;
+  }
+
+  /* denoise */
+  .split { display: grid; grid-template-columns: 1.25fr .85fr; gap: 28px; align-items: center; }
+  .frame {
+    background: #070b14; border-radius: 18px; border: 1px solid var(--line);
+    overflow: hidden; position: relative;
+  }
+  canvas { display: block; width: 100%; height: auto; }
+  .stepchip {
+    position: absolute; left: 16px; bottom: 14px;
+    background: rgba(8,12,24,.72); color: white; border-radius: 999px;
+    padding: 6px 12px; font-size: 16px; letter-spacing: .08em; font-weight: 700;
+  }
+  .tricks { display: flex; flex-direction: column; gap: 14px; }
+  .tricks article h3 { font-size: 26px; margin: 0 0 6px; }
+  .punch {
+    margin-top: 8px; font-size: 26px; font-weight: 650; color: var(--text);
+  }
+
+  /* bars */
+  .bars { display: flex; flex-direction: column; gap: 22px; margin-top: 8px; }
+  .barrow { display: grid; grid-template-columns: 280px 1fr 140px; gap: 16px; align-items: center; }
+  .barrow b { font-size: 26px; font-weight: 650; }
+  .track { height: 46px; background: rgba(255,255,255,.05); border-radius: 10px; overflow: hidden; }
+  .track i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--a), #ffb4a2); border-radius: 10px; }
+  .barrow em { font-style: normal; font-size: 24px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* rockets */
+  .rkts { display: flex; gap: 28px; justify-content: center; }
+  .rktwrap { text-align: center; }
+  .rkt { position: relative; width: 120px; height: 250px; margin: 0 auto 12px; }
+  .rkt .nose {
+    position: absolute; left: 30px; top: 0; width: 0; height: 0;
+    border-left: 30px solid transparent; border-right: 30px solid transparent;
+    border-bottom: 52px solid #f4f7fb;
+  }
+  .rkt .body { position: absolute; left: 30px; top: 50px; width: 60px; height: 120px; background: #f4f7fb; border-radius: 4px; }
+  .rkt .win { position: absolute; left: 50px; top: 90px; width: 20px; height: 20px; border-radius: 50%; background: var(--blue); }
+  .rkt .fin {
+    position: absolute; top: 140px; width: 0; height: 0;
+    border-bottom: 48px solid #d5dbe6;
+  }
+  .rkt .fin.l { left: 4px; border-right: 28px solid transparent; }
+  .rkt .fin.r { right: 4px; border-left: 28px solid transparent; }
+  .rkt.alt .body, .rkt.alt .nose { border-bottom-color: #ff8b7a; }
+  .rkt.alt .body { background: #ff8b7a; }
+  .rkt.alt .fin { border-bottom-color: #c9a227; }
+  .rkt .flame {
+    position: absolute; left: 42px; top: 168px; width: 0; height: 0;
+    border-left: 18px solid transparent; border-right: 18px solid transparent;
+    border-top: 54px solid #f0b429;
+  }
+  .badword {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 54px; letter-spacing: .04em; font-weight: 700;
+  }
+  .badword u { text-decoration: none; color: var(--a); }
+
+  /* code */
+  .codewrap { display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: center; }
+  .code {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 34px; line-height: 1.45;
+    background: #080d18; border: 1px solid var(--line); border-radius: 18px;
+    padding: 28px 32px;
+  }
+  .code .k { color: var(--d); }
+  .code .ind { padding-left: 42px; }
+  .rule {
+    font-size: 34px; line-height: 1.3; font-weight: 650;
+  }
+  .rule span { display: block; margin-top: 12px; color: var(--b); font-size: 26px; font-weight: 600; }
+
+  /* tree */
+  .tree { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .node {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 14px 18px; font-size: 24px; font-weight: 650; text-align: center;
+  }
+    .node.root { background: #1a2748; color: var(--blue); }
+  .node.accent { border-left: 5px solid var(--blue); }
+  .node.ok { border-left: 5px solid var(--b); }
+  .node small { display: block; font-weight: 500; color: var(--muted); font-size: 18px; margin-top: 4px; }
+  .stem { width: 2px; height: 22px; background: rgba(255,255,255,.22); }
+  .kids { display: flex; gap: 16px; align-items: stretch; justify-content: center; }
+  .subs { display: flex; gap: 8px; margin-top: 10px; }
+  .subs span {
+    font-size: 16px; font-weight: 600; background: rgba(255,255,255,.05);
+    border-radius: 8px; padding: 6px 8px; color: var(--muted);
+  }
+
+  /* layers */
+  .layers { display: flex; gap: 16px; align-items: stretch; }
+  .layers .card { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 240px; }
+  .layers .op {
+    align-self: center; font-size: 40px; color: var(--dim); font-weight: 700; width: 36px; text-align: center;
+  }
+
+  /* timeline */
+  .tl { display: flex; flex-direction: column; gap: 10px; }
+  .ruler, .trow { display: grid; grid-template-columns: 150px 1fr; gap: 12px; align-items: center; }
+  .ruler { color: var(--dim); font-size: 16px; }
+  .ruler .scale { display: flex; justify-content: space-between; padding: 0 4px; }
+  .tname { font-size: 20px; font-weight: 700; color: var(--muted); }
+  .blocks { display: flex; gap: 8px; min-height: 48px; }
+  .blocks i {
+    font-style: normal; display: flex; align-items: center; padding: 0 12px;
+    border-radius: 8px; font-size: 18px; font-weight: 650; color: #0b1020; height: 48px;
+  }
+  .blocks i.a { background: var(--a); color: #2a0d0a; }
+  .blocks i.b { background: var(--b); color: #062421; }
+  .blocks i.c { background: var(--c); color: #2a2108; }
+  .blocks i.d { background: var(--d); color: #1a1433; }
+  .blocks i.v { background: var(--blue); color: #0c1730; }
+  .blocks i.wide { flex: 1; }
+
+  /* shots */
+  .shots { display: flex; flex-direction: column; gap: 8px; }
+  .shot {
+    display: grid; grid-template-columns: 110px 1fr 430px; gap: 16px; align-items: center;
+    background: rgba(255,255,255,.03); border-radius: 12px; padding: 9px 16px;
+  }
+  .shot .tm { font-family: "JetBrains Mono", ui-monospace, monospace; color: var(--dim); font-size: 20px; }
+  .shot .beat { font-size: 24px; font-weight: 600; }
+  .shot .pill { font-size: 18px; font-weight: 700; text-align: right; }
+
+  /* flow steps */
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .flow .card b { display: block; font-size: 18px; letter-spacing: .12em; color: var(--dim); }
+  .flow .card h3 { font-size: 32px; }
+  .return {
+    margin-top: 22px; font-size: 28px; font-weight: 650; color: var(--c);
+    border: 1px dashed rgba(240,180,41,.45); border-radius: 14px; padding: 16px 20px;
+  }
+
+  /* build graph */
+  .bgraph { display: flex; flex-direction: column; gap: 14px; }
+  .bgrow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .bgrow .node { font-size: 22px; }
+  .arrow { color: var(--dim); font-size: 26px; }
+
+  /* stairs */
+  .steps2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
+  .stepn {
+    display: grid; grid-template-columns: 72px 1fr; gap: 8px; align-items: center;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px;
+  }
+  .stepn b { font-size: 28px; color: var(--blue); font-variant-numeric: tabular-nums; }
+  .stepn span { font-size: 24px; font-weight: 650; line-height: 1.25; }
+
+  .callsheet { display: grid; grid-template-columns: 220px 1fr 180px; gap: 0; }
+  .callsheet div {
+    padding: 16px 18px; border-bottom: 1px solid var(--line); font-size: 26px;
+  }
+  .callsheet .h { color: var(--dim); font-size: 16px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; }
+  .src { color: var(--dim); font-size: 18px; margin-top: 14px; }
+  .top, .kicker, .tag, .chap, .callsheet .h, .flow .card b { letter-spacing: .04em; text-transform: none; }
+  h1, .lede, .card h3, .card p { letter-spacing: 0; }
+  h1 { font-size: 56px; }
+  .hero h1 { font-size: 68px; }
+  .dense h1 { font-size: 46px; }
+</style>
+</head>
+<body>
+<section class="slide" id="s01">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">开场</span></div>
+  <div class="body hero">
+    <div class="kicker">一份口播实地指南 · 二零二六年十月</div>
+    <h1>人工智能协助的视频<br>到底是怎么做出来的</h1>
+    <p class="lede">像素、运动、声音，以及指挥它们的编程代理。先看清这台机器，再去做一台。</p>
+    <div class="families">
+      <span class="a">A · 想象</span>
+      <span class="b">B · 计算</span>
+      <span class="c">C · 排列</span>
+      <span class="d">D · 组合</span>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s02">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">一个想法</span></div>
+  <div class="body">
+    <h1>成片是组装出来的，<br>不是吐出来的。</h1>
+    <div class="grid4" style="margin-top:28px">
+      <div class="card a"><span class="tag a">A</span><h3>想象</h3><p>神经网络抽样像素。里面没有物体。好看，而且每一次都是重新掷一次骰子。</p></div>
+      <div class="card b"><span class="tag b">B</span><h3>计算</h3><p>代码描述场景。渲染器计算每一帧。同样的源，同样的画面。</p></div>
+      <div class="card c"><span class="tag c">C</span><h3>排列</h3><p>时间线安放片段、静帧、人声、音乐和字幕。质量等于零件，再加上时间。</p></div>
+      <div class="card d"><span class="tag d">D</span><h3>组合</h3><p>真正的片子把三者混在一起，常常就在一个镜头里。精确层放代码。说得通的层交给模型。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s03">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">一个想法</span></div>
+  <div class="body">
+    <h1>你已经认识这台机器。</h1>
+    <p class="lede">把片子的流水线映射到软件流水线上，失败的方式就不再神秘。</p>
+    <div class="pipe" style="margin-top:28px">
+      <div class="card a"><div class="n">01</div><h3>抽样</h3><p>神经镜头。像一次语言模型的回答。要检验它。</p></div>
+      <div class="card b"><div class="n">02</div><h3>编译</h3><p>渲染镜头。同样的源进去，同样的帧出来。</p></div>
+      <div class="card c"><div class="n">03</div><h3>链接</h3><p>时间线组装。零件变成一个文件。</p></div>
+      <div class="card d"><div class="n">04</div><h3>构建脚本</h3><p>编程代理。计划，调用工具，从文件里续上。</p></div>
+      <div class="card"><div class="n">05</div><h3>测试</h3><p>探针。响度、字幕、文字识别、选定的帧。</p></div>
+      <div class="card"><div class="n">06</div><h3>评审</h3><p>你的口味。三道人的门，然后发布。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s04">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">两个问题</span></div>
+  <div class="body">
+    <h1>每个镜头，两个都问。</h1>
+    <div class="grid2" style="margin-top:28px">
+      <div class="card qbox">
+        <h2>像素从哪来？</h2>
+        <div class="chips">
+          <i>合成</i><i>渲染</i><i>拍摄</i><i>叠合</i>
+        </div>
+      </div>
+      <div class="card qbox">
+        <h2>运动从哪来？</h2>
+        <div class="chips">
+          <i>学来的</i><i>写出来的</i><i>模拟的</i><i>拍下来的</i><i>剪辑时推移</i>
+        </div>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:22px">看起来像三维的产品旋转，可能是猜出来的运动，也可能是网格沿着摄像机路径。改一下标志颜色，你就知道是哪一种。</p>
+  </div>
+</section>
+
+<section class="slide" id="s05">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">神经合成</span></div>
+  <div class="body">
+    <div class="kicker">家族 A</div>
+    <h1>模型在想象像素。</h1>
+    <div class="grid2" style="margin-top:26px">
+      <div class="card a">
+        <h3>它的长处</h3>
+        <p>气氛、天气、人群、电影感的填充，还有物理上飞不起来的摄像机。很快就能看到一个漂亮的初稿。</p>
+      </div>
+      <div class="card">
+        <h3>交给另一台机器</h3>
+        <p>精确的字。精确的数字。一套你可以核对的机构。一件产品必须在第十二镜和第四十镜里还是它自己。</p>
+      </div>
+    </div>
+    <p class="note">模型里面没有物体。有的是一种学来的感觉：这类场景往往长什么样、怎么动。</p>
+  </div>
+</section>
+
+<section class="slide" id="s06" data-anim="denoise">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">神经合成</span></div>
+  <div class="body">
+    <h1 style="font-size:48px;margin-bottom:16px">从噪声里雕出一段片子</h1>
+    <div class="split">
+      <div class="frame">
+        <canvas id="noise" width="960" height="540"></canvas>
+        <div class="stepchip" id="stepchip">第 0 / 32 步</div>
+      </div>
+      <div class="tricks">
+        <article class="card" data-on="0.46"><h3>1 · 潜空间</h3><p>给压缩过的立方体去噪。解码器再把像素还原。</p></article>
+        <article class="card" data-on="0.62"><h3>2 · 时空词元</h3><p>变换器同时在空间和时间上做注意力。</p></article>
+        <article class="card" data-on="0.76"><h3>3 · 流匹配</h3><p>从噪声到画面的路径更直，步数更少。</p></article>
+        <p class="punch" data-on="0.88">这段片子的每一帧，是一起去噪的。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s07">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">神经合成</span></div>
+  <div class="body">
+    <h1>镜头短，是因为注意力。</h1>
+    <p class="lede">Wan 2.1，大约五秒、720p，大约七万五千个词元。每一步都是全注意力。</p>
+    <div class="bars">
+      <div class="barrow"><b>五秒</b><div class="track"><i data-fill="18"></i></div><em>× 1</em></div>
+      <div class="barrow"><b>十秒</b><div class="track"><i data-fill="48"></i></div><em>× 4</em></div>
+      <div class="barrow"><b>二十秒</b><div class="track"><i data-fill="100"></i></div><em>× 16</em></div>
+    </div>
+    <p class="src">相对的注意力代价：时长加倍，账单大约四倍。Wan 2.1 的公式，实地指南，二零二六年十月。4K 通常是放大器。</p>
+  </div>
+</section>
+
+<section class="slide" id="s08">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">神经合成</span></div>
+  <div class="body">
+    <h1>几乎正确的文字。没有身份。</h1>
+    <div class="grid2" style="margin-top:22px">
+      <div class="card a">
+        <div class="tag a">文字是纹理</div>
+        <div class="badword" style="margin:22px 0">LAND<u>1</u>NG BURN</div>
+        <p>模型从来没有把那个字母摆上去。看一眼就会接受“差不多”。</p>
+      </div>
+      <div class="card">
+        <div class="tag d">同一提示，两次抽样</div>
+        <div class="rkts" style="margin-top:16px">
+          <div class="rktwrap"><div class="rkt"><i class="nose"></i><i class="body"></i><i class="win"></i><i class="fin l"></i><i class="fin r"></i><i class="flame"></i></div><p>样本 1</p></div>
+          <div class="rktwrap"><div class="rkt alt"><i class="nose"></i><i class="body"></i><i class="win"></i><i class="fin l"></i><i class="fin r"></i><i class="flame"></i></div><p>样本 2</p></div>
+        </div>
+        <p>没有一个可以忠诚的物体。身份要紧时，把它升格成资产，再渲染。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s09">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">渲染场景</span></div>
+  <div class="body">
+    <div class="kicker">家族 B</div>
+    <h1>像素由代码算出来。</h1>
+    <div class="grid3" style="margin-top:26px">
+      <div class="card b"><h3>你来描述</h3><p>形状、文字、网格、灯光、摄像机，以及随时间变化的关键帧。</p></div>
+      <div class="card b"><h3>它来计算</h3><p>每一帧是那个时刻的场景的函数。可以重复。</p></div>
+      <div class="card b"><h3>代理在这里如鱼得水</h3><p>场景是一段它们能写、能跑、能读、能打补丁的程序。</p></div>
+    </div>
+    <p class="lede" style="margin-top:22px">你付出构建时间。你得到精确的文字、精确的数据，还有一辆不会在镜头之间把自己重新设计一遍的载具。</p>
+  </div>
+</section>
+
+<section class="slide" id="s10">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">渲染场景</span></div>
+  <div class="body">
+    <h1>视频是时间的函数。</h1>
+    <div class="codewrap" style="margin-top:22px">
+      <div class="code">
+        <div><span class="k">for</span> frame <span class="k">in</span> frames:</div>
+        <div class="ind">t = frame / fps</div>
+        <div class="ind">image = render(scene.at(t))</div>
+        <div class="ind">write(image)</div>
+        <div>encode(frames, audio)</div>
+      </div>
+      <div class="rule">
+        某一帧的画面，只取决于那个帧号，以及你冻结了的输入。
+        <span>墙上的计时器会闪，因为帧是乱序、并行渲染的。</span>
+      </div>
+    </div>
+    <p class="note">Remotion 以当前帧为中心。HyperFrames 会把时间线跳到它正要抓取的那一帧。</p>
+  </div>
+</section>
+
+<section class="slide dense" id="s11">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">渲染场景</span></div>
+  <div class="body">
+    <h1>场景是一棵树。</h1>
+    <div class="tree" style="margin-top:8px;width:100%">
+      <div class="node root">场景</div>
+      <div class="stem"></div>
+      <div class="kids">
+        <div class="node">摄像机<small>路径、镜头</small></div>
+        <div class="node">太阳和天空<small>打一次光</small></div>
+        <div class="node" style="box-shadow: inset 0 -4px 0 var(--b)">助推器组
+          <div class="subs"><span>箭体</span><span>腿</span><span>尾焰</span></div>
+        </div>
+        <div class="node" style="box-shadow: inset 0 -4px 0 var(--c)">二维叠加<small>高度、标签</small></div>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:18px">移动这个组，孩子跟着走。改摄像机，载具不动。改一个标签，灯光渲染留下。一个节点，不是重拍。</p>
+  </div>
+</section>
+
+<section class="slide" id="s12">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">组装</span></div>
+  <div class="body">
+    <div class="kicker">家族 C</div>
+    <h1>时间线是一个链接器。</h1>
+    <div class="grid3" style="margin-top:26px">
+      <div class="card c"><h3>它不发明</h3><p>片段、静帧、人声、音乐、字幕。实拍、素材库和屏幕录制从这里进来。</p></div>
+      <div class="card c"><h3>它安放</h3><p>哪个资产、何时、多大、哪种转场、底下哪段声音。时间线是数据。</p></div>
+      <div class="card c"><h3>代理可以驱动它</h3><p>FFmpeg、一份 JSON 时间线、一个模板接口，或一个可脚本化的剪辑器。诚实等于输入，加上时间。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s13">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">组装</span></div>
+  <div class="body">
+    <div class="kicker">家族 D · 一个镜头，三台机器</div>
+    <h1 style="font-size:48px">精确的层。说得通的层。</h1>
+    <div class="layers" style="margin-top:26px">
+      <div class="card a" data-on="0.12"><span class="tag a">想象</span><h3>天空底板</h3><p>黄昏只需要说得通。</p></div>
+      <div class="op" data-on="0.28">+</div>
+      <div class="card b" data-on="0.32"><span class="tag b">计算</span><h3>助推器</h3><p>每一镜都是同一个网格。</p></div>
+      <div class="op" data-on="0.55">+</div>
+      <div class="card c" data-on="0.58"><span class="tag c">计算</span><h3>箭头、数字</h3><p>用代码画在上面，精确。</p></div>
+      <div class="op" data-on="0.78">→</div>
+      <div class="card d" data-on="0.82"><span class="tag d">组合</span><h3>一个镜头</h3><p>在剪辑里接上。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide dense" id="s14">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">组装</span></div>
+  <div class="body">
+    <h1>是轨道，不是单个文件。</h1>
+    <div class="tl ghost" style="margin-top:18px">
+      <div class="ruler"><span></span><div class="scale"><span>0:00</span><span>0:30</span><span>1:00</span><span>1:30</span><span>2:00</span></div></div>
+      <div class="trow"><div class="tname">镜头</div><div class="blocks">
+        <i class="a" data-on="0.12" style="flex:1.1">生成</i>
+        <i class="b" data-on="0.28" style="flex:1.5">三维渲染</i>
+        <i class="c" data-on="0.44" style="flex:.8">资料</i>
+        <i class="a" data-on="0.56" style="flex:1">生成</i>
+      </div></div>
+      <div class="trow"><div class="tname">图形</div><div class="blocks">
+        <i class="b" data-on="0.36" style="flex:.7;margin-left:18%">示意图</i>
+        <i class="b" data-on="0.62" style="flex:.45">下三分</i>
+      </div></div>
+      <div class="trow"><div class="tname">字幕</div><div class="blocks"><i class="wide v" data-on="0.48">来自口播的逐词时间</i></div></div>
+      <div class="trow"><div class="tname">人声</div><div class="blocks">
+        <i class="v" data-on="0.22" style="flex:1">口播，前段</i>
+        <i class="v" data-on="0.5" style="flex:1">口播，后段</i>
+      </div></div>
+      <div class="trow"><div class="tname">音乐</div><div class="blocks"><i class="wide d" data-on="0.66">配乐，压在人声下面</i></div></div>
+      <div class="trow"><div class="tname">音效</div><div class="blocks">
+        <i class="c" data-on="0.72" style="width:90px">轰</i>
+        <i class="c" data-on="0.8" style="width:70px">嘶</i>
+        <i class="c" data-on="0.88" style="width:110px">着陆</i>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s15">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">声音</span></div>
+  <div class="body">
+    <h1>人声定下时钟。</h1>
+    <div class="grid4" style="margin-top:24px">
+      <div class="card"><h3>口播</h3><p>先锁这个。先是词，再是时间戳。</p></div>
+      <div class="card"><h3>音乐</h3><p>压在人声下面。情绪和节奏。</p></div>
+      <div class="card"><h3>音效</h3><p>短，具体，落在重拍上。</p></div>
+      <div class="card"><h3>环境</h3><p>房间底噪，让切换听起来连续。</p></div>
+    </div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="card b"><h3>−14 LUFS</h3><p>网上视频一个实用的响度目标。测得到，所以没达到时构建可以失败。</p></div>
+      <div class="card c"><h3>先词表，再做差异</h3><p>缩写和单位会弄坏语音合成。识别人声，再和稿子做差异比较。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s16">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">声音</span></div>
+  <div class="body">
+    <h1>三种早期翻车。</h1>
+    <div class="grid3" style="margin-top:24px">
+      <div class="card a"><span class="big">1</span><h3>一个模型，整部片子</h3><p>片段是短的。示意图属于渲染器。神经镜头是气氛。</p></div>
+      <div class="card"><span class="big">2</span><h3>它看得和你一样</h3><p>常常只有几帧，再加上文字。视频模型通常大约一秒抽一帧。</p></div>
+      <div class="card c"><span class="big">3</span><h3>声音当油漆</h3><p>声音就是时钟。画面按词来切，不是反过来。</p></div>
+    </div>
+    <p class="src">TOMATO 时间推理基准，如实记在实地指南里：人大约 95%，最好的模型不到 40%。闪烁和一帧的错误就住在这个缺口里。</p>
+  </div>
+</section>
+
+<section class="slide" id="s17">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">代理</span></div>
+  <div class="body">
+    <h1>代理能做的四件事。</h1>
+    <div class="grid4" style="margin-top:26px">
+      <div class="card d"><span class="big">写</span><p>场景代码、时间线、提示、测试。</p></div>
+      <div class="card d"><span class="big">调用</span><p>命令行、SDK、HTTP 接口、MCP 服务器。</p></div>
+      <div class="card d"><span class="big">读</span><p>一帧、一份转写、一个响度数。</p></div>
+      <div class="card d"><span class="big">记住</span><p>简报、镜头表、清单、花费。都在文件里。</p></div>
+    </div>
+    <p class="lede" style="margin-top:22px">如果不在文件里，下一次会话就续不上。那棵文件树，就是这次制作。</p>
+  </div>
+</section>
+
+<section class="slide" id="s18">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">代理</span></div>
+  <div class="body">
+    <h1>循环才是产品。</h1>
+    <div class="flow ghost" style="margin-top:26px">
+      <div class="card" data-on="0.06"><b>01</b><h3>计划</h3><p>简报、稿子、镜头表、测试。</p></div>
+      <div class="card" data-on="0.22"><b>02</b><h3>制作</h3><p>生成、渲染、说话、授权。</p></div>
+      <div class="card" data-on="0.38"><b>03</b><h3>组装</h3><p>时间线、对齐、字幕、混音。</p></div>
+      <div class="card" data-on="0.52"><b>04</b><h3>检查</h3><p>探针、帧、一道人的门。</p></div>
+      <div class="card" data-on="0.66"><b>05</b><h3>交付</h3><p>母版、字幕、来源。</p></div>
+    </div>
+    <div class="return" data-on="0.78">小的失误 → 改一件事，重做那个镜头。&nbsp; 大的失误 → 回到计划。</div>
+  </div>
+</section>
+
+<section class="slide dense" id="s19">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">代理</span></div>
+  <div class="body">
+    <h1>证据真正支持的是什么。</h1>
+    <div class="grid2" style="margin-top:22px">
+      <div class="card d">
+        <h3>拆解胜过一群人</h3>
+        <p>已发表的证据里，许多专家代理胜过一个脚踏实地的代理，证据很薄。反复出现的，是把工作拆成镜头的规划器。</p>
+      </div>
+      <div class="card">
+        <h3>评论者多半是探针</h3>
+        <p>响度。语音对稿子的差异。标题上的文字识别。黑帧和定格。视觉模型对准切点和提示词。口味留在人的那道门。</p>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:20px">凡是能变成数字的，都应该是数字。</p>
+  </div>
+</section>
+
+<section class="slide" id="s20">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">一部纪录片</span></div>
+  <div class="body">
+    <div class="kicker">实例 · 两分钟</div>
+    <h1>助推器如何回家。</h1>
+    <p class="lede">三维动画、示意图、电影感的场景、效果、口播、音乐、准确的字幕。</p>
+    <div class="grid3" style="margin-top:24px">
+      <div class="card b"><h3>骨架</h3><p>渲染。“准确”和“示意图”在任何像素出现之前就决定了这一点。</p></div>
+      <div class="card a"><h3>气氛</h3><p>只在镜头不做技术断言的地方生成。冷开场、海、宽阔的天空。</p></div>
+      <div class="card c"><h3>证明</h3><p>一次有授权的真实着陆，前提是权利干净。人声决定每一段时长。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide dense" id="s21">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">一部纪录片</span></div>
+    <div class="body">
+    <h1 style="margin-bottom:14px">给每个镜头路由。</h1>
+    <div class="shots">
+      <div class="shot" data-on="0.04"><span class="tm">0:00</span><span class="beat">黄昏降落。没有可证伪的断言。</span><span class="pill" style="color:var(--a)">静帧，再做图生视频</span></div>
+      <div class="shot" data-on="0.18"><span class="tm">0:08</span><span class="beat">标题。“它如何停下来？”</span><span class="pill" style="color:var(--b)">文字，用代码</span></div>
+      <div class="shot" data-on="0.28"><span class="tm">0:16</span><span class="beat">扔掉一级，为什么这么贵。</span><span class="pill" style="color:var(--b)">图表，有来源的数字</span></div>
+      <div class="shot" data-on="0.40"><span class="tm">0:28</span><span class="beat">载具，很多次。</span><span class="pill" style="color:var(--b)">一个三维模型</span></div>
+      <div class="shot" data-on="0.52"><span class="tm">0:38</span><span class="beat">轨迹。</span><span class="pill" style="color:var(--b)">由物理模型画出来</span></div>
+      <div class="shot" data-on="0.64"><span class="tm">1:10</span><span class="beat">力，画在天空上。</span><span class="pill" style="color:var(--d)">生成的底板 + 精确的箭头</span></div>
+      <div class="shot" data-on="0.74"><span class="tm">1:32</span><span class="beat">高潮着陆。</span><span class="pill" style="color:var(--b)">同一网格，可选换风格</span></div>
+      <div class="shot" data-on="0.84"><span class="tm">1:42</span><span class="beat">真实的着陆。</span><span class="pill" style="color:var(--c)">有授权的资料</span></div>
+      <div class="shot" data-on="0.92"><span class="tm">1:50</span><span class="beat">结束卡。</span><span class="pill" style="color:var(--b)">文字，加上来源</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide dense" id="s22">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">一部纪录片</span></div>
+  <div class="body">
+    <h1>一部片子会编译。</h1>
+    <div class="bgraph" style="margin-top:18px">
+      <div class="bgrow">
+        <div class="node root">简报</div><span class="arrow">→</span>
+        <div class="node">调研</div><span class="arrow">→</span>
+        <div class="node">稿子</div>
+      </div>
+      <div class="bgrow">
+        <div class="node">口播</div><span class="arrow">→</span>
+        <div class="node">逐词时间</div><span class="arrow">→</span>
+        <div class="node">真实时长</div>
+      </div>
+      <div class="bgrow">
+        <div class="node">关键帧</div>
+        <div class="node">Blender</div>
+        <div class="node">示意图</div>
+        <div class="node">音乐</div>
+        <div class="node">音效</div>
+      </div>
+      <div class="bgrow">
+        <div class="node root">时间线</div><span class="arrow">→</span>
+        <div class="node">字幕</div><span class="arrow">→</span>
+        <div class="node">质检报告</div><span class="arrow">→</span>
+        <div class="node root">母版</div>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:18px">改口播的一行。重做依赖它的镜头和混音。那片海不要动。</p>
+  </div>
+</section>
+
+<section class="slide" id="s23">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">路由与现实</span></div>
+  <div class="body">
+    <h1>三条路由规则。</h1>
+    <div class="grid3" style="margin-top:26px">
+      <div class="card b"><span class="big">精确</span><p>文字、数据、机构、标志。渲染它。</p></div>
+      <div class="card a"><span class="big">说得通</span><p>好看就够了。生成它。</p></div>
+      <div class="card d"><span class="big">两者</span><p>渲染精确层。生成底板。或者给一次你控制的渲染换风格。</p></div>
+    </div>
+    <p class="lede" style="margin-top:22px">反复出现的角色是资产，不是提示词。字必须精确时，口播是自己的一条轨道。</p>
+  </div>
+</section>
+
+<section class="slide dense" id="s24">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">路由与现实</span></div>
+  <div class="body">
+    <h1>二零二六年十月，然后再核对。</h1>
+    <div class="grid3" style="margin-top:22px">
+      <div class="card b"><h3>自动化</h3><p>有来源的稿子、代码驱动的二维、无界面渲染、组装、带时间戳的语音、字幕、响度、客观质检。</p></div>
+      <div class="card c"><h3>看着做</h3><p>生成视频、长片里的身份、音乐口味、任何真人。</p></div>
+      <div class="card a"><h3>动手前先确认</h3><p>Sora 在 2026 年停售。排行榜彼此不同意。价格按秒计，而且会变。</p></div>
+    </div>
+    <p class="src">厂商事实来自书面实地指南，二零二六年十月核对。留下来的技能是路由，不是密钥上的品牌。</p>
+  </div>
+</section>
+
+<section class="slide" id="s25">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">路由与现实</span></div>
+  <div class="body">
+    <div class="kicker">一张地图，不是法律意见</div>
+    <h1>披露它。签在最终导出上。</h1>
+    <div class="grid2" style="margin-top:24px">
+      <div class="card"><h3>第五十条</h3><p>欧盟对所覆盖合成媒体的透明义务，自 2026 年 8 月 2 日起适用。说明哪些是生成的。请一个人确认你这次发布的义务。</p></div>
+      <div class="card c"><h3>来源</h3><p>如果要签名，签在最终导出上。FFmpeg 重新编码会把它剥掉。签在中间文件上，签的是错误的成品。</p></div>
+    </div>
+    <p class="lede" style="margin-top:20px">在镜头表旁边留一本登记册：资产、许可、人声同意、肖像。代理来维护。放进去什么，由你决定。</p>
+  </div>
+</section>
+
+<section class="slide dense" id="s26">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">学会它</span></div>
+  <div class="body">
+    <h1>按这个顺序学。</h1>
+    <div class="steps2" style="margin-top:22px">
+      <div class="stepn"><b>01</b><span>用 ffprobe 拆开一个文件。</span></div>
+      <div class="stepn"><b>02</b><span>一段三十秒的讲解，用代码写。</span></div>
+      <div class="stepn"><b>03</b><span>人声、逐词时间戳、一个响度目标。</span></div>
+      <div class="stepn"><b>04</b><span>代理写出一份你能读的质检报告。</span></div>
+      <div class="stepn"><b>05</b><span>两三处生成插入，从静帧出发。</span></div>
+      <div class="stepn"><b>06</b><span>镜头表是数据。局部重建。一本花费账本。</span></div>
+      <div class="stepn"><b>07</b><span>一个无界面的 Blender 镜头。</span></div>
+      <div class="stepn"><b>08</b><span>两分钟的片子是考试，不是第一道练习。</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s27">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">学会它</span></div>
+  <div class="body">
+    <h1>内部的看法。</h1>
+    <div class="pipe" style="margin-top:28px">
+      <div class="card a"><div class="n">像素</div><h3>四个家族</h3><p>想象、计算、排列、组合。</p></div>
+      <div class="card a"><div class="n">运动</div><h3>自己的来源</h3><p>学来的、写出的、模拟的、拍下的。</p></div>
+      <div class="card"><div class="n">模型</div><h3>一段短片子</h3><p>从噪声立方体里雕出来。</p></div>
+      <div class="card b"><div class="n">代码</div><h3>事实来源</h3><p>字、数字、机器。</p></div>
+      <div class="card c"><div class="n">时钟</div><h3>人声</h3><p>画面按词来切。</p></div>
+      <div class="card d"><div class="n">导演</div><h3>那个循环</h3><p>文件、工具、一次改一件。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s28">
+  <div class="top"><span>人工智能视频 · 从内部看</span><span class="chap">学会它</span></div>
+  <div class="body">
+    <div class="kicker">这部片子用了这个方法</div>
+    <h1>先命名机器。再跑循环。</h1>
+    <div class="card" style="margin-top:22px;padding:8px 8px 8px 22px">
+      <div class="callsheet">
+        <div class="h">层</div><div class="h">机器</div><div class="h">家族</div>
+        <div>画面</div><div>浏览器，用代码画，一帧一帧抓取</div><div style="color:var(--b);font-weight:700">B</div>
+        <div>人声</div><div>神经语音，时间戳烧进字幕</div><div style="color:var(--blue);font-weight:700">音频</div>
+        <div>音乐</div><div>一段渲染音调，压在字的下面</div><div style="color:var(--d);font-weight:700">音频</div>
+        <div>时间线</div><div>FFmpeg 组装。没有文生视频模型。</div><div style="color:var(--c);font-weight:700">C</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+function hash2(x, y) {
+  let n = (x * 374761393 + y * 668265263) | 0;
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
+}
+function drawScene(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, "#14203a");
+  g.addColorStop(0.45, "#c46a45");
+  g.addColorStop(0.72, "#1a2838");
+  g.addColorStop(1, "#0c1522");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(255, 206, 140, .95)";
+  ctx.beginPath();
+  ctx.arc(w * 0.74, h * 0.40, 46, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,.16)";
+  [[0.18, 0.28, 120, 42], [0.34, 0.22, 70, 28], [0.58, 0.18, 130, 40]].forEach(([cx, cy, rx, ry]) => {
+    ctx.beginPath();
+    ctx.ellipse(w * cx, h * cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.fillStyle = "#102433";
+  ctx.fillRect(0, h * 0.74, w, h);
+  ctx.fillStyle = "rgba(255,255,255,.25)";
+  ctx.fillRect(0, h * 0.74, w, 3);
+  ctx.save();
+  ctx.translate(w * 0.42, h * 0.30);
+  ctx.fillStyle = "#ffb703";
+  ctx.beginPath();
+  ctx.moveTo(-16, 168); ctx.lineTo(16, 168); ctx.lineTo(0, 250); ctx.fill();
+  ctx.fillStyle = "#f4f7fb";
+  ctx.fillRect(-26, 28, 52, 140);
+  ctx.beginPath();
+  ctx.moveTo(-26, 28); ctx.lineTo(26, 28); ctx.lineTo(0, -36); ctx.fill();
+  ctx.fillStyle = "#d5dbe6";
+  ctx.beginPath(); ctx.moveTo(-26, 130); ctx.lineTo(-62, 186); ctx.lineTo(-26, 168); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(26, 130); ctx.lineTo(62, 186); ctx.lineTo(26, 168); ctx.fill();
+  ctx.fillStyle = "#8eb6ff";
+  ctx.beginPath(); ctx.arc(0, 84, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+function drawDenoise(slide, p) {
+  const canvas = slide.querySelector("canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width, h = canvas.height;
+  drawScene(ctx, w, h);
+  const clear = Math.min(1, Math.max(0, (p - 0.06) / 0.46));
+  const cell = Math.max(3, Math.round(28 - 25 * clear));
+  const alpha = Math.pow(1 - clear, 0.9);
+  if (alpha > 0.02) {
+    ctx.globalAlpha = alpha;
+    for (let y = 0; y < h; y += cell) {
+      for (let x = 0; x < w; x += cell) {
+        const n = Math.floor(hash2(x, y) * 255);
+        ctx.fillStyle = "rgb(" + n + "," + n + "," + n + ")";
+        ctx.fillRect(x, y, cell, cell);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  const chip = slide.querySelector("#stepchip");
+  if (chip) chip.textContent = "第 " + Math.round(clear * 32) + " / 32 步";
+}
+window.Anims = { denoise: drawDenoise };
+window.setTutorialFrame = function (id, localP, globalP) {
+  document.querySelectorAll(".slide").forEach(s => s.classList.toggle("on", s.id === id));
+  const slide = document.getElementById(id);
+  if (!slide) return;
+  slide.querySelectorAll("[data-on]").forEach(el => {
+    el.classList.toggle("lit", localP + 1e-6 >= parseFloat(el.dataset.on));
+  });
+  slide.querySelectorAll("[data-fill]").forEach(el => {
+    const target = parseFloat(el.dataset.fill);
+    const shown = Math.min(target, Math.max(0, (localP - 0.08) / 0.75) * target);
+    el.style.width = (localP >= 0.999 ? target : shown) + "%";
+  });
+  const name = slide.dataset.anim;
+  if (name && window.Anims[name]) window.Anims[name](slide, localP);
+};
+document.addEventListener("DOMContentLoaded", () => {
+  const q = new URLSearchParams(location.search);
+  window.setTutorialFrame(q.get("s") || "s01", parseFloat(q.get("p") || "1"), 0);
+});
+</script>
+</body>
+</html>
