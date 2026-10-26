@@ -4,12 +4,19 @@ A vendor-neutral field guide for a software engineer who wants to direct video w
 
 ## Open it
 
-The live site is GitHub Pages. The guide is the homepage. The film is one click from the top of that page, and from the sidebar.
+The guide and the film are viewable in a browser with no install. The film is 22 minutes, captions are burned in, and the chapter list seeks the player.
 
-- Field guide: <https://connect-world-1985-ai.github.io/2026-10-17-ai-video-production-guide/>
-- Tutorial (22 min): <https://connect-world-1985-ai.github.io/2026-10-17-ai-video-production-guide/watch.html>
+- Field guide: <https://htmlpreview.github.io/?https://github.com/connect-world-1985-ai/2026-10-17-ai-video-production-guide/blob/main/site/index.html>
+- Tutorial: <https://htmlpreview.github.io/?https://github.com/connect-world-1985-ai/2026-10-17-ai-video-production-guide/blob/main/site/watch.html>
 
-On your own machine, open `site/index.html` or `site/watch.html` in a browser. There is no install and no server. The video file sits next to the page, so it plays from disk as well as from Pages.
+From a clone, open `site/index.html` or `site/watch.html`. There is no server. The video file sits next to the page, so it plays from disk.
+
+GitHub Pages publishes the same `site/` folder. The workflow is `.github/workflows/pages.yml`, and it runs on every push to `main`. Once the repository’s Pages source is **GitHub Actions** (Settings → Pages → Build and deployment → Source), these addresses serve the guide and the film:
+
+- <https://connect-world-1985-ai.github.io/2026-10-17-ai-video-production-guide/>
+- <https://connect-world-1985-ai.github.io/2026-10-17-ai-video-production-guide/watch.html>
+
+That source switch is a repository admin setting. The workflow cannot turn it on by itself. Until it is set, use the two links at the top of this section.
 
 ## What you will know afterwards
 
