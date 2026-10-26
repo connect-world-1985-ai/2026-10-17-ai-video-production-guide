@@ -92,7 +92,7 @@ encode(frames, audio) -> video.mp4</code></pre>
 <h2>渲染：把场景变成像素</h2>
 <div class="cards">
 <div class="card b"><h4>光栅化（实时）</h4><p>把三角形投影到屏幕上，再给每个像素着色。在 GPU 上，一帧只要几毫秒。游戏引擎、浏览器 WebGL、Blender EEVEE。阴影、反射和全局光照是近似的。</p></div>
-<div class="card b"><h4>路径追踪（离线）</h4><p>模拟每个像素上的许多条光线在场景里反弹。光在物理上是准的；采样不多就有噪声；一帧要数秒到数分钟。Blender Cycles，以及电影渲染器。人工智能降噪器能减少所需的采样。</p></div>
+<div class="card b"><h4>路径追踪（离线）</h4><p>模拟每个像素上的许多条光线在场景里反弹。光在物理上是准确的；采样不多就有噪声；一帧要数秒到数分钟。Blender Cycles，以及电影渲染器。人工智能降噪器能减少所需的采样。</p></div>
 <div class="card b"><h4>二维矢量渲染</h4><p>画形状、文字、SVG 和图像，通常借无界面浏览器（网页框架）或 Cairo/OpenGL（Python 库）。快；文字绝对清晰。</p></div>
 </div>
 <p><b>成本直觉</b>：两分钟的视频、30 fps，是 3,600 帧。路径追踪若一帧 30 秒，一台机器就是 30 小时——所以制作才会并行渲染、降低采样，或改用实时引擎。二维渲染若一帧 50 毫秒，一共就是 3 分钟。<span class="ev i">推断</span>（算术）。</p>
@@ -130,7 +130,7 @@ class Landing(Scene):
         self.play(eq.animate.to_edge(UP), run_time=1.5)</code></pre>
 </div>
 <div class="tab-panel" data-panel="3d">
-<p>带 Python 接口或命令行渲染的完整三维应用。<b>Blender</b>（免费，GPL；5.2.2 LTS 于 2026-09-15 发布）是代理的默认选择，因为它能无界面运行（<code>blender -b scene.blend -P script.py</code>），而且 Python 够得着一切。实时引擎（<b>Unreal</b>、<b>Unity</b>、<b>Godot</b>）渲染快，资产生态也大，但自动化起来更重。网页三维（<b>Three.js</b>，约 116k 星）可以借上面的网页框架来渲染。<span class="ev v">已核对</span></p>
+<p>带 Python 接口或命令行渲染的完整三维应用。<b>Blender</b>（免费，GPL；5.2.2 LTS 于 2026-09-15 发布）是代理的默认选择，因为它能无界面运行（<code>blender -b scene.blend -P script.py</code>），而且其中的一切都能从 Python 访问到。实时引擎（<b>Unreal</b>、<b>Unity</b>、<b>Godot</b>）渲染快，资产生态也大，但自动化起来更重。网页三维（<b>Three.js</b>，约 116k 星）可以借上面的网页框架来渲染。<span class="ev v">已核对</span></p>
 <pre><code># Blender-style idea (illustrative)
 import bpy
 booster = bpy.data.objects["Booster"]
